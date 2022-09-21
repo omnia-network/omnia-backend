@@ -1,0 +1,6 @@
+{
+    "name": "dfx-container",
+    "build": {
+        "dockerfile": "Dockerfile"
+    }
+}
