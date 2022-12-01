@@ -94,11 +94,15 @@ module.exports = {
       process: require.resolve("process/browser"),
     }),
   ],
-  // proxy /api to port 8000 during development
+  // if run from outside any dfx project, or if dfx.json does not define the local network, then
+  // dfx start looks for the local network definition in $HOME/.config/dfx/networks.json. If this
+  // file does not exist or does not contain a definition for the local network, then dfx uses the
+  // following default binding: 127.0.0.1:4943
+  // https://internetcomputer.org/docs/current/references/cli-reference/dfx-start#the-shared-local-network
   devServer: {
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:8000",
+        target: "http://127.0.0.1:4943",    // proxy /api to port 4943 during development
         changeOrigin: true,
         pathRewrite: {
           "^/api": "/api",
