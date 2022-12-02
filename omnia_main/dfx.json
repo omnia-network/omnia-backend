@@ -10,11 +10,10 @@
         "omnia_main_backend"
       ],
       "frontend": {
-        "entrypoint": "src/omnia_main_frontend/src/index.html"
+        "entrypoint": "src/omnia_main_frontend/build/index.html"
       },
       "source": [
-        "src/omnia_main_frontend/assets",
-        "dist/omnia_main_frontend/"
+        "src/omnia_main_frontend/build"
       ],
       "type": "assets"
     }
