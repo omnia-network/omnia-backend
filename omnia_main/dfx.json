@@ -1,5 +1,17 @@
 {
   "canisters": {
+    "internet_identity": {
+      "type": "custom",
+      "candid": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity.did",
+      "wasm": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity_dev.wasm",
+
+      "shrink": false,
+      "remote": {
+        "id": {
+          "ic": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+        }
+      }
+    },
     "omnia_main_backend": {
       "candid": "src/omnia_main_backend/omnia_main_backend.did",
       "package": "omnia_main_backend",
