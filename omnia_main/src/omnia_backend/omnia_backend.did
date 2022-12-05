@@ -1,4 +1,5 @@
 service : {
     "greet": (text) -> (text) query;
     "whoami": () -> (principal) query;
+    "get_device_uid": () -> (text) query;
 }

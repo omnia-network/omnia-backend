@@ -28,6 +28,18 @@
         "src/omnia_user_frontend/build"
       ],
       "type": "assets"
+    },
+    "omnia_gateway_frontend": {
+      "dependencies": [
+        "omnia_backend"
+      ],
+      "frontend": {
+        "entrypoint": "src/omnia_gateway_frontend/build/index.html"
+      },
+      "source": [
+        "src/omnia_gateway_frontend/build"
+      ],
+      "type": "assets"
     }
   },
   "defaults": {
