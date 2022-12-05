@@ -1,7 +1,7 @@
 import React, { FormEvent, useEffect, useRef, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import { omnia_main_backend } from "../../declarations/omnia_main_backend";
+import { omnia_backend } from "../../declarations/omnia_backend";
 import { getAuthClient } from './services/authClient';
 
 const App = () => {
@@ -23,7 +23,7 @@ const App = () => {
 
     try {
       // Interact with foo actor, calling the greet method
-      const result = await omnia_main_backend.greet(name);
+      const result = await omnia_backend.greet(name);
       setResult(result);
     } catch (e: any) {
       setResult(e.message);
@@ -36,7 +36,7 @@ const App = () => {
     const authClient = await getAuthClient();
     authClient.login({
       async onSuccess() {
-        console.log("You are logged in as", await omnia_main_backend.whoami());
+        console.log("You are logged in as", await omnia_backend.whoami());
         setIsLogged(true);
       },
       onError(error) {
@@ -51,7 +51,7 @@ const App = () => {
       console.log("Auth Client initialized", authClient);
       const isAuth = await authClient.isAuthenticated();
       if (isAuth) {
-        console.log("You are logged in as", await omnia_main_backend.whoami());
+        console.log("You are logged in as", await omnia_backend.whoami());
       }
       setIsLogged(isAuth);
     });

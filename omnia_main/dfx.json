@@ -12,20 +12,20 @@
         }
       }
     },
-    "omnia_main_backend": {
-      "candid": "src/omnia_main_backend/omnia_main_backend.did",
-      "package": "omnia_main_backend",
+    "omnia_backend": {
+      "candid": "src/omnia_backend/omnia_backend.did",
+      "package": "omnia_backend",
       "type": "rust"
     },
-    "omnia_main_frontend": {
+    "omnia_user_frontend": {
       "dependencies": [
-        "omnia_main_backend"
+        "omnia_backend"
       ],
       "frontend": {
-        "entrypoint": "src/omnia_main_frontend/build/index.html"
+        "entrypoint": "src/omnia_user_frontend/build/index.html"
       },
       "source": [
-        "src/omnia_main_frontend/build"
+        "src/omnia_user_frontend/build"
       ],
       "type": "assets"
     }

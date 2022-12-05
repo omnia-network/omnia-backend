@@ -532,7 +532,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "omnia_main_backend"
+name = "omnia_backend"
 version = "0.1.0"
 dependencies = [
  "candid",

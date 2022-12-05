@@ -1,5 +1,5 @@
 {
-  "name": "omnia_main_frontend",
+  "name": "omnia_user_frontend",
   "version": "0.1.0",
   "description": "Internet Computer starter application",
   "keywords": [
@@ -9,8 +9,8 @@
     "Canister"
   ],
   "scripts": {
-    "start": "cd src/omnia_main_frontend && npm run start",
-    "build": "cd src/omnia_main_frontend && npm run build",
+    "start": "cd src/omnia_user_frontend && npm run start",
+    "build": "cd src/omnia_user_frontend && npm run build",
     "prebuild": "npm run copy:types",
     "prestart": "npm run copy:types",
     "copy:types": "rsync -avr .dfx/$(echo ${DFX_NETWORK:-'**'})/canisters/** --exclude='assets/' --exclude='idl/' --exclude='*.wasm' --exclude='*.most' --delete src/declarations"
