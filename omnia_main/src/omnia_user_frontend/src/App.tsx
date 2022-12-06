@@ -3,12 +3,14 @@ import logo from './logo.svg';
 import './App.css';
 import { omnia_backend } from "../../declarations/omnia_backend";
 import { getAuthClient } from './services/authClient';
+import { QrReader } from 'react-qr-reader';
 
 const App = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<string>('');
+  const [environmentUid, setEnvironmentUid] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
   const [isLogged, setIsLogged] = useState(false);
+  const [scannedQrCode, setScannedQrCode] = useState<any>('');
 
   const onFormSumbit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,11 +24,10 @@ const App = () => {
     }
 
     try {
-      // Interact with foo actor, calling the greet method
-      const result = await omnia_backend.greet(name);
-      setResult(result);
+      const uid = await omnia_backend.set_environment_uid(name);
+      setEnvironmentUid(uid);
     } catch (e: any) {
-      setResult(e.message);
+      setEnvironmentUid(e.message);
     }
     
     setIsSubmitting(false);
@@ -65,11 +66,24 @@ const App = () => {
           <br />
           <br />
           <form action="#" onSubmit={onFormSumbit}>
-            <label htmlFor="name">Enter your name: &nbsp;</label>
+            <label htmlFor="name">Enter UID: &nbsp;</label>
             <input ref={inputRef} id="name" alt="Name" type="text" />
-            <button type="submit" disabled={isSubmitting}>Click Me!</button>
+            <button type="submit" disabled={isSubmitting}>Enter</button>
           </form>
-          <section id="greeting">{result}</section>
+          <section>{environmentUid}</section>
+          <QrReader
+            onResult={(qrCode, error) => {
+              if (!!qrCode) {
+                setScannedQrCode(qrCode);
+              }
+
+              if (!!error) {
+                console.info(error);
+              }
+            }}
+            constraints= {{facingMode: 'environment'}}  // use 'user' for front view
+          />
+          <p>{scannedQrCode}</p>
         </div> 
         : <div>
           <button onClick={handleLogin}>Login</button>
