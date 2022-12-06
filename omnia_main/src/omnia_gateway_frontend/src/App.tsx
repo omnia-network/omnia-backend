@@ -15,7 +15,7 @@ function App() {
   }
 
   return (
-    <div>
+    <div style={{ textAlign: 'center' }}>
       <h2>Scan the QR code to access this device</h2>
       <QRCode value={deviceUid} />
     </div>

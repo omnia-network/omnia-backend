@@ -29,7 +29,7 @@ const App = () => {
     } catch (e: any) {
       setEnvironmentUid(e.message);
     }
-    
+
     setIsSubmitting(false);
   };
 
@@ -60,31 +60,37 @@ const App = () => {
 
   return (
     <div className="App">
-      {isLogged 
-        ? <div>
-          <img src={logo} alt="DFINITY logo" />
-          <br />
-          <br />
-          <form action="#" onSubmit={onFormSumbit}>
-            <label htmlFor="name">Enter UID: &nbsp;</label>
-            <input ref={inputRef} id="name" alt="Name" type="text" />
-            <button type="submit" disabled={isSubmitting}>Enter</button>
-          </form>
-          <section>{environmentUid}</section>
-          <QrReader
-            onResult={(qrCode, error) => {
-              if (!!qrCode) {
-                setScannedQrCode(qrCode);
-              }
+      {isLogged
+        ? (
+          <div>
+            <img src={logo} alt="DFINITY logo" />
+            <br />
+            <br />
+            <form action="#" onSubmit={onFormSumbit}>
+              <label htmlFor="name">Enter UID: &nbsp;</label>
+              <input ref={inputRef} id="name" alt="Name" type="text" />
+              <button type="submit" disabled={isSubmitting}>Enter</button>
+            </form>
+            <h2 style={{ textAlign: 'center' }}>{environmentUid}</h2>
+            <h2 style={{ textAlign: 'center' }}>{scannedQrCode.toString()}</h2>
+            <QrReader
+              videoContainerStyle={{ paddingTop: 0 }}
+              videoStyle={{ width: '50%', height: 'initial', margin: '20px auto', position: 'relative' }}
+              onResult={(qrCode, error) => {
 
-              if (!!error) {
-                console.info(error);
-              }
-            }}
-            constraints= {{facingMode: 'environment'}}  // use 'user' for front view
-          />
-          <p>{scannedQrCode}</p>
-        </div> 
+                if (error) {
+                  console.info(error);
+                  return;
+                }
+
+                if (qrCode) {
+                  setScannedQrCode(qrCode);
+                }
+              }}
+              constraints={{ facingMode: 'environment' }}  // use 'user' for front view
+            />
+          </div>
+        )
         : <div>
           <button onClick={handleLogin}>Login</button>
         </div>}
