@@ -1,5 +1,5 @@
 service : {
-    "greet": (text) -> (text) query;
+    "set_environment_uid": (text) -> (text);
     "whoami": () -> (principal) query;
     "get_device_uid": () -> (text) query;
 }
