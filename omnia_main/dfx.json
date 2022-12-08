@@ -15,6 +15,14 @@
     "omnia_backend": {
       "candid": "src/omnia_backend/omnia_backend.did",
       "package": "omnia_backend",
+      "type": "rust",
+      "dependencies": [
+        "user_profile_backend"
+      ]
+    },
+    "user_profile_backend": {
+      "candid": "src/user_profile_backend/profile.did",
+      "package": "user_profile_backend",
       "type": "rust"
     },
     "omnia_user_frontend": {

@@ -1,4 +1,5 @@
 [workspace]
 members = [
+    "src/user_profile_backend",
     "src/omnia_backend",
 ]

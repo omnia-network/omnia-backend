@@ -1,0 +1,11 @@
+type Profile = record {
+    "name": text;
+    "description": text;
+    "keywords": vec text;
+};
+
+service : {
+    "getSelf": (text) -> (Profile) query;
+    "updateProfile": (text, Profile) -> ();
+    "userIsInEnvironment": (text) -> (bool) query;
+}

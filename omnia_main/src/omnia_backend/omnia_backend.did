@@ -1,5 +1,13 @@
+type Profile = record {
+    "name": text;
+    "description": text;
+    "keywords": vec text;
+};
+
 service : {
     "set_environment_uid": (text) -> (text);
-    "whoami": () -> (principal) query;
+    "whoami": () -> (principal);
     "get_device_uid": () -> (text) query;
+    "getSelf": () -> (Profile);
+
 }
