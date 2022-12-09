@@ -1,0 +1,16 @@
+type EnvironmentInfo = record {
+    "env_name": text;
+    "env_uid": text;
+};
+
+type EnvironmentRegistrationInput = record {
+    "env_name": text;
+};
+
+type EnvironmentRegistrationResult = record {
+    "env_uid": text;
+};
+
+service : {
+    "InitializeNewEnvironment": (text, EnvironmentRegistrationInput) -> (EnvironmentRegistrationResult);
+}

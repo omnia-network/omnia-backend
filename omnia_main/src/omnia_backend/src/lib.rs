@@ -1,8 +1,8 @@
 use candid::{Principal, CandidType, Deserialize};
 use ic_cdk::api::{self, call::ManualReply};
 
-#[ic_cdk_macros::import(canister = "user_profile_backend")]
-struct UserProfileCanister;
+// #[ic_cdk_macros::import(canister = "user_profile_backend")]
+// struct UserProfileCanister;
 
 // #[ic_cdk_macros::update]
 // async fn set_environment_uid(uid: String) -> String {
@@ -33,11 +33,8 @@ struct UserProfileCanister;
 //     UserProfileCanister::getSelf(api::caller().to_string()).await.0
 // }
 
-#[derive(CandidType)]
-struct EnvironmentInfo {
-    env_name: String,
-    env_uid: String,
-}
+#[ic_cdk_macros::import(canister = "environments_db")]
+struct EnvironmentsDatabaseCanister;
 
 #[ic_cdk_macros::update(name = "setUserInEnvironment")]
 fn set_user_in_environment(env_uid: String) -> ManualReply<EnvironmentInfo> {
@@ -48,21 +45,19 @@ fn set_user_in_environment(env_uid: String) -> ManualReply<EnvironmentInfo> {
     })
 }
 
-#[derive(CandidType, Deserialize)]
-struct EnvironmentRegistrationInput {
-    env_name: String,
-}
-
-#[derive(CandidType)]
-struct EnvironmentRegistrationResult {
-    env_uid: String,
-}
-
 #[ic_cdk_macros::update(name = "registerEnvironment")]
-fn register_environment(
-    env_reg_input: EnvironmentRegistrationInput
-) -> ManualReply<EnvironmentRegistrationResult> {
-    ManualReply::one(EnvironmentRegistrationResult {
-        env_uid: String::from("Random environment UID"),
-    })
+async fn register_environment(
+    environment_registration_input: EnvironmentRegistrationInput
+) -> Box<EnvironmentRegistrationResult> {
+
+    let environment_manager_principal_id = api::caller().to_string();
+
+    let environment_registration_result = EnvironmentsDatabaseCanister::InitializeNewEnvironment(
+        environment_manager_principal_id,
+        Box::new(environment_registration_input)
+    ).await.0;
+
+    ic_cdk::print(format!("Initialized environment: {:?}", environment_registration_result));
+
+    environment_registration_result
 }

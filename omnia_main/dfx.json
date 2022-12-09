@@ -17,8 +17,14 @@
       "package": "omnia_backend",
       "type": "rust",
       "dependencies": [
-        "user_profile_backend"
+        "user_profile_backend",
+        "environments_db"
       ]
+    },
+    "environments_db": {
+      "candid": "src/environments_db/environments_db.did",
+      "package": "environments_db",
+      "type": "rust"
     },
     "user_profile_backend": {
       "candid": "src/user_profile_backend/profile.did",
