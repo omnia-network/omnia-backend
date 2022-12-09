@@ -24,7 +24,7 @@ const App = () => {
     }
 
     try {
-      const uid = await omnia_backend.set_environment_uid(name);
+      // const uid = await omnia_backend.set_environment_uid(name);
       setEnvironmentUid(uid);
     } catch (e: any) {
       setEnvironmentUid(e.message);
@@ -37,7 +37,7 @@ const App = () => {
     const authClient = await getAuthClient();
     authClient.login({
       async onSuccess() {
-        console.log("You are logged in as", await omnia_backend.whoami());
+        // console.log("You are logged in as", await omnia_backend.whoami());
         setIsLogged(true);
       },
       onError(error) {
@@ -52,7 +52,7 @@ const App = () => {
       console.log("Auth Client initialized", authClient);
       const isAuth = await authClient.isAuthenticated();
       if (isAuth) {
-        console.log("You are logged in as", await omnia_backend.whoami());
+        // console.log("You are logged in as", await omnia_backend.whoami());
       }
       setIsLogged(isAuth);
     });

@@ -4,10 +4,23 @@ type Profile = record {
     "keywords": vec text;
 };
 
+type EnvironmentInfo = record {
+    "env_name": text;
+    "env_uid": text;
+};
+
+type EnvironmentRegistrationInput = record {
+    "env_name": text;
+};
+
+type EnvironmentRegistrationResult = record {
+    "env_uid": text;
+};
+
 service : {
     "set_environment_uid": (text) -> (text);
     "whoami": () -> (principal);
-    "get_device_uid": () -> (text) query;
+    "setUserInEnvironment": (text) -> (EnvironmentInfo);
+    "registerEnvironment": (EnvironmentRegistrationInput) -> (EnvironmentRegistrationResult);
     "getSelf": () -> (Profile);
-
 }

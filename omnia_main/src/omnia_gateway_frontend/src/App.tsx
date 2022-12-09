@@ -11,7 +11,7 @@ function App() {
   }, []);
 
   const initDeviceUid = async () => {
-    setDeviceUid(await omnia_backend.get_device_uid());
+    // setDeviceUid(await omnia_backend.get_device_uid());
   }
 
   return (
