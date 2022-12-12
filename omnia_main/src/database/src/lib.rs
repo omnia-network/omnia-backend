@@ -4,15 +4,17 @@ use ic_cdk::export::Principal;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
-//  ENVIRONMENTS DATABASE
+type PrincipalId = String;
 type EnvironmentUID = String;
+
+//  ENVIRONMENTS DATABASE
 type EnvironmentStore = BTreeMap<EnvironmentUID, EnvironmentInfo>;
 
 #[derive(Debug, Clone, CandidType, Deserialize)]
 struct EnvironmentInfo {
     pub env_name: String,
-    pub env_uid: String,
-    pub env_manager_principal_id: String,
+    pub env_uid: EnvironmentUID,
+    pub env_manager_principal_id: PrincipalId,
 }
 
 #[derive(Debug, CandidType, Deserialize)]
@@ -22,7 +24,7 @@ struct EnvironmentRegistrationInput {
 
 #[derive(Debug, CandidType, Deserialize)]
 struct EnvironmentRegistrationResult {
-    pub env_uid: String,
+    pub env_uid: EnvironmentUID,
 }
 
 // USER PROFILE DATABASE
@@ -30,8 +32,8 @@ type UserProfileStore = BTreeMap<Principal, UserProfile>;
 
 #[derive(Clone, Debug, CandidType)]
 struct UserProfile {
-    pub user_principal_id: String,
-    pub environment_uid: Option<String>,
+    pub user_principal_id: PrincipalId,
+    pub environment_uid: Option<EnvironmentUID>,
 }
 
 thread_local! {
@@ -43,7 +45,7 @@ thread_local! {
 
 #[ic_cdk_macros::update(name = "initializeNewEnvironment", manual_reply = true)]
 fn initialize_new_environment(
-    environment_manager_principal_id: String,
+    environment_manager_principal_id: PrincipalId,
     environment_registration_input: EnvironmentRegistrationInput
 ) -> ManualReply<EnvironmentRegistrationResult>{
 
@@ -70,7 +72,7 @@ fn initialize_new_environment(
 
 
 #[ic_cdk_macros::update(name = "setUserInEnvironment", manual_reply = true)]
-fn set_user_in_environment(user_principal_id: String, env_uid: String) -> ManualReply<EnvironmentInfo> {
+fn set_user_in_environment(user_principal_id: PrincipalId, env_uid: EnvironmentUID) -> ManualReply<EnvironmentInfo> {
 
     let user_principal = Principal::from_text(user_principal_id).unwrap();
 
@@ -112,7 +114,7 @@ fn get_environment_info_by_uid(environment_uid: &EnvironmentUID) -> Option<Envir
 
 
 #[ic_cdk_macros::update(name = "getUserProfile", manual_reply = true)]
-fn get_user_profile(user_principal_id: String) -> ManualReply<UserProfile> {
+fn get_user_profile(user_principal_id: PrincipalId) -> ManualReply<UserProfile> {
 
     let user_principal = Principal::from_text(user_principal_id).unwrap();
 

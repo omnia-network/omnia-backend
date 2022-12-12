@@ -1,8 +1,3 @@
-type UserProfile = record {
-    "user_principal_id": text;
-    "environments_uid": opt text;
-};
-
 type EnvironmentInfo = record {
     "env_name": text;
     "env_uid": text;
@@ -15,6 +10,11 @@ type EnvironmentRegistrationInput = record {
 
 type EnvironmentRegistrationResult = record {
     "env_uid": text;
+};
+
+type UserProfile = record {
+    "user_principal_id": text;
+    "environments_uid": opt text;
 };
 
 service : {

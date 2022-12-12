@@ -1,5 +1,7 @@
 use ic_cdk::api;
 
+type EnvironmentUID = String;
+
 #[ic_cdk_macros::import(canister = "database")]
 struct Database;
 
@@ -19,7 +21,7 @@ async fn get_profile() -> Box<UserProfile> {
 
 
 #[ic_cdk_macros::update(name = "setEnvironment")]
-async fn set_environment(env_uid: String) -> Box<EnvironmentInfo> {
+async fn set_environment(env_uid: EnvironmentUID) -> Box<EnvironmentInfo> {
     let user_principal = api::caller();
 
     let environment_info = Database::setUserInEnvironment(user_principal.to_string(), env_uid).await.0;
