@@ -14,7 +14,7 @@ type EnvironmentRegistrationResult = record {
 
 type UserProfile = record {
     "user_principal_id": text;
-    "environments_uid": opt text;
+    "environment_uid": opt text;
 };
 
 service : {
