@@ -4,7 +4,6 @@
       "type": "custom",
       "candid": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity.did",
       "wasm": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity_dev.wasm",
-
       "shrink": false,
       "remote": {
         "id": {
@@ -17,18 +16,12 @@
       "package": "omnia_backend",
       "type": "rust",
       "dependencies": [
-        "user_profile_backend",
-        "environments_db"
+        "database"
       ]
     },
-    "environments_db": {
-      "candid": "src/environments_db/environments_db.did",
-      "package": "environments_db",
-      "type": "rust"
-    },
-    "user_profile_backend": {
-      "candid": "src/user_profile_backend/profile.did",
-      "package": "user_profile_backend",
+    "database": {
+      "candid": "src/database/database.did",
+      "package": "database",
       "type": "rust"
     },
     "omnia_user_frontend": {

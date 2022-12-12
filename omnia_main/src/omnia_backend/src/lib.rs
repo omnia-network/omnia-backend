@@ -1,48 +1,30 @@
-use candid::{Principal, CandidType, Deserialize};
-use ic_cdk::api::{self, call::ManualReply};
+use ic_cdk::api;
 
-// #[ic_cdk_macros::import(canister = "user_profile_backend")]
-// struct UserProfileCanister;
+#[ic_cdk_macros::import(canister = "database")]
+struct Database;
 
-// #[ic_cdk_macros::update]
-// async fn set_environment_uid(uid: String) -> String {
-//     let principal = api::caller();
-//     ic_cdk::print(format!("User: {:?} is in environment with ID: {}", principal, uid));
-//     UserProfileCanister::updateProfile(principal.to_string(), Box::new(Profile {
-//         name: String::from("Massimo"),
-//         description: String::from("omnia"),
-//         keywords: vec![],
-//     })).await;
-//     uid
-// }
+#[ic_cdk_macros::update(name = "getProfile")]
+async fn get_profile() -> Box<UserProfile> {
+    let user_principal = api::caller();
 
-// #[ic_cdk_macros::update(name = "whoami")]
-// async fn whoami() -> Principal {
-//     let principal = api::caller();
-//     if UserProfileCanister::userIsInEnvironment(principal.to_string()).await.0 {
-//         ic_cdk::print(format!("User: {:?} is already in environment", principal));
-//     }
-//     else {
-//         ic_cdk::print(format!("User: {:?} is not in environment yet", principal));
-//     }
-//     principal
-// }
+    let user_profile = Database::getUserProfile(user_principal.to_string()).await.0;
 
-// #[ic_cdk_macros::update(name = "getSelf")]
-// async fn get_self() -> Box<Profile> {
-//     UserProfileCanister::getSelf(api::caller().to_string()).await.0
-// }
+    ic_cdk::print(format!("Created user profile: {:?}", user_profile));
 
-#[ic_cdk_macros::import(canister = "environments_db")]
-struct EnvironmentsDatabaseCanister;
+    user_profile
+}
 
 #[ic_cdk_macros::update(name = "setUserInEnvironment")]
-fn set_user_in_environment(env_uid: String) -> ManualReply<EnvironmentInfo> {
+fn set_user_in_environment(env_uid: String) -> Box<EnvironmentInfo> {
     // TODO: add user to environment
-    ManualReply::one(EnvironmentInfo {
+    let environment_info = Box::new(EnvironmentInfo {
         env_name: String::from("Example environment"),
         env_uid,
-    })
+    });
+
+    ic_cdk::print(format!("Setting user in environment: {:?}", environment_info));
+
+    environment_info
 }
 
 #[ic_cdk_macros::update(name = "registerEnvironment")]
@@ -50,10 +32,10 @@ async fn register_environment(
     environment_registration_input: EnvironmentRegistrationInput
 ) -> Box<EnvironmentRegistrationResult> {
 
-    let environment_manager_principal_id = api::caller().to_string();
+    let environment_manager_principal = api::caller();
 
-    let environment_registration_result = EnvironmentsDatabaseCanister::InitializeNewEnvironment(
-        environment_manager_principal_id,
+    let environment_registration_result = Database::initializeNewEnvironment(
+        environment_manager_principal.to_string(),
         Box::new(environment_registration_input)
     ).await.0;
 

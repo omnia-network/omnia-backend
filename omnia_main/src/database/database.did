@@ -1,0 +1,22 @@
+type EnvironmentInfo = record {
+    "env_name": text;
+    "env_uid": text;
+};
+
+type EnvironmentRegistrationInput = record {
+    "env_name": text;
+};
+
+type EnvironmentRegistrationResult = record {
+    "env_uid": text;
+};
+
+type UserProfile = record {
+    "user_principal_id": text;
+    "environments_uid": opt text;
+};
+
+service : {
+    "initializeNewEnvironment": (text, EnvironmentRegistrationInput) -> (EnvironmentRegistrationResult);
+    "getUserProfile": (text) -> (UserProfile);
+}
