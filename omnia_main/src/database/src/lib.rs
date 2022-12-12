@@ -37,6 +37,8 @@ thread_local! {
     static ENVIRONMENT_STORE: RefCell<EnvironmentStore> = RefCell::default();
 }
 
+
+
 #[ic_cdk_macros::update(name = "initializeNewEnvironment", manual_reply = true)]
 fn initialize_new_environment(
     environment_manager_principal_id: String,
@@ -63,22 +65,41 @@ fn initialize_new_environment(
     ManualReply::one(environment_registration_result)
 }
 
+
+
 #[ic_cdk_macros::update(name = "getUserProfile", manual_reply = true)]
 fn get_user_profile(user_principal_id: String) -> ManualReply<UserProfile> {
 
-    // supposing the user does not have a profile
-    let user_profile = UserProfile {
-        user_principal_id: user_principal_id.clone(),
-        environment_uid: None,
-    };
-
     let user_principal = Principal::from_text(user_principal_id).unwrap();
 
-    ic_cdk::print(format!("Creating profile of user: {:?}", user_principal));
-
-    USER_PROFILE_STORE.with(|profile_store| {
-        profile_store.borrow_mut().insert(user_principal, user_profile.clone());
+    let user_profile = USER_PROFILE_STORE.with(|profile_store| {
+        match profile_store.borrow().get(&user_principal) {
+            Some(user_profile) => Some(user_profile.to_owned()),
+            None => None
+        }
     });
 
-    ManualReply::one(user_profile)
+    match user_profile {
+        Some(user_profile) => {
+            ic_cdk::print(format!("User: {:?} has profile: {:?}", user_principal, user_profile));
+            ManualReply::one(user_profile)
+        },
+        None => {
+            ic_cdk::print("User does not have a profile");
+
+            // create new user profile
+            let new_user_profile = UserProfile {
+                user_principal_id: user_principal.to_string(),
+                environment_uid: None,
+            };
+    
+            ic_cdk::print(format!("Created profile: {:?} of user: {:?}", new_user_profile, user_principal));
+
+            USER_PROFILE_STORE.with(|profile_store| {
+                profile_store.borrow_mut().insert(user_principal, new_user_profile.clone());
+            });
+
+            ManualReply::one(new_user_profile)
+        }
+    }
 }
