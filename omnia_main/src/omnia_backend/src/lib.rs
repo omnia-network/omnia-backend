@@ -18,15 +18,12 @@ async fn get_profile() -> Box<UserProfile> {
 
 
 
-#[ic_cdk_macros::update(name = "setUserInEnvironment")]
-fn set_user_in_environment(env_uid: String) -> Box<EnvironmentInfo> {
-    // TODO: add user to environment
-    let environment_info = Box::new(EnvironmentInfo {
-        env_name: String::from("Example environment"),
-        env_uid,
-    });
+#[ic_cdk_macros::update(name = "setEnvironment")]
+async fn set_environment(env_uid: String) -> Box<EnvironmentInfo> {
+    let user_principal = api::caller();
 
-    ic_cdk::print(format!("Setting user in environment: {:?}", environment_info));
+    let environment_info = Database::setUserInEnvironment(user_principal.to_string(), env_uid).await.0;
+    ic_cdk::print(format!("User in environment: {:?}", environment_info));
 
     environment_info
 }

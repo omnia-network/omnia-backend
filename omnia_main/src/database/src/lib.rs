@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 //  ENVIRONMENTS DATABASE
 type EnvironmentStore = BTreeMap<Principal, EnvironmentInfo>;
 
-#[derive(CandidType)]
+#[derive(Debug, CandidType)]
 struct EnvironmentInfo {
     pub env_name: String,
     pub env_uid: String,
@@ -67,19 +67,44 @@ fn initialize_new_environment(
 
 
 
+#[ic_cdk_macros::update(name = "setUserInEnvironment", manual_reply = true)]
+fn set_user_in_environment(user_principal_id: String, env_uid: String) -> ManualReply<EnvironmentInfo> {
+
+    let user_principal = Principal::from_text(user_principal_id).unwrap();
+
+    match get_user_profile_if_exists(user_principal) {
+        Some(user_profile) => {
+            let updated_user_profile = UserProfile {
+                environment_uid : Some(env_uid.clone()),
+                ..user_profile
+            };
+
+            USER_PROFILE_STORE.with(|profile_store| {
+                profile_store.borrow_mut().insert(user_principal, updated_user_profile);
+            });
+
+            ic_cdk::print(format!("User: {:?} set in environment with UID: {:?}", user_principal, env_uid));
+
+            ManualReply::one(EnvironmentInfo {
+                env_name: String::from("Fake environment name"),
+                env_uid,
+            })
+
+        },
+        None => {
+            panic!("User does not have a profile")
+        }
+    }
+
+}
+
+
 #[ic_cdk_macros::update(name = "getUserProfile", manual_reply = true)]
 fn get_user_profile(user_principal_id: String) -> ManualReply<UserProfile> {
 
     let user_principal = Principal::from_text(user_principal_id).unwrap();
 
-    let user_profile = USER_PROFILE_STORE.with(|profile_store| {
-        match profile_store.borrow().get(&user_principal) {
-            Some(user_profile) => Some(user_profile.to_owned()),
-            None => None
-        }
-    });
-
-    match user_profile {
+    match get_user_profile_if_exists(user_principal) {
         Some(user_profile) => {
             ic_cdk::print(format!("User: {:?} has profile: {:?}", user_principal, user_profile));
             ManualReply::one(user_profile)
@@ -102,4 +127,13 @@ fn get_user_profile(user_principal_id: String) -> ManualReply<UserProfile> {
             ManualReply::one(new_user_profile)
         }
     }
+}
+
+fn get_user_profile_if_exists(user_principal: Principal) -> Option<UserProfile> {
+    USER_PROFILE_STORE.with(|profile_store| {
+        match profile_store.borrow().get(&user_principal) {
+            Some(user_profile) => Some(user_profile.to_owned()),
+            None => None
+        }
+    })
 }

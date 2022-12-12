@@ -18,6 +18,6 @@ type EnvironmentRegistrationResult = record {
 
 service : {
     "getProfile": () -> (UserProfile);
-    "setUserInEnvironment": (text) -> (EnvironmentInfo);
+    "setEnvironment": (text) -> (EnvironmentInfo);
     "registerEnvironment": (EnvironmentRegistrationInput) -> (EnvironmentRegistrationResult);
 }

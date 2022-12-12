@@ -18,5 +18,6 @@ type UserProfile = record {
 
 service : {
     "initializeNewEnvironment": (text, EnvironmentRegistrationInput) -> (EnvironmentRegistrationResult);
+    "setUserInEnvironment": (text, text) -> (EnvironmentInfo);
     "getUserProfile": (text) -> (UserProfile);
 }
