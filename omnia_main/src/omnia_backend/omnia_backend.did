@@ -6,6 +6,7 @@ type UserProfile = record {
 type EnvironmentInfo = record {
     "env_name": text;
     "env_uid": text;
+    "env_manager_principal_id": text;
 };
 
 type EnvironmentRegistrationInput = record {
