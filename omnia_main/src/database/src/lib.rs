@@ -108,6 +108,38 @@ fn set_user_in_environment(user_principal_id: PrincipalId, env_uid: EnvironmentU
 
 
 
+#[ic_cdk_macros::update(name = "resetUserFromEnvironment", manual_reply = true)]
+fn reset_user_from_environment(user_principal_id: PrincipalId) -> ManualReply<EnvironmentInfo> {
+
+    let user_principal = Principal::from_text(user_principal_id).unwrap();
+
+    match get_user_profile_if_exists(user_principal) {
+        Some(user_profile) => {
+            let updated_user_profile = UserProfile {
+                environment_uid : None,
+                ..user_profile
+            };
+
+            USER_PROFILE_STORE.with(|profile_store| {
+                profile_store.borrow_mut().insert(user_principal, updated_user_profile)
+            });
+
+            match user_profile.environment_uid {
+                Some(old_environment_uid) => {
+                    match get_environment_info_by_uid(&old_environment_uid) {
+                        Some(environment_info) => ManualReply::one(environment_info),
+                        None => panic!("Environment does not exist"),
+                    }
+                },
+                None => panic!("User is not in environment"),
+            }
+        },
+        None => panic!("User does not have a profile")
+    }
+}
+
+
+
 #[ic_cdk_macros::update(name = "getUserProfile", manual_reply = true)]
 fn get_user_profile(user_principal_id: PrincipalId) -> ManualReply<UserProfile> {
 

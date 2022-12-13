@@ -20,5 +20,6 @@ type UserProfile = record {
 service : {
     "initializeNewEnvironment": (text, EnvironmentRegistrationInput) -> (EnvironmentRegistrationResult);
     "setUserInEnvironment": (text, nat32) -> (EnvironmentInfo);
+    "resetUserFromEnvironment": (text) -> (EnvironmentInfo);
     "getUserProfile": (text) -> (UserProfile);
 }

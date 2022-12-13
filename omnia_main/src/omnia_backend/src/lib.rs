@@ -32,6 +32,18 @@ async fn set_environment(env_uid: EnvironmentUID) -> Box<EnvironmentInfo> {
 
 
 
+
+#[ic_cdk_macros::update(name = "resetEnvironment")]
+async fn reset_environment() -> Box<EnvironmentInfo> {
+    let user_principal = api::caller();
+
+    let environment_info = Database::resetUserFromEnvironment(user_principal.to_string()).await.0;
+    ic_cdk::print(format!("User not in environment: {:?}", environment_info));
+
+    environment_info
+}
+
+
 #[ic_cdk_macros::update(name = "registerEnvironment")]
 async fn register_environment(
     environment_registration_input: EnvironmentRegistrationInput

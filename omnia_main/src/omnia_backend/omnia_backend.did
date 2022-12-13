@@ -20,5 +20,6 @@ type UserProfile = record {
 service : {
     "getProfile": () -> (UserProfile);
     "setEnvironment": (nat32) -> (EnvironmentInfo);
+    "resetEnvironment": () -> (EnvironmentInfo);
     "registerEnvironment": (EnvironmentRegistrationInput) -> (EnvironmentRegistrationResult);
 }
