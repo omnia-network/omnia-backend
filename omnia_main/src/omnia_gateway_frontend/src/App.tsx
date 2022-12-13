@@ -1,23 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import QRCode from "react-qr-code";
-import { omnia_backend } from "../../declarations/omnia_backend";
+import React from 'react';
+import Home from './components/Home';
+import { EnvironmentContextProvider } from './contexts/EnvironmentContext';
 
 function App() {
 
-  const [deviceUid, setDeviceUid] = useState("");
-
-  useEffect(() => {
-    initDeviceUid();
-  }, []);
-
-  const initDeviceUid = async () => {
-    // setDeviceUid(await omnia_backend.get_device_uid());
-  }
-
   return (
     <div style={{ textAlign: 'center' }}>
-      <h2>Scan the QR code to access this device</h2>
-      <QRCode value={deviceUid} />
+      <EnvironmentContextProvider>
+        <Home />
+      </EnvironmentContextProvider>
     </div>
   );
 }
