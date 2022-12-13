@@ -3,9 +3,11 @@ use candid::{CandidType, Deserialize};
 use ic_cdk::export::Principal;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
+use getrandom::register_custom_getrandom;
+use rand::Rng;
 
 type PrincipalId = String;
-type EnvironmentUID = String;
+type EnvironmentUID = u32;
 
 //  ENVIRONMENTS DATABASE
 type EnvironmentStore = BTreeMap<EnvironmentUID, EnvironmentInfo>;
@@ -51,19 +53,23 @@ fn initialize_new_environment(
 
     ic_cdk::print(format!("Initializing environment: {:?} managed by: {:?}", environment_registration_input, environment_manager_principal_id));
 
+    register_custom_getrandom!(custom_getrandom);
+    let environment_uid = rand::thread_rng().gen_range(0..100);
+    ic_cdk::print(format!("Environment UID: {:?}", environment_uid));
+
     ENVIRONMENT_STORE.with(|environment_store| {
         environment_store.borrow_mut().insert(
-            String::from("1234567890"),
+            environment_uid,
             EnvironmentInfo {
                 env_name: environment_registration_input.env_name,
-                env_uid: String::from("1234567890"),
+                env_uid: environment_uid,
                 env_manager_principal_id: environment_manager_principal_id,
             }
         );
     });
 
     let environment_registration_result = EnvironmentRegistrationResult {
-        env_uid: String::from("1234567890"),
+        env_uid: environment_uid,
     };
 
     ManualReply::one(environment_registration_result)
@@ -102,17 +108,6 @@ fn set_user_in_environment(user_principal_id: PrincipalId, env_uid: EnvironmentU
 
 
 
-fn get_environment_info_by_uid(environment_uid: &EnvironmentUID) -> Option<EnvironmentInfo> {
-    ENVIRONMENT_STORE.with(|environment_store| {
-        match environment_store.borrow().get(environment_uid) {
-            Some(environment_info) => Some(environment_info.to_owned()),
-            None => None,
-        }
-    })
-}
-
-
-
 #[ic_cdk_macros::update(name = "getUserProfile", manual_reply = true)]
 fn get_user_profile(user_principal_id: PrincipalId) -> ManualReply<UserProfile> {
 
@@ -141,6 +136,24 @@ fn get_user_profile(user_principal_id: PrincipalId) -> ManualReply<UserProfile> 
             ManualReply::one(new_user_profile)
         }
     }
+}
+
+
+
+fn custom_getrandom(buf: &mut [u8]) -> Result<(), getrandom::Error> {
+    // TODO get some randomness
+    return Ok(());
+}
+
+
+
+fn get_environment_info_by_uid(environment_uid: &EnvironmentUID) -> Option<EnvironmentInfo> {
+    ENVIRONMENT_STORE.with(|environment_store| {
+        match environment_store.borrow().get(environment_uid) {
+            Some(environment_info) => Some(environment_info.to_owned()),
+            None => None,
+        }
+    })
 }
 
 

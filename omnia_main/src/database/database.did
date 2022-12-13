@@ -1,6 +1,6 @@
 type EnvironmentInfo = record {
     "env_name": text;
-    "env_uid": text;
+    "env_uid": nat32;
     "env_manager_principal_id": text;
 };
 
@@ -9,16 +9,16 @@ type EnvironmentRegistrationInput = record {
 };
 
 type EnvironmentRegistrationResult = record {
-    "env_uid": text;
+    "env_uid": nat32;
 };
 
 type UserProfile = record {
     "user_principal_id": text;
-    "environment_uid": opt text;
+    "environment_uid": opt nat32;
 };
 
 service : {
     "initializeNewEnvironment": (text, EnvironmentRegistrationInput) -> (EnvironmentRegistrationResult);
-    "setUserInEnvironment": (text, text) -> (EnvironmentInfo);
+    "setUserInEnvironment": (text, nat32) -> (EnvironmentInfo);
     "getUserProfile": (text) -> (UserProfile);
 }

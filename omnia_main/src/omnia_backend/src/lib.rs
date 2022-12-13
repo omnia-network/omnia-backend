@@ -1,6 +1,6 @@
 use ic_cdk::api;
 
-type EnvironmentUID = String;
+type EnvironmentUID = u32;
 
 #[ic_cdk_macros::import(canister = "database")]
 struct Database;
