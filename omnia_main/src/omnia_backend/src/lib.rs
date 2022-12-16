@@ -24,6 +24,7 @@ async fn create_environment(
 }
 
 
+
 #[ic_cdk_macros::update(name = "registerGateway")]
 async fn register_gateway(
     gateway_registration_input: GatewayRegistrationInput
@@ -39,6 +40,25 @@ async fn register_gateway(
     ic_cdk::print(format!("Registered gateway: {:?}", gateway_registration_result));
 
     gateway_registration_result
+}
+
+
+
+#[ic_cdk_macros::update(name = "registerDevice")]
+async fn register_device(
+    device_registration_input: DeviceRegistrationInput
+) -> Box<DeviceRegistrationResult> {
+
+    let environment_manager_principal = api::caller();
+
+    let device_registration_result = Database::registerDeviceInEnvironment(
+        environment_manager_principal.to_string(),
+        Box::new(device_registration_input)
+    ).await.0;
+
+    ic_cdk::print(format!("Registered device: {:?}", device_registration_result));
+
+    device_registration_result
 }
 
 
@@ -65,7 +85,6 @@ async fn set_environment(env_uid: EnvironmentUID) -> Box<EnvironmentInfo> {
 
     environment_info
 }
-
 
 
 

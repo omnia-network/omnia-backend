@@ -23,6 +23,17 @@ type GatewayRegistrationResult = record {
     "gateway_uid": nat32;
 };
 
+type DeviceRegistrationInput = record {
+    "env_uid": nat32;
+    "gateway_uid": nat32;
+    "device_name": text;
+};
+
+type DeviceRegistrationResult = record {
+    "device_name": text;
+    "device_uid": nat32;
+};
+
 type UserProfile = record {
     "user_principal_id": text;
     "environment_uid": opt nat32;
@@ -31,6 +42,7 @@ type UserProfile = record {
 service : {
     "createEnvironment": (EnvironmentCreationInput) -> (EnvironmentCreationResult);
     "registerGateway": (GatewayRegistrationInput) -> (GatewayRegistrationResult);
+    "registerDevice": (DeviceRegistrationInput) -> (DeviceRegistrationResult);
     "getProfile": () -> (UserProfile);
     "setEnvironment": (nat32) -> (EnvironmentInfo);
     "resetEnvironment": () -> (EnvironmentInfo);
