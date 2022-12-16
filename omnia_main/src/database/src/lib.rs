@@ -8,25 +8,55 @@ use rand::Rng;
 
 type PrincipalId = String;
 type EnvironmentUID = u32;
+type GatewayUID = u32;
 
 //  ENVIRONMENTS DATABASE
 type EnvironmentStore = BTreeMap<EnvironmentUID, EnvironmentInfo>;
+
+
+
+#[derive(Debug, Clone, CandidType, Deserialize)]
+struct DeviceInfo {
+    pub device_name: String,
+}
+
+#[derive(Debug, Clone, CandidType, Deserialize)]
+struct GatewayInfo {
+    pub gateway_name: String,
+    pub gateway_uid: GatewayUID,
+    pub devices: Vec<DeviceInfo>,
+}
 
 #[derive(Debug, Clone, CandidType, Deserialize)]
 struct EnvironmentInfo {
     pub env_name: String,
     pub env_uid: EnvironmentUID,
+    pub env_gateways: Vec<GatewayInfo>,
     pub env_manager_principal_id: PrincipalId,
 }
 
+
 #[derive(Debug, CandidType, Deserialize)]
-struct EnvironmentRegistrationInput {
+struct EnvironmentCreationInput {
     pub env_name: String,
 }
 
 #[derive(Debug, CandidType, Deserialize)]
-struct EnvironmentRegistrationResult {
+struct EnvironmentCreationResult {
+    pub env_name: String,
     pub env_uid: EnvironmentUID,
+}
+
+#[derive(Debug, CandidType, Deserialize)]
+struct GatewayRegistrationInput {
+    pub env_uid: EnvironmentUID,
+    pub gateway_name: String,
+}
+
+#[derive(Debug, CandidType, Deserialize)]
+struct GatewayRegistrationResult {
+    pub gateway_name: String,
+    pub gateway_uid: GatewayUID,
 }
 
 // USER PROFILE DATABASE
@@ -45,13 +75,14 @@ thread_local! {
 
 
 
-#[ic_cdk_macros::update(name = "initializeNewEnvironment", manual_reply = true)]
-fn initialize_new_environment(
-    environment_manager_principal_id: PrincipalId,
-    environment_registration_input: EnvironmentRegistrationInput
-) -> ManualReply<EnvironmentRegistrationResult>{
 
-    ic_cdk::print(format!("Initializing environment: {:?} managed by: {:?}", environment_registration_input, environment_manager_principal_id));
+#[ic_cdk_macros::update(name = "createNewEnvironment", manual_reply = true)]
+fn create_new_environment(
+    environment_manager_principal_id: PrincipalId,
+    environment_creation_input: EnvironmentCreationInput
+) -> ManualReply<EnvironmentCreationResult>{
+
+    ic_cdk::print(format!("Creating new environment: {:?} managed by: {:?}", environment_creation_input, environment_manager_principal_id));
 
     register_custom_getrandom!(custom_getrandom);
     let environment_uid = rand::thread_rng().gen_range(0..100);
@@ -61,18 +92,68 @@ fn initialize_new_environment(
         environment_store.borrow_mut().insert(
             environment_uid,
             EnvironmentInfo {
-                env_name: environment_registration_input.env_name,
+                env_name: environment_creation_input.env_name.clone(),
                 env_uid: environment_uid,
+                env_gateways: vec![],
                 env_manager_principal_id: environment_manager_principal_id,
             }
         );
     });
 
-    let environment_registration_result = EnvironmentRegistrationResult {
+    let environment_creation_result = EnvironmentCreationResult {
+        env_name: environment_creation_input.env_name,
         env_uid: environment_uid,
     };
 
-    ManualReply::one(environment_registration_result)
+    ManualReply::one(environment_creation_result)
+}
+
+
+
+#[ic_cdk_macros::update(name = "registerGatewayInEnvironment", manual_reply = true)]
+fn register_gateway_in_environment(
+    environment_manager_principal_id: PrincipalId,
+    gateway_registration_input: GatewayRegistrationInput
+) -> ManualReply<GatewayRegistrationResult>{
+
+    
+    match get_environment_info_by_uid(&gateway_registration_input.env_uid) {
+        Some(environment_info) => {
+            ic_cdk::print(format!("Registering gateway {:?} in environment with UID: {:?} managed by: {:?}", gateway_registration_input.gateway_name, gateway_registration_input.env_uid, environment_manager_principal_id));
+        
+            let gateway_uid = rand::thread_rng().gen_range(0..100);
+            ic_cdk::print(format!("Gateway UID: {:?}", gateway_uid));
+
+            let mut env_gateways = environment_info.env_gateways;
+            env_gateways.push(GatewayInfo {
+                gateway_name: gateway_registration_input.gateway_name.clone(),
+                gateway_uid,
+                devices: vec![],
+            });
+
+            let updated_environment_info = EnvironmentInfo {
+                env_gateways,
+                ..environment_info
+            };
+
+            ic_cdk::print(format!("Updated environment: {:?}", updated_environment_info));
+
+            ENVIRONMENT_STORE.with(|environment_store| {
+                environment_store.borrow_mut().insert(
+                    gateway_registration_input.env_uid,
+                    updated_environment_info
+                )
+            });
+
+            let gateway_registration_result = GatewayRegistrationResult {
+                gateway_name: gateway_registration_input.gateway_name,
+                gateway_uid,
+            };
+
+            ManualReply::one(gateway_registration_result)
+        },
+        None => panic!("Environment does not exist"),
+    }
 }
 
 

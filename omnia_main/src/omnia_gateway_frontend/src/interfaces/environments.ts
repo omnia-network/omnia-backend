@@ -1,6 +1,6 @@
-import { EnvironmentRegistrationResult } from "../../../declarations/omnia_backend/omnia_backend.did";
+import { EnvironmentCreationResult } from "../../../declarations/omnia_backend/omnia_backend.did";
 
-export interface IEnvironmentData extends EnvironmentRegistrationResult {
+export interface IEnvironmentData extends EnvironmentCreationResult {
   envName: string;
 };
 

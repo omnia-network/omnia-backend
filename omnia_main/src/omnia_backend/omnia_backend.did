@@ -4,12 +4,23 @@ type EnvironmentInfo = record {
     "env_manager_principal_id": text;
 };
 
-type EnvironmentRegistrationInput = record {
+type EnvironmentCreationInput = record {
     "env_name": text;
 };
 
-type EnvironmentRegistrationResult = record {
+type EnvironmentCreationResult = record {
+    "env_name": text;
     "env_uid": nat32;
+};
+
+type GatewayRegistrationInput = record {
+    "env_uid": nat32;
+    "gateway_name": text;
+};
+
+type GatewayRegistrationResult = record {
+    "gateway_name": text;
+    "gateway_uid": nat32;
 };
 
 type UserProfile = record {
@@ -18,8 +29,9 @@ type UserProfile = record {
 };
 
 service : {
+    "createEnvironment": (EnvironmentCreationInput) -> (EnvironmentCreationResult);
+    "registerGateway": (GatewayRegistrationInput) -> (GatewayRegistrationResult);
     "getProfile": () -> (UserProfile);
     "setEnvironment": (nat32) -> (EnvironmentInfo);
     "resetEnvironment": () -> (EnvironmentInfo);
-    "registerEnvironment": (EnvironmentRegistrationInput) -> (EnvironmentRegistrationResult);
 }

@@ -22,17 +22,17 @@ export const RegisterEnvironment: React.FC<IProps> = () => {
     setIsLoading(true);
 
     // register environment on canister
-    const res = await omnia_backend.registerEnvironment({
-      env_name: envName,
-    });
+    // const res = await omnia_backend.registerEnvironment({
+    //   env_name: envName,
+    // });
 
-    const envDataRes: IEnvironmentData = {
-      ...res,
-      envName,
-    };
+    // const envDataRes: IEnvironmentData = {
+    //   ...res,
+    //   envName,
+    // };
 
     // set env data in context
-    setEnvData(envDataRes);
+    // setEnvData(envDataRes);
 
     setIsLoading(false);
   };
