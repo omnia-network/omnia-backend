@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "start:user": "cd src/omnia_user_frontend && npm start",
-    "start:gateway": "cd src/omnia_gateway_frontend && npm start",
+    "start:manager": "cd src/omnia_manager_frontend && npm start",
     "build": "./scripts/build.sh",
     "prebuild": "npm run copy:types",
     "prestart": "npm run copy:types",
