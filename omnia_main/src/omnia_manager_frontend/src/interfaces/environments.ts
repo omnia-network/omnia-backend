@@ -1,8 +1,6 @@
 import { EnvironmentCreationResult } from "../../../declarations/omnia_backend/omnia_backend.did";
 
-export interface IEnvironmentData extends EnvironmentCreationResult {
-  envName: string;
-};
+export type IEnvironmentData = EnvironmentCreationResult;
 
 export interface IEnvironmentContext {
   envData: IEnvironmentData | null;

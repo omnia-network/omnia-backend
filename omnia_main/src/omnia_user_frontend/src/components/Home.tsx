@@ -114,8 +114,6 @@ const Home = () => {
       {!!profile
         ? (
           <div>
-            <p>Principal ID: <b>{profile.user_principal_id}</b></p>
-            <p>User in environment ID: <b>{profile.environment_uid[0] || 'null'}</b></p>
             {(!!environmentInfo || profile.environment_uid[0])
               ? (
                 <div>

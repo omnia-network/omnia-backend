@@ -1,13 +1,14 @@
 import React, { useContext, useState } from "react";
 import { omnia_backend } from "../../../declarations/omnia_backend";
 import EnvironmentContext from "../contexts/EnvironmentContext";
-import { IEnvironmentData } from "../interfaces/environments";
+import ProfileContext from "../contexts/ProfileContext";
 
 interface IProps {}
 
-export const RegisterEnvironment: React.FC<IProps> = () => {
+const RegisterEnvironment: React.FC<IProps> = () => {
   const [envName, setEnvName] = useState("");
   const { setEnvData } = useContext(EnvironmentContext);
+  const { fetchProfileFromCanister } = useContext(ProfileContext);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleEnvNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,17 +23,15 @@ export const RegisterEnvironment: React.FC<IProps> = () => {
     setIsLoading(true);
 
     // register environment on canister
-    // const res = await omnia_backend.registerEnvironment({
-    //   env_name: envName,
-    // });
+    const envDataRes = await omnia_backend.createEnvironment({
+      env_name: envName,
+    });
 
-    // const envDataRes: IEnvironmentData = {
-    //   ...res,
-    //   envName,
-    // };
+    // fetch profile again to get the new environment info
+    await fetchProfileFromCanister();
 
     // set env data in context
-    // setEnvData(envDataRes);
+    setEnvData(envDataRes);
 
     setIsLoading(false);
   };
@@ -55,3 +54,5 @@ export const RegisterEnvironment: React.FC<IProps> = () => {
     </div>
   );
 };
+
+export default RegisterEnvironment;

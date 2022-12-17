@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
-import { EnvironmentQRCode } from './EnvironmentQRCode';
-import { RegisterEnvironment } from './RegisterEnvironment';
+import EnvironmentDashboard from './EnvironmentDashboard';
+import RegisterEnvironment from './RegisterEnvironment';
 import EnvironmentContext from '../contexts/EnvironmentContext';
 
 const Home = () => {
@@ -11,7 +11,7 @@ const Home = () => {
       {!envData ? (
         <RegisterEnvironment />
       ) : (
-        <EnvironmentQRCode />
+        <EnvironmentDashboard />
       )}
     </div>
   );
