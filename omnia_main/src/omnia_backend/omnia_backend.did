@@ -1,6 +1,6 @@
 type EnvironmentInfo = record {
     "env_name": text;
-    "env_uid": nat32;
+    "env_uid": text;
     "env_manager_principal_id": text;
 };
 
@@ -10,33 +10,33 @@ type EnvironmentCreationInput = record {
 
 type EnvironmentCreationResult = record {
     "env_name": text;
-    "env_uid": nat32;
+    "env_uid": text;
 };
 
 type GatewayRegistrationInput = record {
-    "env_uid": nat32;
+    "env_uid": text;
     "gateway_name": text;
 };
 
 type GatewayRegistrationResult = record {
     "gateway_name": text;
-    "gateway_uid": nat32;
+    "gateway_uid": text;
 };
 
 type DeviceRegistrationInput = record {
-    "env_uid": nat32;
-    "gateway_uid": nat32;
+    "env_uid": text;
+    "gateway_uid": text;
     "device_name": text;
 };
 
 type DeviceRegistrationResult = record {
     "device_name": text;
-    "device_uid": nat32;
+    "device_uid": text;
 };
 
 type UserProfile = record {
     "user_principal_id": text;
-    "environment_uid": opt nat32;
+    "environment_uid": opt text;
 };
 
 service : {
@@ -44,6 +44,6 @@ service : {
     "registerGateway": (GatewayRegistrationInput) -> (GatewayRegistrationResult);
     "registerDevice": (DeviceRegistrationInput) -> (DeviceRegistrationResult);
     "getProfile": () -> (UserProfile);
-    "setEnvironment": (nat32) -> (EnvironmentInfo);
+    "setEnvironment": (text) -> (EnvironmentInfo);
     "resetEnvironment": () -> (EnvironmentInfo);
 }

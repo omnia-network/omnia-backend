@@ -1,12 +1,13 @@
 use ic_cdk::api::call::ManualReply;
 use std::collections::BTreeMap;
 use rand::Rng;
+use hex;
 use super::interface_types as InterfaceTypes;
 use super::store_types as StoreTypes;
 use super::ENVIRONMENT_STORE;
 
 type PrincipalId = String;
-type EnvironmentUID = u32;
+type EnvironmentUID = String;
 
 
 
@@ -18,15 +19,15 @@ fn create_new_environment(
 
     ic_cdk::print(format!("Creating new environment: {:?} managed by: {:?}", environment_creation_input, environment_manager_principal_id));
 
-    let environment_uid = rand::thread_rng().gen_range(0..100);
+    let environment_uid = generate_uuid();
     ic_cdk::print(format!("Environment UID: {:?}", environment_uid));
 
     ENVIRONMENT_STORE.with(|environment_store| {
         environment_store.borrow_mut().insert(
-            environment_uid,
+            environment_uid.clone(),
             StoreTypes::EnvironmentInfo {
                 env_name: environment_creation_input.env_name.clone(),
-                env_uid: environment_uid,
+                env_uid: environment_uid.clone(),
                 env_gateways: BTreeMap::new(),
                 env_manager_principal_id: environment_manager_principal_id,
             }
@@ -53,14 +54,14 @@ fn register_gateway_in_environment(
         Some(mut environment_info) => {
             ic_cdk::print(format!("Registering gateway {:?} in environment with UID: {:?} managed by: {:?}", gateway_registration_input.gateway_name, gateway_registration_input.env_uid, environment_manager_principal_id));
         
-            let gateway_uid = rand::thread_rng().gen_range(0..100);
+            let gateway_uid = generate_uuid();
             ic_cdk::print(format!("Gateway UID: {:?}", gateway_uid));
 
             environment_info.env_gateways.insert(
-                gateway_uid,
+                gateway_uid.clone(),
                 StoreTypes::GatewayInfo {
                     gateway_name: gateway_registration_input.gateway_name.clone(),
-                    gateway_uid,
+                    gateway_uid: gateway_uid.clone(),
                     devices: BTreeMap::new(),
                 }
             );
@@ -99,11 +100,11 @@ fn register_device_in_environment(
             match environment_info.env_gateways.remove(&device_registration_input.gateway_uid) {
                 Some(mut gateway_info) => {
 
-                    let device_uid = rand::thread_rng().gen_range(0..100);
+                    let device_uid = generate_uuid();
                     ic_cdk::print(format!("Device UID: {:?}", device_uid));
 
                     gateway_info.devices.insert(
-                        device_uid,
+                        device_uid.clone(),
                         StoreTypes::DeviceInfo {
                             device_name: device_registration_input.device_name.clone(),
                         }
@@ -146,4 +147,30 @@ pub fn get_environment_info_by_uid(environment_uid: &EnvironmentUID) -> Option<S
             None => None,
         }
     })
+}
+
+fn create_byte_vector() -> Vec<u8> {
+    let mut random_bytes = rand::thread_rng().gen::<[u8; 16]>();
+    random_bytes[6] = (random_bytes[6] & 0x0f) | 0x40;
+    random_bytes[8] = (random_bytes[8] & 0x3f) | 0x80;
+    random_bytes.to_vec()
+}
+
+fn hex_encode(byte_vector: Vec<u8>) -> Vec<String> {
+    byte_vector
+        .into_iter()
+        .map(|byte| hex::encode([byte]))
+        .collect()
+}
+
+fn generate_uuid() -> String {
+    let hex_vector = hex_encode(create_byte_vector());
+    let mut uuid = String::new();
+    for (index, byte) in hex_vector.iter().enumerate() {
+        uuid.push_str(byte);
+        if [3, 5, 7, 9].contains(&index) {
+            uuid.push('-');
+        }
+    }
+    uuid
 }

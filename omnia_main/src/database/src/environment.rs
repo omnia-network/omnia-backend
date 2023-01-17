@@ -7,7 +7,7 @@ pub mod utils;
 
 use store_types as StoreTypes;
 
-type EnvironmentUID = u32;
+type EnvironmentUID = String;
 
 //  ENVIRONMENTS DATABASE
 type EnvironmentStore = BTreeMap<EnvironmentUID, StoreTypes::EnvironmentInfo>;

@@ -1,8 +1,8 @@
 use candid::{CandidType, Deserialize};
 
-type EnvironmentUID = u32;
-type GatewayUID = u32;
-type DeviceUID = u32;
+type EnvironmentUID = String;
+type GatewayUID = String;
+type DeviceUID = String;
 
 #[derive(Debug, CandidType, Deserialize)]
 pub struct EnvironmentCreationInput {

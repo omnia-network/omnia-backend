@@ -5,7 +5,7 @@ use super::store_types as ProfileStoreTypes;
 use super::super::environment::{store_types as EnvironmentStoreTypes, utils as EnvironmentUtils};
 
 type PrincipalId = String;
-type EnvironmentUID = u32;
+type EnvironmentUID = String;
 
 
 

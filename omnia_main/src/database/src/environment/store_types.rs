@@ -2,9 +2,9 @@ use std::collections::BTreeMap;
 use candid::{CandidType, Deserialize};
 
 type PrincipalId = String;
-type EnvironmentUID = u32;
-type GatewayUID = u32;
-type DeviceUID = u32;
+type EnvironmentUID = String;
+type GatewayUID = String;
+type DeviceUID = String;
 
 #[derive(Debug, Clone, CandidType, Deserialize)]
 pub struct DeviceInfo {

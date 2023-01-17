@@ -1,7 +1,7 @@
 use candid::CandidType;
 
 type PrincipalId = String;
-type EnvironmentUID = u32;
+type EnvironmentUID = String;
 
 #[derive(Clone, Debug, CandidType)]
 pub struct UserProfile {
