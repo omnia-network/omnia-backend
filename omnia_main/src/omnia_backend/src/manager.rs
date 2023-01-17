@@ -1,5 +1,7 @@
 use ic_cdk::api;
 
+use crate::{generate_uuid, INITIALIZED_GATEWAY_STORE};
+
 #[ic_cdk_macros::import(canister = "database")]
 pub struct Database;
 
@@ -23,21 +25,43 @@ async fn create_environment(
 
 
 
+#[ic_cdk_macros::update(name = "initGateway")]
+fn init_gateway() -> String {
+    let gateway_uuid = generate_uuid();
+
+    ic_cdk::print(format!("Initialized gateway with UUID: {:?}", gateway_uuid));
+
+    INITIALIZED_GATEWAY_STORE.with(|intialized_gateway_store| {
+        intialized_gateway_store.borrow_mut().insert(gateway_uuid.clone());
+    });
+
+    gateway_uuid
+}
+
+
+
 #[ic_cdk_macros::update(name = "registerGateway")]
 async fn register_gateway(
     gateway_registration_input: GatewayRegistrationInput
-) -> Box<GatewayRegistrationResult> {
+) -> Option<Box<GatewayRegistrationResult>> {
 
     let environment_manager_principal = api::caller();
 
-    let gateway_registration_result = Database::registerGatewayInEnvironment(
-        environment_manager_principal.to_string(),
-        Box::new(gateway_registration_input)
-    ).await.0;
+    let is_initialized = INITIALIZED_GATEWAY_STORE.with(|intialized_gateway_store| {
+        intialized_gateway_store.borrow().contains(&gateway_registration_input.gateway_uid)
+    });
 
-    ic_cdk::print(format!("Registered gateway: {:?}", gateway_registration_result));
-
-    gateway_registration_result
+    if is_initialized {
+        let gateway_registration_result = Database::registerGatewayInEnvironment(
+            environment_manager_principal.to_string(),
+            Box::new(gateway_registration_input)
+        ).await.0;
+        
+        ic_cdk::print(format!("Registered gateway: {:?}", gateway_registration_result));
+        
+        return Some(gateway_registration_result);
+    }
+    None
 }
 
 

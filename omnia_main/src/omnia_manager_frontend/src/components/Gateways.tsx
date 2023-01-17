@@ -10,6 +10,7 @@ interface IProps { };
 
 const Gateways: React.FC<IProps> = () => {
   const [gatewayNameInput, setGatewayNameInput] = useState("");
+  const [gatewayUidInput, setGatewayUidInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [gateways, setGateways] = useState<GatewayRegistrationResult[]>(getGateways());
   const { envData } = useContext(EnvironmentContext);
@@ -18,6 +19,11 @@ const Gateways: React.FC<IProps> = () => {
 
     if (!gatewayNameInput) {
       alert("Please enter a gateway name");
+      return;
+    }
+
+    if (!gatewayUidInput) {
+      alert("Please enter an initialized gateway UUID");
       return;
     }
 
@@ -32,16 +38,20 @@ const Gateways: React.FC<IProps> = () => {
       const res = await omnia_backend.registerGateway({
         env_uid: envData!.env_uid,
         gateway_name: gatewayNameInput,
+        gateway_uid: gatewayUidInput,
       });
 
-      console.log("Gateway registered", res);
+      if (res.length > 0) {
+        console.log("Gateway registered", res[0]);
+        // save gateway in local storage
+        saveGateway(res[0]!);
+      }
 
-      // save gateway in local storage
-      saveGateway(res);
       // reload gateways from local storage
       setGateways(getGateways());
       // clear input
       setGatewayNameInput("");
+      setGatewayUidInput("");
     } catch (e) {
       // TODO: handle error
       console.log("Error registering gateway", e);
@@ -61,6 +71,12 @@ const Gateways: React.FC<IProps> = () => {
           placeholder="Gateway name..."
           value={gatewayNameInput}
           onChange={(e) => setGatewayNameInput(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Gateway uid..."
+          value={gatewayUidInput}
+          onChange={(e) => setGatewayUidInput(e.target.value)}
         />
         <button
           onClick={registerGateway}

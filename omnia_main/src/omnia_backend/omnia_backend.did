@@ -16,6 +16,7 @@ type EnvironmentCreationResult = record {
 type GatewayRegistrationInput = record {
     "env_uid": text;
     "gateway_name": text;
+    "gateway_uid": text;
 };
 
 type GatewayRegistrationResult = record {
@@ -41,7 +42,8 @@ type UserProfile = record {
 
 service : {
     "createEnvironment": (EnvironmentCreationInput) -> (EnvironmentCreationResult);
-    "registerGateway": (GatewayRegistrationInput) -> (GatewayRegistrationResult);
+    "initGateway": () -> (text);
+    "registerGateway": (GatewayRegistrationInput) -> (opt GatewayRegistrationResult);
     "registerDevice": (DeviceRegistrationInput) -> (DeviceRegistrationResult);
     "getProfile": () -> (UserProfile);
     "setEnvironment": (text) -> (EnvironmentInfo);

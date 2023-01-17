@@ -19,6 +19,7 @@ pub struct EnvironmentCreationResult {
 pub struct GatewayRegistrationInput {
     pub env_uid: EnvironmentUID,
     pub gateway_name: String,
+    pub gateway_uid: String,
 }
 
 #[derive(Debug, CandidType, Deserialize)]

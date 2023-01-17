@@ -52,16 +52,13 @@ fn register_gateway_in_environment(
 
     match get_environment_info_by_uid(&gateway_registration_input.env_uid) {
         Some(mut environment_info) => {
-            ic_cdk::print(format!("Registering gateway {:?} in environment with UID: {:?} managed by: {:?}", gateway_registration_input.gateway_name, gateway_registration_input.env_uid, environment_manager_principal_id));
-        
-            let gateway_uid = generate_uuid();
-            ic_cdk::print(format!("Gateway UID: {:?}", gateway_uid));
+            ic_cdk::print(format!("Registering gateway {:?} in environment with UID: {:?} managed by: {:?}", gateway_registration_input.gateway_uid, gateway_registration_input.env_uid, environment_manager_principal_id));
 
             environment_info.env_gateways.insert(
-                gateway_uid.clone(),
+                gateway_registration_input.gateway_uid.clone(),
                 StoreTypes::GatewayInfo {
                     gateway_name: gateway_registration_input.gateway_name.clone(),
-                    gateway_uid: gateway_uid.clone(),
+                    gateway_uid: gateway_registration_input.gateway_uid.clone(),
                     devices: BTreeMap::new(),
                 }
             );
@@ -77,7 +74,7 @@ fn register_gateway_in_environment(
 
             let gateway_registration_result = InterfaceTypes::GatewayRegistrationResult {
                 gateway_name: gateway_registration_input.gateway_name,
-                gateway_uid,
+                gateway_uid: gateway_registration_input.gateway_uid,
             };
 
             ManualReply::one(gateway_registration_result)
