@@ -36,15 +36,15 @@
       ],
       "type": "assets"
     },
-    "omnia_gateway_frontend": {
+    "omnia_manager_frontend": {
       "dependencies": [
         "omnia_backend"
       ],
       "frontend": {
-        "entrypoint": "src/omnia_gateway_frontend/build/index.html"
+        "entrypoint": "src/omnia_manager_frontend/build/index.html"
       },
       "source": [
-        "src/omnia_gateway_frontend/build"
+        "src/omnia_manager_frontend/build"
       ],
       "type": "assets"
     }

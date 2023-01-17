@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState, useContext } from "react";
 import { omnia_backend } from "../../../declarations/omnia_backend";
+import DataView from "../components/DataView";
 import { IProfileContext } from "../interfaces/profile";
 import { getAuthClient } from "../services/authClient";
-import DataView from "../components/DataView";
+
 
 const ProfileContext = createContext<IProfileContext>({
   profile: null,
