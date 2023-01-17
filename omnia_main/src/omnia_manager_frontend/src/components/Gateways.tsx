@@ -46,6 +46,9 @@ const Gateways: React.FC<IProps> = () => {
         // save gateway in local storage
         saveGateway(res[0]!);
       }
+      else {
+        alert("Please enter an initialized gateway UUID");
+      }
 
       // reload gateways from local storage
       setGateways(getGateways());
