@@ -109,3 +109,21 @@ async fn register_device(
 
     device_registration_result
 }
+
+
+
+#[ic_cdk_macros::update(name = "getDevices")]
+async fn get_devices(
+    environment_uid: EnvironmentUid,
+) -> Option<Box<RegisteredDevicesInfo>> {
+    match Database::getDevicesInEnvironment(environment_uid.clone()).await.0 {
+        Some(devices) => {
+            ic_cdk::print(format!("Registered devices: {:?}", devices));
+            Some(devices)
+        },
+        None => {
+            ic_cdk::print(format!("Environmnent: {:?} does not exist", environment_uid));
+            None
+        }
+    }
+}

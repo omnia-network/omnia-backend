@@ -1,8 +1,7 @@
 use ic_cdk::api::call::ManualReply;
 use std::collections::BTreeMap;
 use super::interface_types as InterfaceTypes;
-use super::interface_types::GatewayInfo;
-use super::interface_types::RegisteredGatewaysInfo;
+use super::interface_types::{GatewayInfo, RegisteredGatewaysInfo, DeviceInfo, RegisteredDevicesInfo};
 use super::store_types as StoreTypes;
 use super::ENVIRONMENT_STORE;
 use crate::generate_local_uuid;
@@ -28,7 +27,6 @@ fn create_new_environment(
             environment_uid.clone(),
             StoreTypes::EnvironmentInfo {
                 env_name: environment_creation_input.env_name.clone(),
-                env_uid: environment_uid.clone(),
                 env_gateways: BTreeMap::new(),
                 env_manager_principal_id: environment_manager_principal_id,
             }
@@ -59,7 +57,6 @@ fn register_gateway_in_environment(
                 gateway_registration_input.gateway_uid.clone(),
                 StoreTypes::GatewayInfo {
                     gateway_name: gateway_registration_input.gateway_name.clone(),
-                    gateway_uid: gateway_registration_input.gateway_uid.clone(),
                     devices: BTreeMap::new(),
                 }
             );
@@ -109,7 +106,7 @@ fn register_device_in_environment(
                     );
 
                     environment_info.env_gateways.insert(
-                        device_registration_input.gateway_uid,
+                        device_registration_input.gateway_uid.clone(),
                         gateway_info.clone()
                     );
 
@@ -125,7 +122,7 @@ fn register_device_in_environment(
                     let device_registration_result = InterfaceTypes::DeviceRegistrationResult {
                         device_name: device_registration_input.device_name,
                         device_uid,
-                        gateway_uid: gateway_info.gateway_uid.clone()
+                        gateway_uid: device_registration_input.gateway_uid.clone()
                     };
 
                     ManualReply::one(device_registration_result)
@@ -148,10 +145,10 @@ fn get_gateways_in_environment(
             let mut registered_gateways_info = RegisteredGatewaysInfo {
                 registered_gateways: vec![],
             };
-            for (_, info) in environment_info.env_gateways {
+            for (uuid, info) in environment_info.env_gateways {
                 let gateway_info = GatewayInfo {
                     gateway_name: info.gateway_name,
-                    gateway_uid: info.gateway_uid,
+                    gateway_uid: uuid,
                 };
                 registered_gateways_info.registered_gateways.insert(0, gateway_info);
             }
@@ -160,6 +157,35 @@ fn get_gateways_in_environment(
         None => None
     };
     ManualReply::one(gateways)
+}
+
+
+
+#[ic_cdk_macros::update(name = "getDevicesInEnvironment", manual_reply = true)]
+fn get_devices_in_environment(
+    environment_uid: EnvironmentUID,
+) -> ManualReply<Option<RegisteredDevicesInfo>> {
+    let devices = match get_environment_info_by_uid(&environment_uid) {
+        Some(environment_info) => {
+            let mut registered_devices_info = RegisteredDevicesInfo {
+                registered_devices: vec![],
+            };
+            for (gateway_uid, gateway_info) in environment_info.env_gateways {
+                for (uuid, info) in gateway_info.devices {
+                    let device_info = DeviceInfo {
+                        device_name: info.device_name,
+                        device_uid: uuid,
+                        gateway_uid: gateway_uid.clone(),
+                    };
+                    registered_devices_info.registered_devices.insert(0, device_info);
+
+                }
+            }
+            Some(registered_devices_info)
+        },
+        None => None,
+    };
+    ManualReply::one(devices)
 }
 
 

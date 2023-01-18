@@ -52,3 +52,15 @@ pub struct DeviceRegistrationResult {
     pub device_uid: DeviceUID,
     pub gateway_uid: GatewayUID,
 }
+
+#[derive(Debug, CandidType, Deserialize)]
+pub struct DeviceInfo {
+    pub device_name: String,
+    pub device_uid: DeviceUID,
+    pub gateway_uid: GatewayUID,
+}
+
+#[derive(Debug, CandidType, Deserialize)]
+pub struct RegisteredDevicesInfo {
+    pub registered_devices: Vec<DeviceInfo>,
+}

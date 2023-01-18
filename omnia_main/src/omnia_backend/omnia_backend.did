@@ -33,6 +33,16 @@ type GatewayRegistrationResult = record {
     "gateway_uid": text;
 };
 
+type DeviceInfo = record {
+    "device_name": text;
+    "device_uid": text;
+    "gateway_uid": text;
+};
+
+type RegisteredDevicesInfo = record {
+    "registered_devices": vec DeviceInfo;
+};
+
 type DeviceRegistrationInput = record {
     "env_uid": text;
     "gateway_uid": text;
@@ -56,6 +66,7 @@ service : {
     "registerGateway": (GatewayRegistrationInput) -> (opt GatewayRegistrationResult);
     "getGateways": (text) -> (opt RegisteredGatewaysInfo);
     "registerDevice": (DeviceRegistrationInput) -> (DeviceRegistrationResult);
+    "getDevices": (text) -> (opt RegisteredDevicesInfo);
     "getProfile": () -> (UserProfile);
     "setEnvironment": (text) -> (EnvironmentInfo);
     "resetEnvironment": () -> (EnvironmentInfo);
