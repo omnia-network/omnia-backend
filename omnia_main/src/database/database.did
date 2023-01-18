@@ -48,4 +48,5 @@ service : {
     "setUserInEnvironment": (text, text) -> (EnvironmentInfo);
     "resetUserFromEnvironment": (text) -> (EnvironmentInfo);
     "getUserProfile": (text) -> (UserProfile);
+    "generateUuid": () -> (text);
 }

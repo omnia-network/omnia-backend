@@ -1,6 +1,6 @@
 use ic_cdk::api;
 
-use crate::{generate_uuid, INITIALIZED_GATEWAY_STORE};
+use crate::INITIALIZED_GATEWAY_STORE;
 
 #[ic_cdk_macros::import(canister = "database")]
 pub struct Database;
@@ -27,9 +27,9 @@ async fn create_environment(
 
 
 #[ic_cdk_macros::update(name = "initGateway")]
-fn init_gateway() -> String {
+async fn init_gateway() -> String {
 
-    let gateway_uuid = generate_uuid();
+    let gateway_uuid = Database::generateUuid().await.0;
     ic_cdk::print(format!("Initialized gateway with UUID: {:?}", gateway_uuid));
 
     INITIALIZED_GATEWAY_STORE.with(|intialized_gateway_store| {

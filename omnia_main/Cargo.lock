@@ -550,10 +550,8 @@ version = "0.1.0"
 dependencies = [
  "candid",
  "getrandom",
- "hex",
  "ic-cdk",
  "ic-cdk-macros",
- "rand",
  "serde",
 ]
 

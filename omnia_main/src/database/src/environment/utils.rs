@@ -1,10 +1,9 @@
 use ic_cdk::api::call::ManualReply;
 use std::collections::BTreeMap;
-use rand::Rng;
-use hex;
 use super::interface_types as InterfaceTypes;
 use super::store_types as StoreTypes;
 use super::ENVIRONMENT_STORE;
+use crate::generate_local_uuid;
 
 type PrincipalId = String;
 type EnvironmentUID = String;
@@ -19,7 +18,7 @@ fn create_new_environment(
 
     ic_cdk::print(format!("Creating new environment: {:?} managed by: {:?}", environment_creation_input, environment_manager_principal_id));
 
-    let environment_uid = generate_uuid();
+    let environment_uid = generate_local_uuid();
     ic_cdk::print(format!("Environment UID: {:?}", environment_uid));
 
     ENVIRONMENT_STORE.with(|environment_store| {
@@ -97,7 +96,7 @@ fn register_device_in_environment(
             match environment_info.env_gateways.remove(&device_registration_input.gateway_uid) {
                 Some(mut gateway_info) => {
 
-                    let device_uid = generate_uuid();
+                    let device_uid = generate_local_uuid();
                     ic_cdk::print(format!("Device UID: {:?}", device_uid));
 
                     gateway_info.devices.insert(
@@ -145,30 +144,4 @@ pub fn get_environment_info_by_uid(environment_uid: &EnvironmentUID) -> Option<S
             None => None,
         }
     })
-}
-
-fn create_byte_vector() -> Vec<u8> {
-    let mut random_bytes = rand::thread_rng().gen::<[u8; 16]>();
-    random_bytes[6] = (random_bytes[6] & 0x0f) | 0x40;
-    random_bytes[8] = (random_bytes[8] & 0x3f) | 0x80;
-    random_bytes.to_vec()
-}
-
-fn hex_encode(byte_vector: Vec<u8>) -> Vec<String> {
-    byte_vector
-        .into_iter()
-        .map(|byte| hex::encode([byte]))
-        .collect()
-}
-
-fn generate_uuid() -> String {
-    let hex_vector = hex_encode(create_byte_vector());
-    let mut uuid = String::new();
-    for (index, byte) in hex_vector.iter().enumerate() {
-        uuid.push_str(byte);
-        if [3, 5, 7, 9].contains(&index) {
-            uuid.push('-');
-        }
-    }
-    uuid
 }
