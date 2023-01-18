@@ -2,6 +2,8 @@ use ic_cdk::api;
 
 use crate::INITIALIZED_GATEWAY_STORE;
 
+type EnvironmentUid = String;
+
 #[ic_cdk_macros::import(canister = "database")]
 pub struct Database;
 
@@ -69,6 +71,24 @@ async fn register_gateway(
 
     ic_cdk::print("Could not register gateway as it is not initialized");
     None
+}
+
+
+
+#[ic_cdk_macros::update(name = "getGateways")]
+async fn get_gateways(
+    environment_uid: EnvironmentUid,
+) -> Option<Box<RegisteredGatewaysInfo>> {
+    match Database::getGatewaysInEnvironment(environment_uid.clone()).await.0 {
+        Some(gateways) => {
+            ic_cdk::print(format!("Registered gateways: {:?}", gateways));
+            Some(gateways)
+        },
+        None => {
+            ic_cdk::print(format!("Environmnent: {:?} does not exist", environment_uid));
+            None
+        }
+    }
 }
 
 

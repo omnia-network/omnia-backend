@@ -1,6 +1,8 @@
 use ic_cdk::api::call::ManualReply;
 use std::collections::BTreeMap;
 use super::interface_types as InterfaceTypes;
+use super::interface_types::GatewayInfo;
+use super::interface_types::RegisteredGatewaysInfo;
 use super::store_types as StoreTypes;
 use super::ENVIRONMENT_STORE;
 use crate::generate_local_uuid;
@@ -133,6 +135,31 @@ fn register_device_in_environment(
         },
         None => panic!("Environment does not exist"),
     }
+}
+
+
+
+#[ic_cdk_macros::update(name = "getGatewaysInEnvironment", manual_reply = true)]
+fn get_gateways_in_environment(
+    environment_uid: EnvironmentUID,
+) -> ManualReply<Option<RegisteredGatewaysInfo>> {
+    let gateways = match get_environment_info_by_uid(&environment_uid) {
+        Some(environment_info) => {
+            let mut registered_gateways_info = RegisteredGatewaysInfo {
+                registered_gateways: vec![],
+            };
+            for (_, info) in environment_info.env_gateways {
+                let gateway_info = GatewayInfo {
+                    gateway_name: info.gateway_name,
+                    gateway_uid: info.gateway_uid,
+                };
+                registered_gateways_info.registered_gateways.insert(0, gateway_info);
+            }
+            Some(registered_gateways_info)
+        },
+        None => None
+    };
+    ManualReply::one(gateways)
 }
 
 

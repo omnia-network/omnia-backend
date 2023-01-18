@@ -29,6 +29,17 @@ pub struct GatewayRegistrationResult {
 }
 
 #[derive(Debug, CandidType, Deserialize)]
+pub struct GatewayInfo {
+    pub gateway_name: String,
+    pub gateway_uid: GatewayUID,
+}
+
+#[derive(Debug, CandidType, Deserialize)]
+pub struct RegisteredGatewaysInfo {
+    pub registered_gateways: Vec<GatewayInfo>,
+}
+
+#[derive(Debug, CandidType, Deserialize)]
 pub struct DeviceRegistrationInput {
     pub env_uid: EnvironmentUID,
     pub gateway_uid: GatewayUID,
