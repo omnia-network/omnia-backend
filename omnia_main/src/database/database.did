@@ -33,6 +33,7 @@ type DeviceRegistrationInput = record {
 type DeviceRegistrationResult = record {
     "device_name": text;
     "device_uid": text;
+    "gateway_uid": text;
 };
 
 type UserProfile = record {

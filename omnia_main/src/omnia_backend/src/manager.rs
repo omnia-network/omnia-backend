@@ -66,6 +66,7 @@ async fn register_gateway(
         
         return Some(gateway_registration_result);
     }
+
     ic_cdk::print("Could not register gateway as it is not initialized");
     None
 }

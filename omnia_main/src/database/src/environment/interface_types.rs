@@ -39,4 +39,5 @@ pub struct DeviceRegistrationInput {
 pub struct DeviceRegistrationResult {
     pub device_name: String,
     pub device_uid: DeviceUID,
+    pub gateway_uid: GatewayUID,
 }

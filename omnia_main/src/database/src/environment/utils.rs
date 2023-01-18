@@ -109,7 +109,7 @@ fn register_device_in_environment(
 
                     environment_info.env_gateways.insert(
                         device_registration_input.gateway_uid,
-                        gateway_info
+                        gateway_info.clone()
                     );
 
                     ic_cdk::print(format!("Updated environment: {:?} managed by: {:?}", environment_info, environment_manager_principal_id));
@@ -124,6 +124,7 @@ fn register_device_in_environment(
                     let device_registration_result = InterfaceTypes::DeviceRegistrationResult {
                         device_name: device_registration_input.device_name,
                         device_uid,
+                        gateway_uid: gateway_info.gateway_uid.clone()
                     };
 
                     ManualReply::one(device_registration_result)
