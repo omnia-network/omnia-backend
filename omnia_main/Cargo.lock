@@ -218,6 +218,7 @@ dependencies = [
  "hex",
  "ic-cdk",
  "ic-cdk-macros",
+ "omnia_types",
  "rand",
  "serde",
 ]
@@ -552,6 +553,16 @@ dependencies = [
  "getrandom",
  "ic-cdk",
  "ic-cdk-macros",
+ "omnia_types",
+ "serde",
+]
+
+[[package]]
+name = "omnia_types"
+version = "0.1.0"
+dependencies = [
+ "candid",
+ "ic-cdk",
  "serde",
 ]
 

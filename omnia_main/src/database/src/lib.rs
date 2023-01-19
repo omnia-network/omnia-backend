@@ -1,6 +1,6 @@
 use getrandom::register_custom_getrandom;
-use rand::Rng;
 use hex;
+use rand::Rng;
 
 register_custom_getrandom!(custom_getrandom);
 

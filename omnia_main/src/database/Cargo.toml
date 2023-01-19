@@ -16,3 +16,4 @@ serde = "1.0.111"
 getrandom = { version = "0.2", features = ["custom"] }
 rand = "0.8.5"
 hex = "0.4.3"
+omnia_types ={ path = "../omnia_types"}

@@ -1,16 +1,14 @@
-use std::collections::BTreeMap;
 use std::cell::RefCell;
+use std::collections::BTreeMap;
 
-pub mod interface_types;
 pub mod store_types;
 pub mod utils;
 
-use store_types as StoreTypes;
-
-type EnvironmentUID = String;
+use omnia_types::environment::EnvironmentUID;
+use store_types::StoredEnvironmentInfo;
 
 //  ENVIRONMENTS DATABASE
-type EnvironmentStore = BTreeMap<EnvironmentUID, StoreTypes::EnvironmentInfo>;
+type EnvironmentStore = BTreeMap<EnvironmentUID, StoredEnvironmentInfo>;
 
 thread_local! {
     static ENVIRONMENT_STORE: RefCell<EnvironmentStore> = RefCell::default();

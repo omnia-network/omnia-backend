@@ -12,9 +12,9 @@
     "start:user": "cd src/omnia_user_frontend && npm start",
     "start:manager": "cd src/omnia_manager_frontend && npm start",
     "build": "./scripts/build.sh",
-    "prebuild": "npm run copy:types",
-    "prestart": "npm run copy:types",
-    "copy:types": "rsync -avr .dfx/$(echo ${DFX_NETWORK:-'**'})/canisters/** --exclude='assets/' --exclude='idl/' --exclude='*.wasm' --exclude='*.most' --delete src/declarations"
+    "prebuild": "npm run generate:types",
+    "prestart": "npm run generate:types",
+    "generate:types": "dfx generate"
   },
   "devDependencies": {
     "@dfinity/agent": "0.13.3",
