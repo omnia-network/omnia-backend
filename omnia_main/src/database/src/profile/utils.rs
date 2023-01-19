@@ -1,16 +1,15 @@
-use ic_cdk::api::call::ManualReply;
 use ic_cdk::export::Principal;
 use super::USER_PROFILE_STORE;
 use super::store_types as ProfileStoreTypes;
-use super::super::environment::{store_types as EnvironmentStoreTypes, utils as EnvironmentUtils};
+use super::super::environment::{store_types as EnvironmentStoreTypes, utils as EnvironmentUtils, interface_types as InterfaceTypes};
 
 type PrincipalId = String;
 type EnvironmentUID = String;
 
 
 
-#[ic_cdk_macros::update(name = "setUserInEnvironment", manual_reply = true)]
-fn set_user_in_environment(user_principal_id: PrincipalId, env_uid: EnvironmentUID) -> ManualReply<EnvironmentStoreTypes::EnvironmentInfo> {
+#[ic_cdk_macros::update(name = "setUserInEnvironment")]
+fn set_user_in_environment(user_principal_id: PrincipalId, env_uid: EnvironmentUID) -> InterfaceTypes::EnvironmentInfo {
 
     let user_principal = Principal::from_text(user_principal_id).unwrap();
 
@@ -29,7 +28,11 @@ fn set_user_in_environment(user_principal_id: PrincipalId, env_uid: EnvironmentU
 
                     ic_cdk::print(format!("User: {:?} set in environment: {:?}", user_principal, environment_info));
 
-                    ManualReply::one(environment_info)
+                    InterfaceTypes::EnvironmentInfo {
+                        env_name: environment_info.env_name,
+                        env_uid,
+                        env_manager_principal_id: environment_info.env_manager_principal_id,
+                    }
                 },
                 None => panic!("Environment does not exist"),
             }
@@ -40,8 +43,8 @@ fn set_user_in_environment(user_principal_id: PrincipalId, env_uid: EnvironmentU
 
 
 
-#[ic_cdk_macros::update(name = "resetUserFromEnvironment", manual_reply = true)]
-fn reset_user_from_environment(user_principal_id: PrincipalId) -> ManualReply<EnvironmentStoreTypes::EnvironmentInfo> {
+#[ic_cdk_macros::update(name = "resetUserFromEnvironment")]
+fn reset_user_from_environment(user_principal_id: PrincipalId) -> InterfaceTypes::EnvironmentInfo {
 
     let user_principal = Principal::from_text(user_principal_id).unwrap();
 
@@ -59,7 +62,13 @@ fn reset_user_from_environment(user_principal_id: PrincipalId) -> ManualReply<En
             match user_profile.environment_uid {
                 Some(old_environment_uid) => {
                     match EnvironmentUtils::get_environment_info_by_uid(&old_environment_uid) {
-                        Some(environment_info) => ManualReply::one(environment_info),
+                        Some(environment_info) => {
+                            InterfaceTypes::EnvironmentInfo {
+                                env_name: environment_info.env_name,
+                                env_uid: old_environment_uid,
+                                env_manager_principal_id: environment_info.env_manager_principal_id,
+                            }
+                        },
                         None => panic!("Environment does not exist"),
                     }
                 },
@@ -72,15 +81,15 @@ fn reset_user_from_environment(user_principal_id: PrincipalId) -> ManualReply<En
 
 
 
-#[ic_cdk_macros::update(name = "getUserProfile", manual_reply = true)]
-fn get_user_profile(user_principal_id: PrincipalId) -> ManualReply<ProfileStoreTypes::UserProfile> {
+#[ic_cdk_macros::update(name = "getUserProfile")]
+fn get_user_profile(user_principal_id: PrincipalId) -> ProfileStoreTypes::UserProfile {
 
     let user_principal = Principal::from_text(user_principal_id).unwrap();
 
     match get_user_profile_if_exists(user_principal) {
         Some(user_profile) => {
             ic_cdk::print(format!("User: {:?} has profile: {:?}", user_principal, user_profile));
-            ManualReply::one(user_profile)
+            user_profile
         },
         None => {
             ic_cdk::print("User does not have a profile");
@@ -97,7 +106,7 @@ fn get_user_profile(user_principal_id: PrincipalId) -> ManualReply<ProfileStoreT
                 profile_store.borrow_mut().insert(user_principal, new_user_profile.clone());
             });
 
-            ManualReply::one(new_user_profile)
+            new_user_profile
         }
     }
 }

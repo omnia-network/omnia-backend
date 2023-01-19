@@ -1,5 +1,4 @@
 use getrandom::register_custom_getrandom;
-use ic_cdk::api::call::ManualReply;
 use rand::Rng;
 use hex;
 
@@ -36,10 +35,10 @@ fn generate_local_uuid() -> String {
     uuid
 }
 
-#[ic_cdk_macros::update(name = "generateUuid", manual_reply = true)]
-fn generate_uuid() -> ManualReply<String> {
+#[ic_cdk_macros::update(name = "generateUuid")]
+fn generate_uuid() -> String {
     let uuid = generate_local_uuid();
-    ManualReply::one(uuid)
+    uuid
 }
 
 mod environment;

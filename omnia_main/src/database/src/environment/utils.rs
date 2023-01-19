@@ -1,4 +1,3 @@
-use ic_cdk::api::call::ManualReply;
 use std::collections::BTreeMap;
 use super::interface_types as InterfaceTypes;
 use super::interface_types::{GatewayInfo, RegisteredGatewaysInfo, DeviceInfo, RegisteredDevicesInfo};
@@ -11,11 +10,11 @@ type EnvironmentUID = String;
 
 
 
-#[ic_cdk_macros::update(name = "createNewEnvironment", manual_reply = true)]
+#[ic_cdk_macros::update(name = "createNewEnvironment")]
 fn create_new_environment(
     environment_manager_principal_id: PrincipalId,
     environment_creation_input: InterfaceTypes::EnvironmentCreationInput
-) -> ManualReply<InterfaceTypes::EnvironmentCreationResult> {
+) -> InterfaceTypes::EnvironmentCreationResult {
 
     ic_cdk::print(format!("Creating new environment: {:?} managed by: {:?}", environment_creation_input, environment_manager_principal_id));
 
@@ -38,16 +37,16 @@ fn create_new_environment(
         env_uid: environment_uid,
     };
 
-    ManualReply::one(environment_creation_result)
+    environment_creation_result
 }
 
 
 
-#[ic_cdk_macros::update(name = "registerGatewayInEnvironment", manual_reply = true)]
+#[ic_cdk_macros::update(name = "registerGatewayInEnvironment")]
 fn register_gateway_in_environment(
     environment_manager_principal_id: PrincipalId,
     gateway_registration_input: InterfaceTypes::GatewayRegistrationInput
-) -> ManualReply<InterfaceTypes::GatewayRegistrationResult> {
+) -> InterfaceTypes::GatewayRegistrationResult {
 
     match get_environment_info_by_uid(&gateway_registration_input.env_uid) {
         Some(mut environment_info) => {
@@ -75,7 +74,7 @@ fn register_gateway_in_environment(
                 gateway_uid: gateway_registration_input.gateway_uid,
             };
 
-            ManualReply::one(gateway_registration_result)
+            gateway_registration_result
         },
         None => panic!("Environment does not exist"),
     }
@@ -83,11 +82,11 @@ fn register_gateway_in_environment(
 
 
 
-#[ic_cdk_macros::update(name = "registerDeviceInEnvironment", manual_reply = true)]
+#[ic_cdk_macros::update(name = "registerDeviceInEnvironment")]
 fn register_device_in_environment(
     environment_manager_principal_id: PrincipalId,
     device_registration_input: InterfaceTypes::DeviceRegistrationInput
-) -> ManualReply<InterfaceTypes::DeviceRegistrationResult> {
+) -> InterfaceTypes::DeviceRegistrationResult {
 
     match get_environment_info_by_uid(&device_registration_input.env_uid) {
         Some(mut environment_info) => {
@@ -125,7 +124,7 @@ fn register_device_in_environment(
                         gateway_uid: device_registration_input.gateway_uid.clone()
                     };
 
-                    ManualReply::one(device_registration_result)
+                    device_registration_result
                 },
                 None => panic!("Gateway does not exist in environment"),
             }
@@ -136,10 +135,10 @@ fn register_device_in_environment(
 
 
 
-#[ic_cdk_macros::update(name = "getGatewaysInEnvironment", manual_reply = true)]
+#[ic_cdk_macros::update(name = "getGatewaysInEnvironment")]
 fn get_gateways_in_environment(
     environment_uid: EnvironmentUID,
-) -> ManualReply<Option<RegisteredGatewaysInfo>> {
+) -> Option<RegisteredGatewaysInfo> {
     let gateways = match get_environment_info_by_uid(&environment_uid) {
         Some(environment_info) => {
             let mut registered_gateways_info = RegisteredGatewaysInfo {
@@ -156,15 +155,15 @@ fn get_gateways_in_environment(
         },
         None => None
     };
-    ManualReply::one(gateways)
+    gateways
 }
 
 
 
-#[ic_cdk_macros::update(name = "getDevicesInEnvironment", manual_reply = true)]
+#[ic_cdk_macros::update(name = "getDevicesInEnvironment")]
 fn get_devices_in_environment(
     environment_uid: EnvironmentUID,
-) -> ManualReply<Option<RegisteredDevicesInfo>> {
+) -> Option<RegisteredDevicesInfo> {
     let devices = match get_environment_info_by_uid(&environment_uid) {
         Some(environment_info) => {
             let mut registered_devices_info = RegisteredDevicesInfo {
@@ -185,7 +184,7 @@ fn get_devices_in_environment(
         },
         None => None,
     };
-    ManualReply::one(devices)
+    devices
 }
 
 
