@@ -1,45 +1,61 @@
-use getrandom::register_custom_getrandom;
-use hex;
-use rand::Rng;
+use std::collections::BTreeMap;
+use std::{cell::RefCell, ops::Deref};
 
-register_custom_getrandom!(custom_getrandom);
-
-fn custom_getrandom(_buf: &mut [u8]) -> Result<(), getrandom::Error> {
-    // TODO get some randomness
-    return Ok(());
-}
-
-fn create_byte_vector() -> Vec<u8> {
-    let mut random_bytes = rand::thread_rng().gen::<[u8; 16]>();
-    random_bytes[6] = (random_bytes[6] & 0x0f) | 0x40;
-    random_bytes[8] = (random_bytes[8] & 0x3f) | 0x80;
-    random_bytes.to_vec()
-}
-
-fn hex_encode(byte_vector: Vec<u8>) -> Vec<String> {
-    byte_vector
-        .into_iter()
-        .map(|byte| hex::encode([byte]))
-        .collect()
-}
-
-fn generate_local_uuid() -> String {
-    let hex_vector = hex_encode(create_byte_vector());
-    let mut uuid = String::new();
-    for (index, byte) in hex_vector.iter().enumerate() {
-        uuid.push_str(byte);
-        if [3, 5, 7, 9].contains(&index) {
-            uuid.push('-');
-        }
-    }
-    uuid
-}
-
-#[ic_cdk_macros::update(name = "generateUuid")]
-fn generate_uuid() -> String {
-    let uuid = generate_local_uuid();
-    uuid
-}
+use candid::{CandidType, Deserialize, Principal};
+use environment::StoredEnvironmentInfo;
+use ic_cdk::api::stable::{StableReader, StableWriter};
+use ic_cdk_macros::{post_upgrade, pre_upgrade};
+use omnia_types::environment::EnvironmentUID;
+use profile::StoredUserProfile;
+use serde::Serialize;
 
 mod environment;
 mod profile;
+mod uuid;
+
+#[derive(Default, CandidType, Serialize, Deserialize)]
+struct State {
+    pub user_profiles: BTreeMap<Principal, StoredUserProfile>,
+    pub environments: BTreeMap<EnvironmentUID, StoredEnvironmentInfo>,
+}
+
+thread_local! {
+    static STATE: RefCell<State>  = RefCell::new(State::default());
+}
+
+#[pre_upgrade]
+fn pre_upgrade() {
+    STATE.with(|cell| {
+        ciborium::ser::into_writer(cell.borrow().deref(), StableWriter::default())
+            .expect("failed to encode state")
+    })
+}
+
+#[post_upgrade]
+fn post_upgrade() {
+    STATE.with(|cell| {
+        *cell.borrow_mut() =
+            ciborium::de::from_reader(StableReader::default()).expect("failed to decode state");
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use candid::export_service;
+
+    #[test]
+    fn save_candid() {
+        use omnia_types::device::*;
+        use omnia_types::environment::*;
+        use omnia_types::gateway::*;
+        use omnia_types::user::*;
+        use std::env;
+        use std::fs::write;
+        use std::path::PathBuf;
+
+        let dir = PathBuf::from(env::current_dir().unwrap());
+        export_service!();
+        write(dir.join("database.did"), __export_service()).expect("Write failed.");
+    }
+}

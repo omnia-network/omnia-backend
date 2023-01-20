@@ -1,72 +1,41 @@
-type EnvironmentInfo = record {
-    "env_name": text;
-    "env_uid": text;
-    "env_manager_principal_id": text;
-};
-
-type EnvironmentCreationInput = record {
-    "env_name": text;
-};
-
-type EnvironmentCreationResult = record {
-    "env_name": text;
-    "env_uid": text;
-};
-
-type GatewayInfo = record {
-    "gateway_name": text;
-    "gateway_uid": text;
-};
-
-type RegisteredGatewaysInfo = record {
-    "registered_gateways": vec GatewayInfo;
-};
-
-type GatewayRegistrationInput = record {
-    "env_uid": text;
-    "gateway_name": text;
-    "gateway_uid": text;
-};
-
-type GatewayRegistrationResult = record {
-    "gateway_name": text;
-    "gateway_uid": text;
-};
-
 type DeviceInfo = record {
-    "device_name": text;
-    "device_uid": text;
-    "gateway_uid": text;
+  device_name : text;
+  device_uid : text;
+  gateway_uid : text;
 };
-
-type RegisteredDevicesInfo = record {
-    "registered_devices": vec DeviceInfo;
-};
-
 type DeviceRegistrationInput = record {
-    "env_uid": text;
-    "gateway_uid": text;
-    "device_name": text;
+  device_name : text;
+  env_uid : text;
+  gateway_uid : text;
 };
-
-type DeviceRegistrationResult = record {
-    "device_name": text;
-    "device_uid": text;
-    "gateway_uid": text;
+type EnvironmentCreationInput = record { env_name : text };
+type EnvironmentCreationResult = record { env_uid : text; env_name : text };
+type EnvironmentInfo = record {
+  env_manager_principal_id : text;
+  env_uid : text;
+  env_name : text;
 };
-
-type UserProfile = record {
-    "user_principal_id": text;
-    "environment_uid": opt text;
+type GatewayInfo = record { gateway_name : text; gateway_uid : text };
+type GatewayRegistrationInput = record {
+  gateway_name : text;
+  env_uid : text;
+  gateway_uid : text;
 };
-
+type StoredUserProfile = record {
+  user_principal_id : text;
+  environment_uid : opt text;
+};
 service : {
-    "createNewEnvironment": (text, EnvironmentCreationInput) -> (EnvironmentCreationResult);
-    "registerGatewayInEnvironment": (text, GatewayRegistrationInput) -> (GatewayRegistrationResult);"getGatewaysInEnvironment": (text) -> (opt RegisteredGatewaysInfo);
-    "registerDeviceInEnvironment": (text, DeviceRegistrationInput) -> (DeviceRegistrationResult);
-    "getDevicesInEnvironment": (text) -> (opt RegisteredDevicesInfo);
-    "setUserInEnvironment": (text, text) -> (EnvironmentInfo);
-    "resetUserFromEnvironment": (text) -> (EnvironmentInfo);
-    "getUserProfile": (text) -> (UserProfile);
-    "generateUuid": () -> (text);
+  createNewEnvironment : (text, EnvironmentCreationInput) -> (
+      EnvironmentCreationResult,
+    );
+  getDevicesInEnvironment : (text) -> (vec DeviceInfo);
+  getGatewaysInEnvironment : (text) -> (vec GatewayInfo);
+  getUserProfile : (text) -> (StoredUserProfile);
+  registerDeviceInEnvironment : (text, DeviceRegistrationInput) -> (DeviceInfo);
+  registerGatewayInEnvironment : (text, GatewayRegistrationInput) -> (
+      GatewayInfo,
+    );
+  resetUserFromEnvironment : (text) -> (EnvironmentInfo);
+  setUserInEnvironment : (text, text) -> (EnvironmentInfo);
 }

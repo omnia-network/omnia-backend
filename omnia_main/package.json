@@ -14,7 +14,12 @@
     "build": "./scripts/build.sh",
     "prebuild": "npm run generate:types",
     "prestart": "npm run generate:types",
-    "generate:types": "dfx generate"
+    "generate:types": "dfx generate",
+    "generate:dids": "./scripts/generate-dids.sh",
+    "deploy": "./scripts/deploy.sh",
+    "deploy:backend": "./scripts/deploy.sh --backend",
+    "generate-dids-and-deploy": "npm run generate:dids && npm run deploy",
+    "generate-dids-and-deploy:backend": "npm run generate:dids && npm run deploy:backend"
   },
   "devDependencies": {
     "@dfinity/agent": "0.13.3",

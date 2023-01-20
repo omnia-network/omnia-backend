@@ -22,8 +22,3 @@ pub struct GatewayInfo {
     pub gateway_name: String,
     pub gateway_uid: GatewayUID,
 }
-
-#[derive(Debug, CandidType, Deserialize)]
-pub struct RegisteredGatewaysInfo {
-    pub registered_gateways: Vec<GatewayInfo>,
-}
