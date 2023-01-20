@@ -194,7 +194,7 @@ pub fn get_environment_info_by_uid(
 ) -> Option<StoreTypes::StoredEnvironmentInfo> {
     ENVIRONMENT_STORE.with(|environment_store| {
         match environment_store.borrow().get(environment_uid) {
-            Some(mut environment_info) => Some(environment_info.to_owned()),
+            Some(environment_info) => Some(environment_info.to_owned()),
             None => None,
         }
     })

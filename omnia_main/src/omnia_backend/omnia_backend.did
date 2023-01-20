@@ -60,7 +60,7 @@ type UserProfile = record {
     "environment_uid": opt text;
 };
 
-service : {
+service : (text) -> {
     "createEnvironment": (EnvironmentCreationInput) -> (EnvironmentCreationResult);
     "initGateway": () -> (text);
     "registerGateway": (GatewayRegistrationInput) -> (opt GatewayRegistrationResult);

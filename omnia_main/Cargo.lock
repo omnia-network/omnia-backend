@@ -550,7 +550,6 @@ name = "omnia_backend"
 version = "0.1.0"
 dependencies = [
  "candid",
- "getrandom",
  "ic-cdk",
  "ic-cdk-macros",
  "omnia_types",

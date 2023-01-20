@@ -1,4 +1,3 @@
-use candid::Principal;
 use ic_cdk::api;
 use omnia_types::{
     device::{DeviceRegistrationInput, DeviceRegistrationResult, RegisteredDevicesInfo},
@@ -6,7 +5,7 @@ use omnia_types::{
     gateway::{GatewayRegistrationInput, GatewayRegistrationResult, RegisteredGatewaysInfo},
 };
 
-use crate::INITIALIZED_GATEWAY_STORE;
+use crate::{utils::get_database_principal, stores::INITIALIZED_GATEWAY_STORE};
 
 #[ic_cdk_macros::update(name = "createEnvironment")]
 async fn create_environment(
@@ -14,9 +13,8 @@ async fn create_environment(
 ) -> EnvironmentCreationResult {
     let environment_manager_principal = api::caller();
 
-    let remote_principal: Principal = Principal::from_text("rrkah-fqaaa-aaaaa-aaaaq-cai").unwrap();
     let (environment_creation_result,): (EnvironmentCreationResult,) = api::call::call(
-        remote_principal,
+        get_database_principal(),
         "createNewEnvironment",
         (
             environment_manager_principal.to_string(),
@@ -36,8 +34,7 @@ async fn create_environment(
 
 #[ic_cdk_macros::update(name = "initGateway")]
 async fn init_gateway() -> String {
-    let remote_principal: Principal = Principal::from_text("rrkah-fqaaa-aaaaa-aaaaq-cai").unwrap();
-    let (gateway_uuid,): (String,) = api::call::call(remote_principal, "generateUuid", ())
+    let (gateway_uuid,): (String,) = api::call::call(get_database_principal(), "generateUuid", ())
         .await
         .unwrap();
 
@@ -67,11 +64,9 @@ async fn register_gateway(
     });
 
     if is_initialized {
-        let remote_principal: Principal =
-            Principal::from_text("rrkah-fqaaa-aaaaa-aaaaq-cai").unwrap();
         let (gateway_registration_result,): (GatewayRegistrationResult,) = api::call::call(
-            remote_principal,
-            "createNewEnvironment",
+            get_database_principal(),
+            "registerGatewayInEnvironment",
             (
                 environment_manager_principal.to_string(),
                 Box::new(gateway_registration_input),
@@ -94,9 +89,8 @@ async fn register_gateway(
 
 #[ic_cdk_macros::update(name = "getGateways")]
 async fn get_gateways(environment_uid: EnvironmentUID) -> Option<RegisteredGatewaysInfo> {
-    let remote_principal: Principal = Principal::from_text("rrkah-fqaaa-aaaaa-aaaaq-cai").unwrap();
     let (res,): (Option<RegisteredGatewaysInfo>,) = api::call::call(
-        remote_principal,
+        get_database_principal(),
         "getGatewaysInEnvironment",
         (environment_uid.clone(),),
     )
@@ -124,9 +118,8 @@ async fn register_device(
 ) -> DeviceRegistrationResult {
     let environment_manager_principal = api::caller();
 
-    let remote_principal: Principal = Principal::from_text("rrkah-fqaaa-aaaaa-aaaaq-cai").unwrap();
     let (device_registration_result,): (DeviceRegistrationResult,) = api::call::call(
-        remote_principal,
+        get_database_principal(),
         "registerDeviceInEnvironment",
         (
             environment_manager_principal.to_string(),
@@ -146,9 +139,8 @@ async fn register_device(
 
 #[ic_cdk_macros::update(name = "getDevices")]
 async fn get_devices(environment_uid: EnvironmentUID) -> Option<RegisteredDevicesInfo> {
-    let remote_principal: Principal = Principal::from_text("rrkah-fqaaa-aaaaa-aaaaq-cai").unwrap();
     let (res,): (Option<RegisteredDevicesInfo>,) = api::call::call(
-        remote_principal,
+        get_database_principal(),
         "getDevicesInEnvironment",
         (environment_uid.clone(),),
     )

@@ -4,7 +4,7 @@ use rand::Rng;
 
 register_custom_getrandom!(custom_getrandom);
 
-fn custom_getrandom(buf: &mut [u8]) -> Result<(), getrandom::Error> {
+fn custom_getrandom(_buf: &mut [u8]) -> Result<(), getrandom::Error> {
     // TODO get some randomness
     return Ok(());
 }
