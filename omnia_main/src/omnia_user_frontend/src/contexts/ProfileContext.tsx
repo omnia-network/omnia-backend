@@ -3,6 +3,7 @@ import { omnia_backend } from "../../../declarations/omnia_backend";
 import { IProfileContext } from "../interfaces/profile";
 import { getAuthClient } from "../services/authClient";
 import DataView from "../components/DataView";
+import { handleError } from "../services/errors";
 
 const ProfileContext = createContext<IProfileContext>({
   profile: null,
@@ -56,7 +57,7 @@ export const ProfileProvider: React.FC<IProps> = ({ children }) => {
       }
       setIsLoading(false);
     }).catch((e) => {
-      console.log("Error initializing auth client", e);
+      handleError(e);
       setIsLoading(false);
     });
   }, []);
@@ -110,7 +111,7 @@ const ProfileWrapper: React.FC<IProfileWrapperProps> = ({ children }) => {
           data={profile}
         />
       </div>
-      <div style={{ width: "75%"}}>
+      <div style={{ width: "75%" }}>
         {children}
       </div>
     </div>

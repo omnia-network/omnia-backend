@@ -30,7 +30,7 @@ const Home = () => {
 
     setIsScanning(false);
 
-    await setEnvironment(parseInt(envId, 10));
+    await setEnvironment(envId);
 
     setIsSubmitting(false);
   };
@@ -47,7 +47,7 @@ const Home = () => {
     }
   };
 
-  const setEnvironment = async (envId: number) => {
+  const setEnvironment = async (envId: string) => {
 
     if (environmentInfo) {
       return;
