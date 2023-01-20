@@ -25,7 +25,7 @@ type UserProfile = record {
   user_principal_id : text;
   environment_uid : opt text;
 };
-service : (text) -> {
+service : (opt text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (EnvironmentCreationResult);
   getDevices : (text) -> (vec DeviceInfo);
   getGateways : (text) -> (vec GatewayInfo);

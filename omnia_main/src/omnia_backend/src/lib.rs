@@ -23,18 +23,19 @@ thread_local! {
 }
 
 // to deploy this canister with the database principal id as init argument, use
-// dfx deploy --argument '("<database-canister-id>")'
+// dfx deploy --argument '(null, "<database-canister-id>")'
+// null first argument is needed to deploy internet_identity canister properly
 #[init]
 #[candid_method(init)]
-fn init(arg: String) {
+fn init(_: Option<String>, arg2: String) {
     print(format!("Init canister..."));
-    update_database_principal(arg);
+    update_database_principal(arg2);
 }
 
 #[post_upgrade]
-fn post_upgrade(arg: String) {
+fn post_upgrade(_: Option<String>, arg2: String) {
     print(format!("Post upgrade canister..."));
-    update_database_principal(arg);
+    update_database_principal(arg2);
 }
 
 #[cfg(test)]
