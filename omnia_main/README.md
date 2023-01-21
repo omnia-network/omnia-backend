@@ -64,4 +64,4 @@ You have few commands available (you need to replace `<database-canister-id>` wi
 - `npm run deploy -- <database-canister-id>`: deploys **all** canisters
 - `npm run deploy:backend -- <database-canister-id>`: deploys **backend** canisters only
 - `npm run generate-dids-and-deploy -- <database-canister-id>`: first generates dids and then deploys **all** canisters
-- `npm run generate-dids-and-deploy -- <database-canister-id>`: first generates dids and then deploys **backend** canisters only
+- `npm run generate-dids-and-deploy:backend -- <database-canister-id>`: first generates dids and then deploys **backend** canisters only
