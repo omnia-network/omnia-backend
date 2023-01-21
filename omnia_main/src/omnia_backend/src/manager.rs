@@ -78,7 +78,7 @@ async fn register_gateway(
     });
 
     if is_initialized {
-        let (gateway_registration_result,): (GatewayRegistrationResult,) = call(
+        let (gateway_registration_result,): (Result<GatewayRegistrationResult, ()>,) = call(
             get_database_principal(),
             "registerGatewayInEnvironment",
             (
@@ -89,12 +89,19 @@ async fn register_gateway(
         .await
         .unwrap();
 
-        print(format!(
-            "Registered gateway: {:?}",
-            gateway_registration_result
-        ));
+        match gateway_registration_result {
+            Ok(gateway_registration_result) => {
+                print(format!(
+                    "Registered gateway: {:?}",
+                    gateway_registration_result
+                ));
 
-        return Some(gateway_registration_result);
+                return Some(gateway_registration_result);
+            }
+            Err(()) => {
+                return None;
+            }
+        }
     }
 
     print("Could not register gateway as it is not initialized");
@@ -104,7 +111,7 @@ async fn register_gateway(
 #[update(name = "getGateways")]
 #[candid_method(update, rename = "getGateways")]
 async fn get_gateways(environment_uid: EnvironmentUID) -> Vec<GatewayInfo> {
-    let (res,): (Vec<GatewayInfo>,) = call(
+    let (res,): (Result<Vec<GatewayInfo>, ()>,) = call(
         get_database_principal(),
         "getGatewaysInEnvironment",
         (environment_uid.clone(),),
@@ -112,7 +119,10 @@ async fn get_gateways(environment_uid: EnvironmentUID) -> Vec<GatewayInfo> {
     .await
     .unwrap();
 
-    res
+    match res {
+        Ok(gateways_info) => gateways_info,
+        Err(()) => panic!("couldn't get gateways info"),
+    }
 }
 
 #[update(name = "registerDevice")]
@@ -122,7 +132,7 @@ async fn register_device(
 ) -> DeviceRegistrationResult {
     let environment_manager_principal = caller();
 
-    let (device_registration_result,): (DeviceRegistrationResult,) = call(
+    let (device_registration_result,): (Result<DeviceRegistrationResult, ()>,) = call(
         get_database_principal(),
         "registerDeviceInEnvironment",
         (
@@ -133,18 +143,23 @@ async fn register_device(
     .await
     .unwrap();
 
-    print(format!(
-        "Registered device: {:?}",
-        device_registration_result
-    ));
-
-    device_registration_result
+    match device_registration_result {
+        Ok(device_registration_result) => {
+            print(format!(
+                "Registered device: {:?}",
+                device_registration_result
+            ));
+        
+            device_registration_result
+        },
+        Err(()) => panic!("couldn't register device")
+    }
 }
 
 #[update(name = "getDevices")]
 #[candid_method(update, rename = "getDevices")]
 async fn get_devices(environment_uid: EnvironmentUID) -> Vec<DeviceInfo> {
-    let (res,): (Vec<DeviceInfo>,) = call(
+    let (res,): (Result<Vec<DeviceInfo>, ()>,) = call(
         get_database_principal(),
         "getDevicesInEnvironment",
         (environment_uid.clone(),),
@@ -152,5 +167,8 @@ async fn get_devices(environment_uid: EnvironmentUID) -> Vec<DeviceInfo> {
     .await
     .unwrap();
 
-    res
+    match res {
+        Ok(devices_info) => devices_info,
+        Err(()) => panic!("couldn't get devices")
+    }
 }

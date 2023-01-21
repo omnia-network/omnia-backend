@@ -21,6 +21,10 @@ type GatewayRegistrationInput = record {
   env_uid : text;
   gateway_uid : text;
 };
+type Result = variant { Ok : vec DeviceInfo; Err };
+type Result_1 = variant { Ok : vec GatewayInfo; Err };
+type Result_2 = variant { Ok : DeviceInfo; Err };
+type Result_3 = variant { Ok : GatewayInfo; Err };
 type StoredUserProfile = record {
   user_principal_id : text;
   environment_uid : opt text;
@@ -29,13 +33,11 @@ service : {
   createNewEnvironment : (text, EnvironmentCreationInput) -> (
       EnvironmentCreationResult,
     );
-  getDevicesInEnvironment : (text) -> (vec DeviceInfo);
-  getGatewaysInEnvironment : (text) -> (vec GatewayInfo);
+  getDevicesInEnvironment : (text) -> (Result);
+  getGatewaysInEnvironment : (text) -> (Result_1);
   getUserProfile : (text) -> (StoredUserProfile);
-  registerDeviceInEnvironment : (text, DeviceRegistrationInput) -> (DeviceInfo);
-  registerGatewayInEnvironment : (text, GatewayRegistrationInput) -> (
-      GatewayInfo,
-    );
+  registerDeviceInEnvironment : (text, DeviceRegistrationInput) -> (Result_2);
+  registerGatewayInEnvironment : (text, GatewayRegistrationInput) -> (Result_3);
   resetUserFromEnvironment : (text) -> (EnvironmentInfo);
   setUserInEnvironment : (text, text) -> (EnvironmentInfo);
 }
