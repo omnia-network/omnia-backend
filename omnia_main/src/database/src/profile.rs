@@ -1,6 +1,6 @@
 use candid::CandidType;
 use candid::{candid_method, Deserialize};
-use ic_cdk::{export::Principal, print};
+use ic_cdk::{export::Principal, print, trap};
 use ic_cdk_macros::update;
 use omnia_types::environment::EnvironmentInfoResult;
 use omnia_types::{
@@ -35,7 +35,7 @@ fn set_user_in_environment(
                         environment_info.env_name.clone(),
                         environment_info.env_manager_principal_id.clone(),
                     ),
-                    None => panic!("Environment does not exist"),
+                    None => trap("Environment does not exist"),
                 });
 
             let updated_user_profile = StoredUserProfile {

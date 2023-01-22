@@ -37,8 +37,8 @@ pub struct StoredEnvironmentInfo {
 
 #[update(name = "initGateway")]
 #[candid_method(update, rename = "initGateway")]
-fn init_gateway() -> String {
-    let gateway_uid = generate_uuid();
+async fn init_gateway() -> String {
+    let gateway_uid = generate_uuid().await;
 
     STATE.with(|state| {
         state
@@ -52,7 +52,7 @@ fn init_gateway() -> String {
 
 #[update(name = "createNewEnvironment")]
 #[candid_method(update, rename = "createNewEnvironment")]
-fn create_new_environment(
+async fn create_new_environment(
     environment_manager_principal_id: PrincipalId,
     environment_creation_input: EnvironmentCreationInput,
 ) -> EnvironmentCreationResult {
@@ -61,7 +61,7 @@ fn create_new_environment(
         environment_creation_input, environment_manager_principal_id
     ));
 
-    let environment_uid = generate_uuid();
+    let environment_uid = generate_uuid().await;
     print(format!("Environment UID: {:?}", environment_uid));
 
     STATE.with(|state| {
@@ -155,10 +155,12 @@ fn register_gateway_in_environment(
 
 #[update(name = "registerDeviceInEnvironment")]
 #[candid_method(update, rename = "registerDeviceInEnvironment")]
-fn register_device_in_environment(
+async fn register_device_in_environment(
     environment_manager_principal_id: PrincipalId,
     device_registration_input: DeviceRegistrationInput,
 ) -> DeviceInfoResult {
+    let device_uid = generate_uuid().await;
+
     STATE.with(|state| {
         let mut mutable_state = state.borrow_mut();
         match mutable_state
@@ -171,7 +173,6 @@ fn register_device_in_environment(
                     .get_mut(&device_registration_input.gateway_uid)
                 {
                     Some(gateway_info) => {
-                        let device_uid = generate_uuid();
                         print(format!("Device UID: {:?}", device_uid));
 
                         gateway_info.devices.insert(
@@ -193,7 +194,7 @@ fn register_device_in_environment(
                         };
 
                         Ok(device_registration_result)
-                    }
+                    },
                     None => {
                         let err = format!(
                             "Gateway with uid {:?} does not exist in environment",
@@ -204,7 +205,7 @@ fn register_device_in_environment(
                         Err(err)
                     }
                 }
-            }
+            },
             None => {
                 let err = format!(
                     "Environment with uid {:?} does not exist",
