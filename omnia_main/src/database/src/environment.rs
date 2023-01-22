@@ -218,17 +218,20 @@ fn get_devices_in_environment(environment_uid: EnvironmentUID) -> MultipleDevice
     STATE.with(
         |state| match state.borrow().environments.get(&environment_uid) {
             Some(environment_info) => {
-                let mut registered_devices: Vec<DeviceInfo> = vec![];
-                for (gateway_uid, gateway_info) in environment_info.env_gateways.clone() {
-                    for (uuid, info) in gateway_info.devices {
-                        let device_info = DeviceInfo {
-                            device_name: info.device_name,
-                            device_uid: uuid,
-                            gateway_uid: gateway_uid.clone(),
-                        };
-                        registered_devices.push(device_info);
-                    }
-                }
+                let registered_devices = environment_info.env_gateways.iter().fold(
+                    Vec::new(),
+                    |mut registered_devices, (gateway_uid, gateway_info)| {
+                        for (uuid, info) in gateway_info.devices.clone() {
+                            let device_info = DeviceInfo {
+                                device_name: info.device_name,
+                                device_uid: uuid,
+                                gateway_uid: gateway_uid.clone(),
+                            };
+                            registered_devices.push(device_info);
+                        }
+                        registered_devices
+                    },
+                );
                 Ok(registered_devices)
             }
             None => {
