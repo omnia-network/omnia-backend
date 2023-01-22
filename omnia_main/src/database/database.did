@@ -37,6 +37,7 @@ service : {
   getDevicesInEnvironment : (text) -> (Result);
   getGatewaysInEnvironment : (text) -> (Result_1);
   getUserProfile : (text) -> (StoredUserProfile);
+  initGateway : () -> (text);
   registerDeviceInEnvironment : (text, DeviceRegistrationInput) -> (Result_2);
   registerGatewayInEnvironment : (text, GatewayRegistrationInput) -> (Result_3);
   resetUserFromEnvironment : (text) -> (Result_4);

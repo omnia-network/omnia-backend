@@ -10,7 +10,7 @@ use omnia_types::{
     gateway::{GatewayInfoResult, GatewayRegistrationInput, MultipleGatewayInfoResult},
 };
 
-use crate::{utils::get_database_principal, STATE};
+use crate::utils::get_database_principal;
 
 #[update(name = "createEnvironment")]
 #[candid_method(update, rename = "createEnvironment")]
@@ -41,18 +41,11 @@ async fn create_environment(
 #[update(name = "initGateway")]
 #[candid_method(update, rename = "initGateway")]
 async fn init_gateway() -> String {
-    let (gateway_uuid,): (String,) = call(get_database_principal(), "generateUuid", ())
+    let (gateway_uuid,): (String,) = call(get_database_principal(), "initGateway", ())
         .await
         .unwrap();
 
     print(format!("Initialized gateway with UUID: {:?}", gateway_uuid));
-
-    STATE.with(|state| {
-        state
-            .borrow_mut()
-            .gateways_uids
-            .insert(gateway_uuid.clone());
-    });
 
     gateway_uuid
 }
@@ -64,32 +57,18 @@ async fn register_gateway(
 ) -> GatewayInfoResult {
     let environment_manager_principal = caller();
 
-    let is_initialized = STATE.with(|state| {
-        let mut state = state.borrow_mut();
-        state
-            .gateways_uids
-            .remove(&gateway_registration_input.gateway_uid)
-    });
+    let (gateway_registration_result,): (GatewayInfoResult,) = call(
+        get_database_principal(),
+        "registerGatewayInEnvironment",
+        (
+            environment_manager_principal.to_string(),
+            Box::new(gateway_registration_input),
+        ),
+    )
+    .await
+    .unwrap();
 
-    if is_initialized {
-        let (gateway_registration_result,): (GatewayInfoResult,) = call(
-            get_database_principal(),
-            "registerGatewayInEnvironment",
-            (
-                environment_manager_principal.to_string(),
-                Box::new(gateway_registration_input),
-            ),
-        )
-        .await
-        .unwrap();
-
-        return gateway_registration_result;
-    }
-
-    let err = format!("Could not register gateway as it is not initialized");
-
-    print(err.as_str());
-    Err(err)
+    gateway_registration_result
 }
 
 #[update(name = "getGateways")]

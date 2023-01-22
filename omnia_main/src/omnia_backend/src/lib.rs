@@ -5,8 +5,7 @@ mod utils;
 use candid::{candid_method, CandidType, Deserialize, Principal};
 use ic_cdk::print;
 use ic_cdk_macros::{init, post_upgrade};
-use omnia_types::gateway::GatewayUID;
-use std::{cell::RefCell, collections::BTreeSet};
+use std::cell::RefCell;
 use utils::update_database_principal;
 
 // if you want to make the state persistent:
@@ -14,7 +13,6 @@ use utils::update_database_principal;
 // - implement pre_upgrade and post_upgrade as it's done in database canister
 #[derive(Default, CandidType, Deserialize)]
 struct State {
-    pub gateways_uids: BTreeSet<GatewayUID>,
     pub database_principal: Option<Principal>,
 }
 

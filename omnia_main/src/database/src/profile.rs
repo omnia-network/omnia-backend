@@ -115,7 +115,7 @@ fn reset_user_from_environment(user_principal_id: PrincipalId) -> EnvironmentInf
                     print(err.as_str());
 
                     Err(err)
-                },
+                }
             }
         }
         None => {
@@ -124,7 +124,7 @@ fn reset_user_from_environment(user_principal_id: PrincipalId) -> EnvironmentInf
             print(err.as_str());
 
             Err(err)
-        },
+        }
     }
 }
 

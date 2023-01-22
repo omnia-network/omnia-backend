@@ -1,6 +1,5 @@
 use getrandom::register_custom_getrandom;
 use hex;
-use ic_cdk_macros::query;
 use rand::Rng;
 
 register_custom_getrandom!(custom_getrandom);
@@ -24,7 +23,7 @@ fn hex_encode(byte_vector: Vec<u8>) -> Vec<String> {
         .collect()
 }
 
-pub fn generate_local_uuid() -> String {
+pub fn generate_uuid() -> String {
     let hex_vector = hex_encode(create_byte_vector());
     let mut uuid = String::new();
     for (index, byte) in hex_vector.iter().enumerate() {
@@ -33,11 +32,5 @@ pub fn generate_local_uuid() -> String {
             uuid.push('-');
         }
     }
-    uuid
-}
-
-#[query(name = "generateUuid")]
-fn generate_uuid() -> String {
-    let uuid = generate_local_uuid();
     uuid
 }
