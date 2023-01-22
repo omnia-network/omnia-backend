@@ -2,10 +2,12 @@ use candid::CandidType;
 use candid::{candid_method, Deserialize};
 use ic_cdk::{export::Principal, print};
 use ic_cdk_macros::update;
+use omnia_types::environment::EnvironmentInfoResult;
 use omnia_types::{
     environment::{EnvironmentInfo, EnvironmentUID},
     user::PrincipalId,
 };
+use omnia_utils::get_principal_from_string;
 use serde::Serialize;
 
 use crate::STATE;
@@ -21,8 +23,8 @@ pub struct StoredUserProfile {
 fn set_user_in_environment(
     user_principal_id: PrincipalId,
     env_uid: EnvironmentUID,
-) -> EnvironmentInfo {
-    let user_principal = Principal::from_text(user_principal_id).unwrap();
+) -> EnvironmentInfoResult {
+    let user_principal = get_principal_from_string(user_principal_id);
 
     match get_user_profile_if_exists(user_principal) {
         Some(user_profile) => {
@@ -53,20 +55,26 @@ fn set_user_in_environment(
                 user_principal, env_uid
             ));
 
-            EnvironmentInfo {
+            Ok(EnvironmentInfo {
                 env_name,
                 env_uid,
                 env_manager_principal_id,
-            }
+            })
         }
-        None => panic!("User does not have a profile"),
+        None => {
+            let err = format!("User does not have a profile");
+
+            print(err.as_str());
+
+            Err(err)
+        }
     }
 }
 
 #[update(name = "resetUserFromEnvironment")]
 #[candid_method(update, rename = "resetUserFromEnvironment")]
-fn reset_user_from_environment(user_principal_id: PrincipalId) -> EnvironmentInfo {
-    let user_principal = Principal::from_text(user_principal_id).unwrap();
+fn reset_user_from_environment(user_principal_id: PrincipalId) -> EnvironmentInfoResult {
+    let user_principal = get_principal_from_string(user_principal_id);
 
     match get_user_profile_if_exists(user_principal) {
         Some(user_profile) => {
@@ -85,27 +93,45 @@ fn reset_user_from_environment(user_principal_id: PrincipalId) -> EnvironmentInf
             match user_profile.environment_uid {
                 Some(old_environment_uid) => STATE.with(|state| {
                     match state.borrow().environments.get(&old_environment_uid) {
-                        Some(environment_info) => EnvironmentInfo {
+                        Some(environment_info) => Ok(EnvironmentInfo {
                             env_name: environment_info.env_name.clone(),
                             env_uid: old_environment_uid,
                             env_manager_principal_id: environment_info
                                 .env_manager_principal_id
                                 .clone(),
-                        },
-                        None => panic!("Environment does not exist"),
+                        }),
+                        None => {
+                            let err = format!("Environment does not exist");
+
+                            print(err.as_str());
+
+                            Err(err)
+                        }
                     }
                 }),
-                None => panic!("User is not in environment"),
+                None => {
+                    let err = format!("User is not in environment");
+
+                    print(err.as_str());
+
+                    Err(err)
+                },
             }
         }
-        None => panic!("User does not have a profile"),
+        None => {
+            let err = format!("User does not have a profile");
+
+            print(err.as_str());
+
+            Err(err)
+        },
     }
 }
 
 #[update(name = "getUserProfile")]
 #[candid_method(update, rename = "getUserProfile")]
 fn get_user_profile(user_principal_id: PrincipalId) -> StoredUserProfile {
-    let user_principal = Principal::from_text(user_principal_id).unwrap();
+    let user_principal = get_principal_from_string(user_principal_id);
 
     match get_user_profile_if_exists(user_principal) {
         Some(user_profile) => {
@@ -124,17 +150,17 @@ fn get_user_profile(user_principal_id: PrincipalId) -> StoredUserProfile {
                 environment_uid: None,
             };
 
-            print(format!(
-                "Created profile: {:?} of user: {:?}",
-                new_user_profile, user_principal
-            ));
-
             STATE.with(|state| {
                 state
                     .borrow_mut()
                     .user_profiles
                     .insert(user_principal, new_user_profile.clone());
             });
+
+            print(format!(
+                "Created profile: {:?} of user: {:?}",
+                new_user_profile, user_principal
+            ));
 
             new_user_profile
         }

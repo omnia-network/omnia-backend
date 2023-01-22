@@ -2,9 +2,14 @@ use candid::{candid_method, CandidType, Deserialize};
 use ic_cdk::print;
 use ic_cdk_macros::update;
 use omnia_types::{
-    device::{DeviceInfo, DeviceRegistrationInput, DeviceRegistrationResult, DeviceUID},
+    device::{
+        DeviceInfo, DeviceInfoResult, DeviceRegistrationInput, DeviceUID, MultipleDeviceInfoResult,
+    },
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{GatewayInfo, GatewayRegistrationInput, GatewayRegistrationResult, GatewayUID},
+    gateway::{
+        GatewayInfo, GatewayInfoResult, GatewayRegistrationInput, GatewayUID,
+        MultipleGatewayInfoResult,
+    },
     user::PrincipalId,
 };
 use serde::Serialize;
@@ -60,6 +65,11 @@ fn create_new_environment(
         env_uid: environment_uid,
     };
 
+    print(format!(
+        "Created new environment: {:?}",
+        environment_creation_result
+    ));
+
     environment_creation_result
 }
 
@@ -68,7 +78,7 @@ fn create_new_environment(
 fn register_gateway_in_environment(
     environment_manager_principal_id: PrincipalId,
     gateway_registration_input: GatewayRegistrationInput,
-) -> Result<GatewayRegistrationResult, ()> {
+) -> GatewayInfoResult {
     STATE.with(|state| {
         let mut mutable_state = state.borrow_mut();
         match mutable_state
@@ -93,12 +103,20 @@ fn register_gateway_in_environment(
 
                 print(format!("Updated environment: {:?}", environment_info));
 
-                Ok(GatewayRegistrationResult {
+                Ok(Some(GatewayInfo {
                     gateway_name: gateway_registration_input.gateway_name,
                     gateway_uid: gateway_registration_input.gateway_uid,
-                })
+                }))
             }
-            None => panic!("Environment does not exist"),
+            None => {
+                let err = format!(
+                    "Environment with uid {:?} does not exist",
+                    gateway_registration_input.env_uid
+                );
+
+                print(err.as_str());
+                Err(err)
+            }
         }
     })
 }
@@ -108,7 +126,7 @@ fn register_gateway_in_environment(
 fn register_device_in_environment(
     environment_manager_principal_id: PrincipalId,
     device_registration_input: DeviceRegistrationInput,
-) -> Result<DeviceRegistrationResult, ()> {
+) -> DeviceInfoResult {
     STATE.with(|state| {
         let mut mutable_state = state.borrow_mut();
         match mutable_state
@@ -136,7 +154,7 @@ fn register_device_in_environment(
                             environment_info, environment_manager_principal_id
                         ));
 
-                        let device_registration_result = DeviceRegistrationResult {
+                        let device_registration_result = DeviceInfo {
                             device_name: device_registration_input.device_name,
                             device_uid,
                             gateway_uid: device_registration_input.gateway_uid.clone(),
@@ -144,17 +162,33 @@ fn register_device_in_environment(
 
                         Ok(device_registration_result)
                     }
-                    None => panic!("Gateway does not exist in environment"),
+                    None => {
+                        let err = format!(
+                            "Gateway with uid {:?} does not exist in environment",
+                            device_registration_input.gateway_uid
+                        );
+
+                        print(err.as_str());
+                        Err(err)
+                    }
                 }
             }
-            None => panic!("Environment does not exist"),
+            None => {
+                let err = format!(
+                    "Environment with uid {:?} does not exist",
+                    device_registration_input.env_uid
+                );
+
+                print(err.as_str());
+                Err(err)
+            }
         }
     })
 }
 
 #[update(name = "getGatewaysInEnvironment")]
 #[candid_method(update, rename = "getGatewaysInEnvironment")]
-fn get_gateways_in_environment(environment_uid: EnvironmentUID) -> Result<Vec<GatewayInfo>, ()> {
+fn get_gateways_in_environment(environment_uid: EnvironmentUID) -> MultipleGatewayInfoResult {
     STATE.with(
         |state| match state.borrow().environments.get(&environment_uid) {
             Some(environment_info) => {
@@ -169,11 +203,10 @@ fn get_gateways_in_environment(environment_uid: EnvironmentUID) -> Result<Vec<Ga
                 Ok(registered_gateways)
             }
             None => {
-                print(format!(
-                    "Environmnent: {:?} does not exist",
-                    environment_uid
-                ));
-                Err(())
+                let err = format!("Environmnent: {:?} does not exist", environment_uid);
+
+                print(err.as_str());
+                Err(err)
             }
         },
     )
@@ -181,7 +214,7 @@ fn get_gateways_in_environment(environment_uid: EnvironmentUID) -> Result<Vec<Ga
 
 #[update(name = "getDevicesInEnvironment")]
 #[candid_method(update, rename = "getDevicesInEnvironment")]
-fn get_devices_in_environment(environment_uid: EnvironmentUID) -> Result<Vec<DeviceInfo>, ()> {
+fn get_devices_in_environment(environment_uid: EnvironmentUID) -> MultipleDeviceInfoResult {
     STATE.with(
         |state| match state.borrow().environments.get(&environment_uid) {
             Some(environment_info) => {
@@ -199,11 +232,10 @@ fn get_devices_in_environment(environment_uid: EnvironmentUID) -> Result<Vec<Dev
                 Ok(registered_devices)
             }
             None => {
-                print(format!(
-                    "Environmnent: {:?} does not exist",
-                    environment_uid
-                ));
-                Err(())
+                let err = format!("Environmnent: {:?} does not exist", environment_uid);
+
+                print(err.as_str());
+                Err(err)
             }
         },
     )

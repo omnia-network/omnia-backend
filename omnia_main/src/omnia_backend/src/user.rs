@@ -4,7 +4,7 @@ use ic_cdk::{
     print,
 };
 use omnia_types::{
-    environment::{EnvironmentInfo, EnvironmentUID},
+    environment::{EnvironmentUID, EnvironmentInfoResult},
     user::UserProfile,
 };
 
@@ -30,10 +30,10 @@ async fn get_profile() -> UserProfile {
 
 #[ic_cdk_macros::update(name = "setEnvironment")]
 #[candid_method(update, rename = "setEnvironment")]
-async fn set_environment(env_uid: EnvironmentUID) -> EnvironmentInfo {
+async fn set_environment(env_uid: EnvironmentUID) -> EnvironmentInfoResult {
     let user_principal = caller();
 
-    let (environment_info,): (EnvironmentInfo,) = call(
+    let (environment_info,): (EnvironmentInfoResult,) = call(
         get_database_principal(),
         "setUserInEnvironment",
         (user_principal.to_string(), env_uid),
@@ -48,10 +48,10 @@ async fn set_environment(env_uid: EnvironmentUID) -> EnvironmentInfo {
 
 #[ic_cdk_macros::update(name = "resetEnvironment")]
 #[candid_method(update, rename = "resetEnvironment")]
-async fn reset_environment() -> EnvironmentInfo {
+async fn reset_environment() -> EnvironmentInfoResult {
     let user_principal = caller();
 
-    let (environment_info,): (EnvironmentInfo,) = call(
+    let (environment_info,): (EnvironmentInfoResult,) = call(
         get_database_principal(),
         "resetUserFromEnvironment",
         (user_principal.to_string(),),

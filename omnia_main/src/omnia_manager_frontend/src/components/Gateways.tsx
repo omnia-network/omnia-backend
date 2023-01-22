@@ -4,6 +4,7 @@ import { GatewayInfo } from "../../../declarations/omnia_backend/omnia_backend.d
 import EnvironmentContext from "../contexts/EnvironmentContext";
 import { handleError } from "../services/errors";
 import { getGatewaysOfEnvironment } from "../services/gateways";
+import { resultParser } from "../utils/resultParser";
 import DataView from "./DataView";
 import Devices from "./Devices";
 
@@ -39,19 +40,20 @@ const Gateways: React.FC<IProps> = () => {
 
       const initGatewayUid = await omnia_backend.initGateway();
 
-      const res = await omnia_backend.registerGateway({
+      const res = resultParser(await omnia_backend.registerGateway({
         env_uid: envData!.env_uid,
         gateway_name: gatewayNameInput,
         gateway_uid: initGatewayUid,
-      });
+      }));
 
-      if (res.length === 0) {
-        alert("Please enter an initialized gateway UUID");
+      if (res.error) {
+        alert(res.error);
+      } else {
+        console.log("Gateway registered", res.data);
+        // reload gateways from local storage
+        setGateways(await getGatewaysOfEnvironment(envData!.env_uid));
       }
 
-      console.log("Gateway registered", res[0]);
-      // reload gateways from local storage
-      setGateways(await getGatewaysOfEnvironment(envData!.env_uid));
       // clear input
       setGatewayNameInput("");
       setGatewayUidInput("");
@@ -65,10 +67,11 @@ const Gateways: React.FC<IProps> = () => {
   useEffect(() => {
     setIsInitialLoading(true);
 
-    omnia_backend.getGateways(envData!.env_uid)
-      .then((res) => setGateways(res))
-      .catch((e) => handleError(e))
-      .then(() => setIsInitialLoading(false));
+    getGatewaysOfEnvironment(envData!.env_uid)
+      .then((res) => {
+        setGateways(res);
+        setIsInitialLoading(false);
+      });
   }, [envData]);
 
   return (

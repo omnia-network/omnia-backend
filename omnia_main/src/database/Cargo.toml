@@ -17,4 +17,5 @@ getrandom = { version = "0.2", features = ["custom"] }
 rand = "0.8.5"
 hex = "0.4.3"
 omnia_types ={ path = "../omnia_types"}
+omnia_utils ={ path = "../omnia_utils"}
 ciborium = "0.2.0"

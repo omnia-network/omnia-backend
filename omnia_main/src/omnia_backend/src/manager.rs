@@ -5,9 +5,9 @@ use ic_cdk::{
 };
 use ic_cdk_macros::update;
 use omnia_types::{
-    device::{DeviceInfo, DeviceRegistrationInput, DeviceRegistrationResult},
+    device::{DeviceInfoResult, DeviceRegistrationInput, MultipleDeviceInfoResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{GatewayInfo, GatewayRegistrationInput, GatewayRegistrationResult},
+    gateway::{GatewayInfoResult, GatewayRegistrationInput, MultipleGatewayInfoResult},
 };
 
 use crate::{utils::get_database_principal, STATE};
@@ -61,24 +61,18 @@ async fn init_gateway() -> String {
 #[candid_method(update, rename = "registerGateway")]
 async fn register_gateway(
     gateway_registration_input: GatewayRegistrationInput,
-) -> Option<GatewayRegistrationResult> {
+) -> GatewayInfoResult {
     let environment_manager_principal = caller();
 
     let is_initialized = STATE.with(|state| {
         let mut state = state.borrow_mut();
-        match state
+        state
             .gateways_uids
-            .contains(&gateway_registration_input.gateway_uid)
-        {
-            true => state
-                .gateways_uids
-                .remove(&gateway_registration_input.gateway_uid),
-            false => false,
-        }
+            .remove(&gateway_registration_input.gateway_uid)
     });
 
     if is_initialized {
-        let (gateway_registration_result,): (Result<GatewayRegistrationResult, ()>,) = call(
+        let (gateway_registration_result,): (GatewayInfoResult,) = call(
             get_database_principal(),
             "registerGatewayInEnvironment",
             (
@@ -89,29 +83,19 @@ async fn register_gateway(
         .await
         .unwrap();
 
-        match gateway_registration_result {
-            Ok(gateway_registration_result) => {
-                print(format!(
-                    "Registered gateway: {:?}",
-                    gateway_registration_result
-                ));
-
-                return Some(gateway_registration_result);
-            }
-            Err(()) => {
-                return None;
-            }
-        }
+        return gateway_registration_result;
     }
 
-    print("Could not register gateway as it is not initialized");
-    None
+    let err = format!("Could not register gateway as it is not initialized");
+
+    print(err.as_str());
+    Err(err)
 }
 
 #[update(name = "getGateways")]
 #[candid_method(update, rename = "getGateways")]
-async fn get_gateways(environment_uid: EnvironmentUID) -> Vec<GatewayInfo> {
-    let (res,): (Result<Vec<GatewayInfo>, ()>,) = call(
+async fn get_gateways(environment_uid: EnvironmentUID) -> MultipleGatewayInfoResult {
+    let (res,): (MultipleGatewayInfoResult,) = call(
         get_database_principal(),
         "getGatewaysInEnvironment",
         (environment_uid.clone(),),
@@ -119,20 +103,15 @@ async fn get_gateways(environment_uid: EnvironmentUID) -> Vec<GatewayInfo> {
     .await
     .unwrap();
 
-    match res {
-        Ok(gateways_info) => gateways_info,
-        Err(()) => panic!("couldn't get gateways info"),
-    }
+    res
 }
 
 #[update(name = "registerDevice")]
 #[candid_method(update, rename = "registerDevice")]
-async fn register_device(
-    device_registration_input: DeviceRegistrationInput,
-) -> DeviceRegistrationResult {
+async fn register_device(device_registration_input: DeviceRegistrationInput) -> DeviceInfoResult {
     let environment_manager_principal = caller();
 
-    let (device_registration_result,): (Result<DeviceRegistrationResult, ()>,) = call(
+    let (device_registration_result,): (DeviceInfoResult,) = call(
         get_database_principal(),
         "registerDeviceInEnvironment",
         (
@@ -143,23 +122,13 @@ async fn register_device(
     .await
     .unwrap();
 
-    match device_registration_result {
-        Ok(device_registration_result) => {
-            print(format!(
-                "Registered device: {:?}",
-                device_registration_result
-            ));
-        
-            device_registration_result
-        },
-        Err(()) => panic!("couldn't register device")
-    }
+    device_registration_result
 }
 
 #[update(name = "getDevices")]
 #[candid_method(update, rename = "getDevices")]
-async fn get_devices(environment_uid: EnvironmentUID) -> Vec<DeviceInfo> {
-    let (res,): (Result<Vec<DeviceInfo>, ()>,) = call(
+async fn get_devices(environment_uid: EnvironmentUID) -> MultipleDeviceInfoResult {
+    let (res,): (MultipleDeviceInfoResult,) = call(
         get_database_principal(),
         "getDevicesInEnvironment",
         (environment_uid.clone(),),
@@ -167,8 +136,5 @@ async fn get_devices(environment_uid: EnvironmentUID) -> Vec<DeviceInfo> {
     .await
     .unwrap();
 
-    match res {
-        Ok(devices_info) => devices_info,
-        Err(()) => panic!("couldn't get devices")
-    }
+    res
 }

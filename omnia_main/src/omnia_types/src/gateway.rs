@@ -1,6 +1,6 @@
 use candid::{CandidType, Deserialize};
 
-use crate::environment::EnvironmentUID;
+use crate::{environment::EnvironmentUID, errors::GenericError};
 
 pub type GatewayUID = String;
 
@@ -12,13 +12,10 @@ pub struct GatewayRegistrationInput {
 }
 
 #[derive(Debug, CandidType, Deserialize)]
-pub struct GatewayRegistrationResult {
-    pub gateway_name: String,
-    pub gateway_uid: GatewayUID,
-}
-
-#[derive(Debug, CandidType, Deserialize)]
 pub struct GatewayInfo {
     pub gateway_name: String,
     pub gateway_uid: GatewayUID,
 }
+
+pub type GatewayInfoResult = Result<Option<GatewayInfo>, GenericError>;
+pub type MultipleGatewayInfoResult = Result<Vec<GatewayInfo>, GenericError>;

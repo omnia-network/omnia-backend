@@ -6,6 +6,7 @@ import ProfileContext from '../contexts/ProfileContext';
 import { omnia_backend } from '../../../declarations/omnia_backend';
 import { EnvironmentInfo } from '../../../declarations/omnia_backend/omnia_backend.did';
 import GenericMessage from './GenericMessage';
+import { resultParser } from '../utils/resultParser';
 
 const Home = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,13 +56,17 @@ const Home = () => {
 
     try {
       setGenericMessage('Got environment ID, setting environment on canister...');
-      const envInfo = await omnia_backend.setEnvironment(envId);
+      const envInfo = resultParser(await omnia_backend.setEnvironment(envId));
       // fetch profile again to get the new environment info
       await fetchProfileFromCanister();
 
-      console.log('setEnvironment: envInfo', envInfo);
+      if (envInfo.error) {
+        throw envInfo.error;
+      }
 
-      setEnvironmentInfo(envInfo);
+      console.log('setEnvironment: envInfo', envInfo.data);
+
+      setEnvironmentInfo(envInfo.data!);
 
       setGenericMessage('');
     } catch (e: any) {
@@ -128,7 +133,7 @@ const Home = () => {
               <div>
                 <form action="#" onSubmit={onFormSumbit}>
                   <label htmlFor="envId">Enter UID: &nbsp;</label>
-                  <input ref={inputRef} id="envId" alt="Environment ID" type="number" placeholder="Environment ID..." />
+                  <input ref={inputRef} id="envId" alt="Environment ID" type="text" placeholder="Environment ID..." />
                   <button type="submit" disabled={isSubmitting}>Enter</button>
                 </form>
                 <QrReader

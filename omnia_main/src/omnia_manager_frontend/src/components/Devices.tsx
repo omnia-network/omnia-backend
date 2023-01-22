@@ -4,6 +4,7 @@ import { DeviceInfo, GatewayInfo } from "../../../declarations/omnia_backend/omn
 import EnvironmentContext from "../contexts/EnvironmentContext";
 import { getDevicesOfGateway } from "../services/devices";
 import { handleError } from "../services/errors";
+import { resultParser } from "../utils/resultParser";
 import DataView from "./DataView";
 
 interface IProps {
@@ -32,13 +33,17 @@ const Devices: React.FC<IProps> = ({ gateway_uid }) => {
     try {
       setIsLoading(true);
 
-      const res = await omnia_backend.registerDevice({
+      const res = resultParser(await omnia_backend.registerDevice({
         env_uid: envData!.env_uid,
         gateway_uid: gateway_uid,
         device_name: deviceNameInput,
-      });
+      }));
 
-      console.log("Device registered", res);
+      if (res.error) {
+        alert(res.error);
+      }
+
+      console.log("Device registered", res.data);
 
       // reload devices from local storage
       setDevices(await getDevicesOfGateway(envData!.env_uid, gateway_uid));
@@ -56,9 +61,10 @@ const Devices: React.FC<IProps> = ({ gateway_uid }) => {
     setIsInitialLoading(true);
 
     getDevicesOfGateway(envData!.env_uid, gateway_uid)
-      .then((res) => setDevices(res))
-      .catch((e) => handleError(e))
-      .then(() => setIsInitialLoading(false));
+      .then((res) => {
+        setDevices(res);
+        setIsInitialLoading(false);
+      });
   }, [envData, gateway_uid]);
 
   return (

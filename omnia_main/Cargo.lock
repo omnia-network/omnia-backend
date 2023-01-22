@@ -247,6 +247,7 @@ dependencies = [
  "ic-cdk",
  "ic-cdk-macros",
  "omnia_types",
+ "omnia_utils",
  "rand",
  "serde",
 ]
@@ -597,6 +598,14 @@ dependencies = [
  "candid",
  "ic-cdk",
  "serde",
+]
+
+[[package]]
+name = "omnia_utils"
+version = "0.1.0"
+dependencies = [
+ "candid",
+ "ic-cdk",
 ]
 
 [[package]]
