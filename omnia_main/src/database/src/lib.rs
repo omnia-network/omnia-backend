@@ -9,7 +9,6 @@ use omnia_types::environment::EnvironmentUID;
 use omnia_types::gateway::GatewayUID;
 use profile::StoredUserProfile;
 use serde::Serialize;
-use uuid::{Salt, EMPTY_SALT};
 
 mod environment;
 mod profile;
@@ -20,7 +19,6 @@ struct State {
     pub user_profiles: BTreeMap<Principal, StoredUserProfile>,
     pub environments: BTreeMap<EnvironmentUID, StoredEnvironmentInfo>,
     pub initialized_gateways: BTreeSet<GatewayUID>,
-    pub random_seed: Salt,
 }
 
 impl State {
@@ -29,7 +27,6 @@ impl State {
             user_profiles: BTreeMap::default(),
             environments: BTreeMap::default(),
             initialized_gateways: BTreeSet::default(),
-            random_seed: EMPTY_SALT,
         }
     }
 }
