@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "rootDirs": [
+      "omnia_main",
+    ],
+  }
+}
