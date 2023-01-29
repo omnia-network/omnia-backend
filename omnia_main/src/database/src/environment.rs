@@ -124,10 +124,10 @@ fn register_gateway_in_environment(
         
                         print(format!("Updated environment: {:?}", environment_info));
         
-                        Ok(Some(GatewayInfo {
+                        Ok(GatewayInfo {
                             gateway_name: gateway_registration_input.gateway_name,
                             gateway_uid: gateway_registration_input.gateway_uid,
-                        }))
+                        })
                     }
                     None => {
                         let err = format!(

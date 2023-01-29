@@ -17,5 +17,5 @@ pub struct GatewayInfo {
     pub gateway_uid: GatewayUID,
 }
 
-pub type GatewayInfoResult = Result<Option<GatewayInfo>, GenericError>;
+pub type GatewayInfoResult = Result<GatewayInfo, GenericError>;
 pub type MultipleGatewayInfoResult = Result<Vec<GatewayInfo>, GenericError>;

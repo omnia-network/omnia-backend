@@ -4,7 +4,11 @@ import { Actor, ActorSubclass, HttpAgent } from "@dfinity/agent";
 import { idlFactory } from "../../src/declarations/omnia_backend/omnia_backend.did.js";
 import { _SERVICE } from "../../src/declarations/omnia_backend/omnia_backend.did";
 
-function initCanisterEnv() {
+type CanisterIds = {
+  [key: string]: string;
+};
+
+const initCanisterEnv = (): CanisterIds => {
   let localCanisters, prodCanisters;
   try {
     localCanisters = require(path.resolve(
@@ -35,9 +39,7 @@ function initCanisterEnv() {
     },
   } = network === "local" ? localCanisters : prodCanisters;
 
-  const defaultEnv: {
-    [key: string]: string;
-  } = {
+  const defaultEnv: CanisterIds = {
     DFX_NETWORK: network,
   };
 
@@ -49,6 +51,8 @@ function initCanisterEnv() {
       return prev;
     }, defaultEnv);
 };
+
+export const canisterIds = initCanisterEnv();
 
 // we need to recreate the agent because the environment variables are not available at the time of import
 const createActor = () => {
@@ -71,7 +75,7 @@ const createActor = () => {
   return Actor.createActor(idlFactory, {
     agent,
     // @ts-ignore
-    canisterId: conf.OMNIA_BACKEND_CANISTER_ID,
+    canisterId: canisterIds.OMNIA_BACKEND_CANISTER_ID,
   }) as ActorSubclass<_SERVICE>;
 };
 
