@@ -9,12 +9,18 @@ pub type HttpHeader = (String, String);
 
 #[derive(CandidType, Deserialize, Debug, PartialEq, Clone)]
 pub struct HttpRequest {
-    // GET, HEAD, POST
     pub method: String,
     pub url: String,
     pub headers: Vec<HttpHeader>,
     pub body: Option<Vec<u8>>,
     pub upgrade: Option<bool>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ParsedHttpRequestBody {
+    pub public_key: String,
+    pub signature: String,
+    pub message: String,
 }
 
 #[derive(CandidType, Deserialize, Debug, PartialEq, Clone)]
