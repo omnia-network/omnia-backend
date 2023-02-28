@@ -21,6 +21,19 @@ type GatewayRegistrationInput = record {
   env_uid : text;
   gateway_uid : text;
 };
+type HttpRequest = record {
+  url : text;
+  method : text;
+  body : opt vec nat8;
+  headers : vec record { text; text };
+  upgrade : opt bool;
+};
+type HttpResponse = record {
+  body : vec nat8;
+  headers : vec record { text; text };
+  streaming_strategy : opt text;
+  status_code : nat16;
+};
 type Result = variant { Ok : vec DeviceInfo; Err : text };
 type Result_1 = variant { Ok : vec GatewayInfo; Err : text };
 type Result_2 = variant { Ok : DeviceInfo; Err : text };
@@ -35,6 +48,7 @@ service : (opt text, text) -> {
   getDevices : (text) -> (Result);
   getGateways : (text) -> (Result_1);
   getProfile : () -> (UserProfile);
+  http_request : (HttpRequest) -> (HttpResponse) query;
   initGateway : () -> (text);
   registerDevice : (DeviceRegistrationInput) -> (Result_2);
   registerGateway : (GatewayRegistrationInput) -> (Result_3);

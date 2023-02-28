@@ -1,6 +1,7 @@
 mod manager;
 mod user;
 mod utils;
+mod http_endpoint;
 
 use candid::{candid_method, CandidType, Deserialize, Principal};
 use ic_cdk::print;
@@ -43,6 +44,7 @@ mod tests {
     use omnia_types::environment::*;
     use omnia_types::gateway::*;
     use omnia_types::user::*;
+    use omnia_types::http::*;
 
     #[test]
     fn save_candid() {
