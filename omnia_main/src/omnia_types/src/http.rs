@@ -1,11 +1,15 @@
 use candid::CandidType;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub const CONTENT_TYPE_HEADER_KEY: &str = "content-type";
 
 pub const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_KEY: &str = "Access-Control-Allow-Origin";
 
+pub const CONNECTION_HEADER_KEY: &str = "Connection";
+
 pub type HttpHeader = (String, String);
+pub type CanisterCallNonce = String;
+pub type RequesterIp = String;
 
 #[derive(CandidType, Deserialize, Debug, PartialEq, Clone)]
 pub struct HttpRequest {
@@ -18,9 +22,7 @@ pub struct HttpRequest {
 
 #[derive(Deserialize, Debug)]
 pub struct ParsedHttpRequestBody {
-    pub public_key: String,
-    pub signature: String,
-    pub message: String,
+    pub nonce: String,
 }
 
 #[derive(CandidType, Deserialize, Debug, PartialEq, Clone)]
@@ -29,4 +31,11 @@ pub struct HttpResponse {
     pub headers: Vec<HttpHeader>,
     pub body: Vec<u8>,
     pub streaming_strategy: Option<String>,
+    pub upgrade: Option<bool>,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Debug)]
+pub struct RequesterInfo {
+    pub ip: RequesterIp,
+    pub timestamp: u64,
 }

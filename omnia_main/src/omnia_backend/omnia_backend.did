@@ -31,6 +31,7 @@ type HttpRequest = record {
 type HttpResponse = record {
   body : vec nat8;
   headers : vec record { text; text };
+  upgrade : opt bool;
   streaming_strategy : opt text;
   status_code : nat16;
 };
@@ -49,6 +50,7 @@ service : (opt text, text) -> {
   getGateways : (text) -> (Result_1);
   getProfile : () -> (UserProfile);
   http_request : (HttpRequest) -> (HttpResponse) query;
+  http_request_update : (HttpRequest) -> (HttpResponse);
   initGateway : () -> (text);
   registerDevice : (DeviceRegistrationInput) -> (Result_2);
   registerGateway : (GatewayRegistrationInput) -> (Result_3);

@@ -7,17 +7,20 @@ use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{post_upgrade, pre_upgrade};
 use omnia_types::environment::EnvironmentUID;
 use omnia_types::gateway::GatewayUID;
+use omnia_types::http::{CanisterCallNonce, RequesterInfo};
 use profile::StoredUserProfile;
 use serde::Serialize;
 
 mod environment;
 mod profile;
 mod uuid;
+mod auth;
 
 #[derive(Default, CandidType, Serialize, Deserialize)]
 struct State {
     pub user_profiles: BTreeMap<Principal, StoredUserProfile>,
     pub environments: BTreeMap<EnvironmentUID, StoredEnvironmentInfo>,
+    pub initialized_nonce_to_ip: BTreeMap<CanisterCallNonce, RequesterInfo>,
     pub initialized_gateways: BTreeSet<GatewayUID>,
 }
 
@@ -26,6 +29,7 @@ impl State {
         Self {
             user_profiles: BTreeMap::default(),
             environments: BTreeMap::default(),
+            initialized_nonce_to_ip: BTreeMap::default(),
             initialized_gateways: BTreeSet::default(),
         }
     }
