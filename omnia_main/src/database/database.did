@@ -28,9 +28,11 @@ type Result_2 = variant { Ok : text; Err };
 type Result_3 = variant { Ok : DeviceInfo; Err : text };
 type Result_4 = variant { Ok : opt GatewayInfo; Err : text };
 type Result_5 = variant { Ok : EnvironmentInfo; Err : text };
-type StoredUserProfile = record {
-  user_principal_id : text;
-  environment_uid : opt text;
+type VirtualPersona = record {
+  manager_env_uid : opt text;
+  user_env_uid : opt text;
+  virtual_persona_principal_id : text;
+  virtual_persona_ip : text;
 };
 service : {
   createNewEnvironment : (text, EnvironmentCreationInput) -> (
@@ -38,7 +40,7 @@ service : {
     );
   getDevicesInEnvironment : (text) -> (Result);
   getGatewaysInEnvironment : (text) -> (Result_1);
-  getUserProfile : (text) -> (StoredUserProfile);
+  getUserProfile : (text) -> (VirtualPersona);
   initGateway : (text) -> (Result_2);
   initNonceToIp : (text, RequesterInfo) -> (opt RequesterInfo);
   registerDeviceInEnvironment : (text, DeviceRegistrationInput) -> (Result_3);

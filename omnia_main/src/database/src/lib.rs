@@ -8,7 +8,7 @@ use ic_cdk_macros::{post_upgrade, pre_upgrade};
 use omnia_types::environment::EnvironmentUID;
 use omnia_types::gateway::{GatewayUID, GatewayIp};
 use omnia_types::http::{CanisterCallNonce, RequesterInfo};
-use profile::StoredUserProfile;
+use profile::VirtualPersona;
 use serde::Serialize;
 
 mod environment;
@@ -18,7 +18,7 @@ mod auth;
 
 #[derive(Default, CandidType, Serialize, Deserialize)]
 struct State {
-    pub user_profiles: BTreeMap<Principal, StoredUserProfile>,
+    pub virtual_personas: BTreeMap<Principal, VirtualPersona>,
     pub environments: BTreeMap<EnvironmentUID, StoredEnvironmentInfo>,
     pub initialized_nonce_to_ip: BTreeMap<CanisterCallNonce, RequesterInfo>,
     pub initialized_gateways: BTreeMap<GatewayIp, GatewayUID>,
@@ -27,7 +27,7 @@ struct State {
 impl State {
     fn default() -> Self {
         Self {
-            user_profiles: BTreeMap::default(),
+            virtual_personas: BTreeMap::default(),
             environments: BTreeMap::default(),
             initialized_nonce_to_ip: BTreeMap::default(),
             initialized_gateways: BTreeMap::default(),
