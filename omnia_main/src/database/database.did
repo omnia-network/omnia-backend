@@ -42,6 +42,7 @@ service : {
   getDevicesInEnvironment : (text) -> (Result);
   getGatewaysInEnvironment : (text) -> (Result_1);
   getVirtualPersona : (text, text) -> (Result_2);
+  getVirtualPersonaIfExists : (principal) -> (opt VirtualPersona) query;
   initGateway : (text) -> (Result_3);
   initNonceToIp : (text, RequesterInfo) -> (opt RequesterInfo);
   registerDeviceInEnvironment : (text, DeviceRegistrationInput) -> (Result_4);

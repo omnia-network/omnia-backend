@@ -13,12 +13,12 @@ use crate::utils::get_database_principal;
 #[ic_cdk_macros::update(name = "getProfile")]
 #[candid_method(update, rename = "getProfile")]
 async fn get_profile(nonce: CanisterCallNonce) -> Result<VirtualPersona, ()> {
-    let user_principal = caller();
+    let virtual_persona_principal = caller();
 
     match call(
         get_database_principal(),
         "getVirtualPersona",
-        (nonce, user_principal.to_string(),),
+        (nonce, virtual_persona_principal.to_string(),),
     ).await.unwrap() {
         (Ok(virtual_persona),) => {
             print(format!("User profile: {:?}", virtual_persona));
@@ -31,12 +31,12 @@ async fn get_profile(nonce: CanisterCallNonce) -> Result<VirtualPersona, ()> {
 #[ic_cdk_macros::update(name = "setEnvironment")]
 #[candid_method(update, rename = "setEnvironment")]
 async fn set_environment(env_uid: EnvironmentUID) -> EnvironmentInfoResult {
-    let user_principal = caller();
+    let virtual_persona_principal = caller();
 
     let (environment_info,): (EnvironmentInfoResult,) = call(
         get_database_principal(),
         "setUserInEnvironment",
-        (user_principal.to_string(), env_uid),
+        (virtual_persona_principal.to_string(), env_uid),
     )
     .await
     .unwrap();
@@ -49,12 +49,12 @@ async fn set_environment(env_uid: EnvironmentUID) -> EnvironmentInfoResult {
 #[ic_cdk_macros::update(name = "resetEnvironment")]
 #[candid_method(update, rename = "resetEnvironment")]
 async fn reset_environment() -> EnvironmentInfoResult {
-    let user_principal = caller();
+    let virtual_persona_principal = caller();
 
     let (environment_info,): (EnvironmentInfoResult,) = call(
         get_database_principal(),
         "resetUserFromEnvironment",
-        (user_principal.to_string(),),
+        (virtual_persona_principal.to_string(),),
     )
     .await
     .unwrap();

@@ -35,13 +35,14 @@ type HttpResponse = record {
   streaming_strategy : opt text;
   status_code : nat16;
 };
-type Result = variant { Ok : vec DeviceInfo; Err : text };
-type Result_1 = variant { Ok : vec GatewayInfo; Err : text };
-type Result_2 = variant { Ok : VirtualPersona; Err };
-type Result_3 = variant { Ok : text; Err };
-type Result_4 = variant { Ok : DeviceInfo; Err : text };
-type Result_5 = variant { Ok : opt GatewayInfo; Err : text };
-type Result_6 = variant { Ok : EnvironmentInfo; Err : text };
+type Result = variant { Ok : EnvironmentCreationResult; Err };
+type Result_1 = variant { Ok : vec DeviceInfo; Err : text };
+type Result_2 = variant { Ok : vec GatewayInfo; Err : text };
+type Result_3 = variant { Ok : VirtualPersona; Err };
+type Result_4 = variant { Ok : text; Err };
+type Result_5 = variant { Ok : DeviceInfo; Err : text };
+type Result_6 = variant { Ok : opt GatewayInfo; Err : text };
+type Result_7 = variant { Ok : EnvironmentInfo; Err : text };
 type VirtualPersona = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;
@@ -49,15 +50,15 @@ type VirtualPersona = record {
   virtual_persona_ip : text;
 };
 service : (opt text, text) -> {
-  createEnvironment : (EnvironmentCreationInput) -> (EnvironmentCreationResult);
-  getDevices : (text) -> (Result);
-  getGateways : (text) -> (Result_1);
-  getProfile : (text) -> (Result_2);
+  createEnvironment : (EnvironmentCreationInput) -> (Result);
+  getDevices : (text) -> (Result_1);
+  getGateways : (text) -> (Result_2);
+  getProfile : (text) -> (Result_3);
   http_request : (HttpRequest) -> (HttpResponse) query;
   http_request_update : (HttpRequest) -> (HttpResponse);
-  initGateway : (text) -> (Result_3);
-  registerDevice : (DeviceRegistrationInput) -> (Result_4);
-  registerGateway : (text, GatewayRegistrationInput) -> (Result_5);
-  resetEnvironment : () -> (Result_6);
-  setEnvironment : (text) -> (Result_6);
+  initGateway : (text) -> (Result_4);
+  registerDevice : (DeviceRegistrationInput) -> (Result_5);
+  registerGateway : (text, GatewayRegistrationInput) -> (Result_6);
+  resetEnvironment : () -> (Result_7);
+  setEnvironment : (text) -> (Result_7);
 }
