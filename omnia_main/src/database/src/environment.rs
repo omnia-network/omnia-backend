@@ -1,39 +1,20 @@
-use candid::{candid_method, CandidType, Deserialize};
+use candid::candid_method;
 use ic_cdk::print;
 use ic_cdk_macros::update;
 use omnia_types::{
     device::{
-        DeviceInfo, DeviceInfoResult, DeviceRegistrationInput, DeviceUID, MultipleDeviceInfoResult,
+        DeviceInfo, DeviceInfoResult, DeviceRegistrationInput, MultipleDeviceInfoResult, StoredDeviceInfo,
     },
-    environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
+    environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID, Environment},
     gateway::{
-        GatewayInfo, GatewayInfoResult, GatewayRegistrationInput, GatewayUID,
-        MultipleGatewayInfoResult,
+        GatewayInfo, GatewayInfoResult, GatewayRegistrationInput,
+        MultipleGatewayInfoResult, StoredGatewayInfo,
     },
     user::PrincipalId, http::{CanisterCallNonce, RequesterInfo},
 };
-use serde::Serialize;
 use std::collections::BTreeMap;
 
 use crate::{uuid::generate_uuid, STATE};
-
-#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
-pub struct StoredDeviceInfo {
-    pub device_name: String,
-}
-
-#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
-pub struct StoredGatewayInfo {
-    pub gateway_name: String,
-    pub devices: BTreeMap<DeviceUID, StoredDeviceInfo>,
-}
-
-#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
-pub struct StoredEnvironmentInfo {
-    pub env_name: String,
-    pub env_gateways: BTreeMap<GatewayUID, StoredGatewayInfo>,
-    pub env_manager_principal_id: PrincipalId,
-}
 
 #[update(name = "initGateway")]
 #[candid_method(update, rename = "initGateway")]
@@ -84,8 +65,9 @@ async fn create_new_environment(
     STATE.with(|state| {
         state.borrow_mut().environments.insert(
             environment_uid.clone(),
-            StoredEnvironmentInfo {
+            Environment {
                 env_name: environment_creation_input.env_name.clone(),
+                env_ip: None,
                 env_gateways: BTreeMap::new(),
                 env_manager_principal_id: environment_manager_principal_id,
             },

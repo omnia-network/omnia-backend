@@ -1,10 +1,16 @@
 use candid::{CandidType, Deserialize};
+use serde::Serialize;
 
 use crate::environment::EnvironmentUID;
 use crate::errors::GenericError;
 use crate::gateway::GatewayUID;
 
 pub type DeviceUID = String;
+
+#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
+pub struct StoredDeviceInfo {
+    pub device_name: String,
+}
 
 #[derive(Debug, CandidType, Deserialize)]
 pub struct DeviceRegistrationInput {
