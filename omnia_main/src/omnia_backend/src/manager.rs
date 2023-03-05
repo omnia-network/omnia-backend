@@ -7,7 +7,7 @@ use ic_cdk_macros::update;
 use omnia_types::{
     device::{DeviceInfoResult, DeviceRegistrationInput, MultipleDeviceInfoResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{GatewayInfoResult, GatewayRegistrationInput, MultipleGatewayInfoResult},
+    gateway::{GatewayInfoResult, GatewayRegistrationInput, MultipleGatewayInfoResult}, http::CanisterCallNonce,
 };
 
 use crate::utils::get_database_principal;
@@ -40,19 +40,24 @@ async fn create_environment(
 
 #[update(name = "initGateway")]
 #[candid_method(update, rename = "initGateway")]
-async fn init_gateway() -> String {
-    let (gateway_uuid,): (String,) = call(get_database_principal(), "initGateway", ())
+async fn init_gateway(nonce: CanisterCallNonce) -> Result<String, ()> {
+    
+    match call(get_database_principal(), "initGateway", (nonce, ))
         .await
-        .unwrap();
-
-    print(format!("Initialized gateway with UUID: {:?}", gateway_uuid));
-
-    gateway_uuid
+        .unwrap()
+    {
+        (Ok(gateway_uuid),) => {
+            print(format!("Initialized gateway with UUID: {:?}", gateway_uuid));
+            Ok(gateway_uuid)
+        },
+        (Err(()),) => Err(())
+    }
 }
 
 #[update(name = "registerGateway")]
 #[candid_method(update, rename = "registerGateway")]
 async fn register_gateway(
+    nonce: CanisterCallNonce,
     gateway_registration_input: GatewayRegistrationInput,
 ) -> GatewayInfoResult {
     let environment_manager_principal = caller();
@@ -61,6 +66,7 @@ async fn register_gateway(
         get_database_principal(),
         "registerGatewayInEnvironment",
         (
+            nonce,
             environment_manager_principal.to_string(),
             Box::new(gateway_registration_input),
         ),

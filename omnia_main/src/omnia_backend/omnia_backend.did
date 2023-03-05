@@ -37,9 +37,10 @@ type HttpResponse = record {
 };
 type Result = variant { Ok : vec DeviceInfo; Err : text };
 type Result_1 = variant { Ok : vec GatewayInfo; Err : text };
-type Result_2 = variant { Ok : DeviceInfo; Err : text };
-type Result_3 = variant { Ok : opt GatewayInfo; Err : text };
-type Result_4 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_2 = variant { Ok : text; Err };
+type Result_3 = variant { Ok : DeviceInfo; Err : text };
+type Result_4 = variant { Ok : opt GatewayInfo; Err : text };
+type Result_5 = variant { Ok : EnvironmentInfo; Err : text };
 type UserProfile = record {
   user_principal_id : text;
   environment_uid : opt text;
@@ -51,9 +52,9 @@ service : (opt text, text) -> {
   getProfile : () -> (UserProfile);
   http_request : (HttpRequest) -> (HttpResponse) query;
   http_request_update : (HttpRequest) -> (HttpResponse);
-  initGateway : () -> (text);
-  registerDevice : (DeviceRegistrationInput) -> (Result_2);
-  registerGateway : (GatewayRegistrationInput) -> (Result_3);
-  resetEnvironment : () -> (Result_4);
-  setEnvironment : (text) -> (Result_4);
+  initGateway : (text) -> (Result_2);
+  registerDevice : (DeviceRegistrationInput) -> (Result_3);
+  registerGateway : (text, GatewayRegistrationInput) -> (Result_4);
+  resetEnvironment : () -> (Result_5);
+  setEnvironment : (text) -> (Result_5);
 }

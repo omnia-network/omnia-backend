@@ -10,7 +10,7 @@ use omnia_types::{
         GatewayInfo, GatewayInfoResult, GatewayRegistrationInput, GatewayUID,
         MultipleGatewayInfoResult,
     },
-    user::PrincipalId,
+    user::PrincipalId, http::{CanisterCallNonce, RequesterInfo},
 };
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -37,17 +37,34 @@ pub struct StoredEnvironmentInfo {
 
 #[update(name = "initGateway")]
 #[candid_method(update, rename = "initGateway")]
-async fn init_gateway() -> String {
-    let gateway_uid = generate_uuid().await;
+async fn init_gateway(nonce: CanisterCallNonce) -> Result<String, ()> {
 
-    STATE.with(|state| {
+    let requester_info_to_be_checked: Option<RequesterInfo> = STATE.with(|state| {
         state
             .borrow_mut()
-            .initialized_gateways
-            .insert(gateway_uid.clone());
+            .initialized_nonce_to_ip
+            .remove(&nonce)
     });
 
-    gateway_uid
+    print(format!("{:?}", requester_info_to_be_checked));
+
+    match requester_info_to_be_checked {
+        Some(gateway_request_info) => {
+            let gateway_uid = generate_uuid().await;
+        
+            STATE.with(|state| {
+                state
+                    .borrow_mut()
+                    .initialized_gateways
+                    .insert(gateway_request_info.ip, gateway_uid.clone());
+            });
+            Ok(gateway_uid)
+
+        },
+        None => {
+            Err(())
+        }
+    }
 }
 
 #[update(name = "createNewEnvironment")]
@@ -91,66 +108,87 @@ async fn create_new_environment(
 #[update(name = "registerGatewayInEnvironment")]
 #[candid_method(update, rename = "registerGatewayInEnvironment")]
 fn register_gateway_in_environment(
+    nonce: CanisterCallNonce,
     environment_manager_principal_id: PrincipalId,
     gateway_registration_input: GatewayRegistrationInput,
 ) -> GatewayInfoResult {
 
-    STATE.with(|state| {
-        let mut mutable_state = state.borrow_mut();
-        match mutable_state
-            .initialized_gateways
-            .remove(&gateway_registration_input.gateway_uid)
-        {
-            true => {
+    let requester_info_to_be_checked: Option<RequesterInfo> = STATE.with(|state| {
+        state
+            .borrow_mut()
+            .initialized_nonce_to_ip
+            .remove(&nonce)
+    });
+
+    match requester_info_to_be_checked {
+        Some(gateway_request_info) => {
+            STATE.with(|state| {
+                let mut mutable_state = state.borrow_mut();
                 match mutable_state
-                    .environments
-                    .get_mut(&gateway_registration_input.env_uid)
+                    .initialized_gateways
+                    .remove(&gateway_request_info.ip)
                 {
-                    Some(environment_info) => {
-                        print(format!(
-                            "Registering gateway {:?} in environment with UID: {:?} managed by: {:?}",
-                            gateway_registration_input.gateway_uid,
-                            gateway_registration_input.env_uid,
-                            environment_manager_principal_id
-                        ));
-        
-                        environment_info.env_gateways.insert(
-                            gateway_registration_input.gateway_uid.clone(),
-                            StoredGatewayInfo {
-                                gateway_name: gateway_registration_input.gateway_name.clone(),
-                                devices: BTreeMap::new(),
-                            },
-                        );
-        
-                        print(format!("Updated environment: {:?}", environment_info));
-        
-                        Ok(Some(GatewayInfo {
-                            gateway_name: gateway_registration_input.gateway_name,
-                            gateway_uid: gateway_registration_input.gateway_uid,
-                        }))
-                    }
+                    Some(_gateway_uid) => {
+                        match mutable_state
+                            .environments
+                            .get_mut(&gateway_registration_input.env_uid)
+                        {
+                            Some(environment_info) => {
+                                print(format!(
+                                    "Registering gateway {:?} in environment with UID: {:?} managed by: {:?}",
+                                    gateway_registration_input.gateway_uid,
+                                    gateway_registration_input.env_uid,
+                                    environment_manager_principal_id
+                                ));
+                
+                                environment_info.env_gateways.insert(
+                                    gateway_registration_input.gateway_uid.clone(),
+                                    StoredGatewayInfo {
+                                        gateway_name: gateway_registration_input.gateway_name.clone(),
+                                        devices: BTreeMap::new(),
+                                    },
+                                );
+                
+                                print(format!("Updated environment: {:?}", environment_info));
+                
+                                Ok(Some(GatewayInfo {
+                                    gateway_name: gateway_registration_input.gateway_name,
+                                    gateway_uid: gateway_registration_input.gateway_uid,
+                                }))
+                            }
+                            None => {
+                                let err = format!(
+                                    "Environment with uid {:?} does not exist",
+                                    gateway_registration_input.env_uid
+                                );
+                
+                                print(err.as_str());
+                                Err(err)
+                            }
+                        }
+                    },
                     None => {
                         let err = format!(
-                            "Environment with uid {:?} does not exist",
-                            gateway_registration_input.env_uid
+                            "Gateway with uid {:?} has not been initialized",
+                            gateway_registration_input.gateway_uid
                         );
-        
+
                         print(err.as_str());
                         Err(err)
                     }
                 }
-            },
-            false => {
-                let err = format!(
-                    "Gateway with uid {:?} has not been initialized",
-                    gateway_registration_input.gateway_uid
-                );
+            })
+        },
+        None => {
+            let err = format!(
+                "Did not receive http request with nonce {:?} before canister call",
+                nonce
+            );
 
-                print(err.as_str());
-                Err(err)
-            }
-        }
-    })
+            print(err.as_str());
+            Err(err)
+        },
+    }
 }
 
 #[update(name = "registerDeviceInEnvironment")]

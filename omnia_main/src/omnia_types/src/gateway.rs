@@ -3,6 +3,7 @@ use candid::{CandidType, Deserialize};
 use crate::{environment::EnvironmentUID, errors::GenericError};
 
 pub type GatewayUID = String;
+pub type GatewayIp = String;
 
 #[derive(Debug, CandidType, Deserialize)]
 pub struct GatewayRegistrationInput {

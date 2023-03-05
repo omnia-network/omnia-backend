@@ -24,9 +24,10 @@ type GatewayRegistrationInput = record {
 type RequesterInfo = record { ip : text; timestamp : nat64 };
 type Result = variant { Ok : vec DeviceInfo; Err : text };
 type Result_1 = variant { Ok : vec GatewayInfo; Err : text };
-type Result_2 = variant { Ok : DeviceInfo; Err : text };
-type Result_3 = variant { Ok : opt GatewayInfo; Err : text };
-type Result_4 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_2 = variant { Ok : text; Err };
+type Result_3 = variant { Ok : DeviceInfo; Err : text };
+type Result_4 = variant { Ok : opt GatewayInfo; Err : text };
+type Result_5 = variant { Ok : EnvironmentInfo; Err : text };
 type StoredUserProfile = record {
   user_principal_id : text;
   environment_uid : opt text;
@@ -38,10 +39,12 @@ service : {
   getDevicesInEnvironment : (text) -> (Result);
   getGatewaysInEnvironment : (text) -> (Result_1);
   getUserProfile : (text) -> (StoredUserProfile);
-  initGateway : () -> (text);
+  initGateway : (text) -> (Result_2);
   initNonceToIp : (text, RequesterInfo) -> (opt RequesterInfo);
-  registerDeviceInEnvironment : (text, DeviceRegistrationInput) -> (Result_2);
-  registerGatewayInEnvironment : (text, GatewayRegistrationInput) -> (Result_3);
-  resetUserFromEnvironment : (text) -> (Result_4);
-  setUserInEnvironment : (text, text) -> (Result_4);
+  registerDeviceInEnvironment : (text, DeviceRegistrationInput) -> (Result_3);
+  registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
+      Result_4,
+    );
+  resetUserFromEnvironment : (text) -> (Result_5);
+  setUserInEnvironment : (text, text) -> (Result_5);
 }

@@ -1,12 +1,12 @@
 use std::collections::BTreeMap;
-use std::{cell::RefCell, collections::BTreeSet, ops::Deref};
+use std::{cell::RefCell, ops::Deref};
 
 use candid::{CandidType, Deserialize, Principal};
 use environment::StoredEnvironmentInfo;
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{post_upgrade, pre_upgrade};
 use omnia_types::environment::EnvironmentUID;
-use omnia_types::gateway::GatewayUID;
+use omnia_types::gateway::{GatewayUID, GatewayIp};
 use omnia_types::http::{CanisterCallNonce, RequesterInfo};
 use profile::StoredUserProfile;
 use serde::Serialize;
@@ -21,7 +21,7 @@ struct State {
     pub user_profiles: BTreeMap<Principal, StoredUserProfile>,
     pub environments: BTreeMap<EnvironmentUID, StoredEnvironmentInfo>,
     pub initialized_nonce_to_ip: BTreeMap<CanisterCallNonce, RequesterInfo>,
-    pub initialized_gateways: BTreeSet<GatewayUID>,
+    pub initialized_gateways: BTreeMap<GatewayIp, GatewayUID>,
 }
 
 impl State {
@@ -30,7 +30,7 @@ impl State {
             user_profiles: BTreeMap::default(),
             environments: BTreeMap::default(),
             initialized_nonce_to_ip: BTreeMap::default(),
-            initialized_gateways: BTreeSet::default(),
+            initialized_gateways: BTreeMap::default(),
         }
     }
 }
