@@ -7,7 +7,7 @@ use ic_cdk_macros::update;
 use omnia_types::{
     device::{DeviceInfoResult, DeviceRegistrationInput, MultipleDeviceInfoResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{GatewayInfoResult, GatewayRegistrationInput, MultipleGatewayInfoResult}, http::CanisterCallNonce, user::VirtualPersona,
+    gateway::{GatewayInfoResult, GatewayRegistrationInput, MultipleGatewayInfoResult, GatewayUID}, http::CanisterCallNonce, user::VirtualPersona,
 };
 
 use crate::utils::get_database_principal;
@@ -64,6 +64,23 @@ async fn init_gateway(nonce: CanisterCallNonce) -> Result<String, ()> {
         },
         (Err(()),) => Err(())
     }
+}
+
+#[update(name = "getInitializedGateways")]
+#[candid_method(update, rename = "getInitializedGateways")]
+async fn get_initialized_gateways(nonce: CanisterCallNonce) -> Result<Vec<GatewayUID>, ()> {
+    
+    let initialized_gateway_uids_result: Result<Vec<GatewayUID>, ()> = match call(get_database_principal(), "getInitializedGatewaysByIp", (nonce, ))
+        .await
+        .unwrap()
+    {
+        (Ok(initialized_gateway_uids),) => {
+            print(format!("Initialized gateways in the local network have UIDs {:?}", initialized_gateway_uids));
+            Ok(initialized_gateway_uids)
+        },
+        (Err(()),) => Err(())
+    };
+    initialized_gateway_uids_result
 }
 
 #[update(name = "registerGateway")]

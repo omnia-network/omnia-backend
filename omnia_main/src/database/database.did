@@ -12,10 +12,11 @@ type GatewayRegistrationInput = record {
   gateway_uid : text;
 };
 type RequesterInfo = record { requester_ip : text; timestamp : nat64 };
-type Result = variant { Ok : VirtualPersona; Err };
-type Result_1 = variant { Ok : text; Err };
-type Result_2 = variant { Ok : opt GatewayInfo; Err : text };
-type Result_3 = variant { Ok : EnvironmentInfo; Err : text };
+type Result = variant { Ok : vec text; Err };
+type Result_1 = variant { Ok : VirtualPersona; Err };
+type Result_2 = variant { Ok : text; Err };
+type Result_3 = variant { Ok : opt GatewayInfo; Err : text };
+type Result_4 = variant { Ok : EnvironmentInfo; Err : text };
 type VirtualPersona = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;
@@ -26,13 +27,14 @@ service : {
   createNewEnvironment : (text, EnvironmentCreationInput) -> (
       EnvironmentCreationResult,
     );
-  getVirtualPersona : (text, text) -> (Result);
+  getInitializedGatewaysByIp : (text) -> (Result);
+  getVirtualPersona : (text, text) -> (Result_1);
   getVirtualPersonaIfExists : (principal) -> (opt VirtualPersona) query;
-  initGateway : (text) -> (Result_1);
+  initGateway : (text) -> (Result_2);
   initNonceToIp : (text, RequesterInfo) -> (opt RequesterInfo);
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
-      Result_2,
+      Result_3,
     );
-  resetUserFromEnvironment : (text) -> (Result_3);
-  setUserInEnvironment : (text, text) -> (Result_3);
+  resetUserFromEnvironment : (text) -> (Result_4);
+  setUserInEnvironment : (text, text) -> (Result_4);
 }

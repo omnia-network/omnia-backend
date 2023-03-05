@@ -28,38 +28,38 @@ async fn get_profile(nonce: CanisterCallNonce) -> Result<VirtualPersona, ()> {
     }
 }
 
-#[ic_cdk_macros::update(name = "setEnvironment")]
-#[candid_method(update, rename = "setEnvironment")]
-async fn set_environment(env_uid: EnvironmentUID) -> EnvironmentInfoResult {
-    let virtual_persona_principal = caller();
+// #[ic_cdk_macros::update(name = "setEnvironment")]
+// #[candid_method(update, rename = "setEnvironment")]
+// async fn set_environment(env_uid: EnvironmentUID) -> EnvironmentInfoResult {
+//     let virtual_persona_principal = caller();
 
-    let (environment_info,): (EnvironmentInfoResult,) = call(
-        get_database_principal(),
-        "setUserInEnvironment",
-        (virtual_persona_principal.to_string(), env_uid),
-    )
-    .await
-    .unwrap();
+//     let (environment_info,): (EnvironmentInfoResult,) = call(
+//         get_database_principal(),
+//         "setUserInEnvironment",
+//         (virtual_persona_principal.to_string(), env_uid),
+//     )
+//     .await
+//     .unwrap();
 
-    print(format!("User in environment: {:?}", environment_info));
+//     print(format!("User in environment: {:?}", environment_info));
 
-    environment_info
-}
+//     environment_info
+// }
 
-#[ic_cdk_macros::update(name = "resetEnvironment")]
-#[candid_method(update, rename = "resetEnvironment")]
-async fn reset_environment() -> EnvironmentInfoResult {
-    let virtual_persona_principal = caller();
+// #[ic_cdk_macros::update(name = "resetEnvironment")]
+// #[candid_method(update, rename = "resetEnvironment")]
+// async fn reset_environment() -> EnvironmentInfoResult {
+//     let virtual_persona_principal = caller();
 
-    let (environment_info,): (EnvironmentInfoResult,) = call(
-        get_database_principal(),
-        "resetUserFromEnvironment",
-        (virtual_persona_principal.to_string(),),
-    )
-    .await
-    .unwrap();
+//     let (environment_info,): (EnvironmentInfoResult,) = call(
+//         get_database_principal(),
+//         "resetUserFromEnvironment",
+//         (virtual_persona_principal.to_string(),),
+//     )
+//     .await
+//     .unwrap();
 
-    print(format!("User not in environment: {:?}", environment_info));
+//     print(format!("User not in environment: {:?}", environment_info));
 
-    environment_info
-}
+//     environment_info
+// }

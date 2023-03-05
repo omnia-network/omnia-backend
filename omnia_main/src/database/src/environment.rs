@@ -1,6 +1,6 @@
 use candid::candid_method;
 use ic_cdk::print;
-use ic_cdk_macros::update;
+use ic_cdk_macros::{update, query};
 use omnia_types::{
     device::{
         DeviceInfo, DeviceInfoResult, DeviceRegistrationInput, MultipleDeviceInfoResult, StoredDeviceInfo,
@@ -8,7 +8,7 @@ use omnia_types::{
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID, Environment},
     gateway::{
         GatewayInfo, GatewayInfoResult, GatewayRegistrationInput,
-        MultipleGatewayInfoResult, StoredGatewayInfo,
+        MultipleGatewayInfoResult, StoredGatewayInfo, GatewayUID,
     },
     user::VirtualPersonaPrincipalId, http::{CanisterCallNonce, RequesterInfo},
 };
@@ -31,7 +31,7 @@ async fn init_gateway(nonce: CanisterCallNonce) -> Result<String, ()> {
 
     match requester_info_to_be_checked {
         Some(gateway_request_info) => {
-            let gateway_uid = generate_uuid().await;
+            let gateway_uid: GatewayUID = generate_uuid().await;
         
             STATE.with(|state| {
                 state
@@ -41,6 +41,41 @@ async fn init_gateway(nonce: CanisterCallNonce) -> Result<String, ()> {
             });
             Ok(gateway_uid)
 
+        },
+        None => {
+            Err(())
+        }
+    }
+}
+
+
+#[update(name = "getInitializedGatewaysByIp")]
+#[candid_method(update, rename = "getInitializedGatewaysByIp")]
+async fn get_initialized_gateways_by_ip(nonce: CanisterCallNonce) -> Result<Vec<GatewayUID>, ()> {
+
+    let requester_info_to_be_checked: Option<RequesterInfo> = STATE.with(|state| {
+        state
+            .borrow_mut()
+            .initialized_nonce_to_ip
+            .remove(&nonce)
+    });
+
+    print(format!("Requester info to be checked: {:?}", requester_info_to_be_checked));
+
+    match requester_info_to_be_checked {
+        Some(virtual_persona_request_info) => {
+            STATE.with(|state| {
+                match state
+                    .borrow()
+                    .initialized_gateways
+                    .get(&virtual_persona_request_info.requester_ip) 
+                {
+                    Some(gateway_uid) => {
+                        Ok(vec![gateway_uid.to_owned()])
+                    },
+                    None => Ok(vec![])
+                }
+            })
         },
         None => {
             Err(())

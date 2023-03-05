@@ -11,115 +11,115 @@ use omnia_utils::get_principal_from_string;
 
 use crate::STATE;
 
-#[update(name = "setUserInEnvironment")]
-#[candid_method(update, rename = "setUserInEnvironment")]
-fn set_user_in_environment(
-    virtual_persona_principal_id: VirtualPersonaPrincipalId,
-    env_uid: EnvironmentUID,
-) -> EnvironmentInfoResult {
-    let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id);
+// #[update(name = "setUserInEnvironment")]
+// #[candid_method(update, rename = "setUserInEnvironment")]
+// fn set_user_in_environment(
+//     virtual_persona_principal_id: VirtualPersonaPrincipalId,
+//     env_uid: EnvironmentUID,
+// ) -> EnvironmentInfoResult {
+//     let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id);
 
-    match get_virtual_persona_if_exists(virtual_persona_principal) {
-        Some(virtual_persona) => {
-            let (env_uid, env_name, env_manager_principal_id) =
-                STATE.with(|state| match state.borrow().environments.get(&env_uid) {
-                    Some(environment_info) => (
-                        env_uid,
-                        environment_info.env_name.clone(),
-                        environment_info.env_manager_principal_id.clone(),
-                    ),
-                    None => trap("Environment does not exist"),
-                });
+//     match get_virtual_persona_if_exists(virtual_persona_principal) {
+//         Some(virtual_persona) => {
+//             let (env_uid, env_name, env_manager_principal_id) =
+//                 STATE.with(|state| match state.borrow().environments.get(&env_uid) {
+//                     Some(environment_info) => (
+//                         env_uid,
+//                         environment_info.env_name.clone(),
+//                         environment_info.env_manager_principal_id.clone(),
+//                     ),
+//                     None => trap("Environment does not exist"),
+//                 });
 
-            let updated_virtual_persona = VirtualPersona {
-                user_env_uid: Some(env_uid.to_owned()),
-                ..virtual_persona
-            };
+//             let updated_virtual_persona = VirtualPersona {
+//                 user_env_uid: Some(env_uid.to_owned()),
+//                 ..virtual_persona
+//             };
 
-            STATE.with(|state| {
-                state
-                    .borrow_mut()
-                    .virtual_personas
-                    .insert(virtual_persona_principal, updated_virtual_persona)
-            });
+//             STATE.with(|state| {
+//                 state
+//                     .borrow_mut()
+//                     .virtual_personas
+//                     .insert(virtual_persona_principal, updated_virtual_persona)
+//             });
 
-            print(format!(
-                "User: {:?} set in environment with UUID: {:?}",
-                virtual_persona_principal, env_uid
-            ));
+//             print(format!(
+//                 "User: {:?} set in environment with UUID: {:?}",
+//                 virtual_persona_principal, env_uid
+//             ));
 
-            Ok(EnvironmentInfo {
-                env_name,
-                env_uid,
-                env_manager_principal_id,
-            })
-        }
-        None => {
-            let err = format!("User does not have a profile");
+//             Ok(EnvironmentInfo {
+//                 env_name,
+//                 env_uid,
+//                 env_manager_principal_id,
+//             })
+//         }
+//         None => {
+//             let err = format!("User does not have a profile");
 
-            print(err.as_str());
+//             print(err.as_str());
 
-            Err(err)
-        }
-    }
-}
+//             Err(err)
+//         }
+//     }
+// }
 
-#[update(name = "resetUserFromEnvironment")]
-#[candid_method(update, rename = "resetUserFromEnvironment")]
-fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrincipalId) -> EnvironmentInfoResult {
-    let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id);
+// #[update(name = "resetUserFromEnvironment")]
+// #[candid_method(update, rename = "resetUserFromEnvironment")]
+// fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrincipalId) -> EnvironmentInfoResult {
+//     let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id);
 
-    match get_virtual_persona_if_exists(virtual_persona_principal) {
-        Some(virtual_persona) => {
-            let updated_virtual_persona = VirtualPersona {
-                user_env_uid: None,
-                ..virtual_persona
-            };
+//     match get_virtual_persona_if_exists(virtual_persona_principal) {
+//         Some(virtual_persona) => {
+//             let updated_virtual_persona = VirtualPersona {
+//                 user_env_uid: None,
+//                 ..virtual_persona
+//             };
 
-            STATE.with(|state| {
-                state
-                    .borrow_mut()
-                    .virtual_personas
-                    .insert(virtual_persona_principal, updated_virtual_persona)
-            });
+//             STATE.with(|state| {
+//                 state
+//                     .borrow_mut()
+//                     .virtual_personas
+//                     .insert(virtual_persona_principal, updated_virtual_persona)
+//             });
 
-            match virtual_persona.user_env_uid {
-                Some(old_user_env_uid) => STATE.with(|state| {
-                    match state.borrow().environments.get(&old_user_env_uid) {
-                        Some(environment_info) => Ok(EnvironmentInfo {
-                            env_name: environment_info.env_name.clone(),
-                            env_uid: old_user_env_uid,
-                            env_manager_principal_id: environment_info
-                                .env_manager_principal_id
-                                .clone(),
-                        }),
-                        None => {
-                            let err = format!("Environment does not exist");
+//             match virtual_persona.user_env_uid {
+//                 Some(old_user_env_uid) => STATE.with(|state| {
+//                     match state.borrow().environments.get(&old_user_env_uid) {
+//                         Some(environment_info) => Ok(EnvironmentInfo {
+//                             env_name: environment_info.env_name.clone(),
+//                             env_uid: old_user_env_uid,
+//                             env_manager_principal_id: environment_info
+//                                 .env_manager_principal_id
+//                                 .clone(),
+//                         }),
+//                         None => {
+//                             let err = format!("Environment does not exist");
 
-                            print(err.as_str());
+//                             print(err.as_str());
 
-                            Err(err)
-                        }
-                    }
-                }),
-                None => {
-                    let err = format!("User is not in environment");
+//                             Err(err)
+//                         }
+//                     }
+//                 }),
+//                 None => {
+//                     let err = format!("User is not in environment");
 
-                    print(err.as_str());
+//                     print(err.as_str());
 
-                    Err(err)
-                }
-            }
-        }
-        None => {
-            let err = format!("User does not have a profile");
+//                     Err(err)
+//                 }
+//             }
+//         }
+//         None => {
+//             let err = format!("User does not have a profile");
 
-            print(err.as_str());
+//             print(err.as_str());
 
-            Err(err)
-        }
-    }
-}
+//             Err(err)
+//         }
+//     }
+// }
 
 #[update(name = "getVirtualPersona")]
 #[candid_method(update, rename = "getVirtualPersona")]
