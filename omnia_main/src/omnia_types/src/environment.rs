@@ -1,10 +1,9 @@
-use std::collections::BTreeMap;
 use candid::{CandidType, Deserialize};
 use serde::Serialize;
 
-use crate::gateway::{GatewayUID, StoredGatewayInfo};
+use crate::gateway::GatewayPrincipalId;
 use crate::errors::GenericError;
-use crate::user::PrincipalId;
+use crate::user::VirtualPersonaPrincipalId;
 
 pub type EnvironmentUID = String;
 pub type Ip = String;
@@ -13,8 +12,9 @@ pub type Ip = String;
 pub struct Environment {
     pub env_name: String,
     pub env_ip: Option<Ip>,
-    pub env_gateways: BTreeMap<GatewayUID, StoredGatewayInfo>,
-    pub env_manager_principal_id: PrincipalId,
+    pub env_users_principals_ids: Vec<VirtualPersonaPrincipalId>,
+    pub env_gateway_principal_ids: Vec<GatewayPrincipalId>,
+    pub env_manager_principal_id: VirtualPersonaPrincipalId,
 }
 
 #[derive(Debug, CandidType, Deserialize)]

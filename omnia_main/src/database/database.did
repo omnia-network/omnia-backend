@@ -1,13 +1,3 @@
-type DeviceInfo = record {
-  device_name : text;
-  device_uid : text;
-  gateway_uid : text;
-};
-type DeviceRegistrationInput = record {
-  device_name : text;
-  env_uid : text;
-  gateway_uid : text;
-};
 type EnvironmentCreationInput = record { env_name : text };
 type EnvironmentCreationResult = record { env_uid : text; env_name : text };
 type EnvironmentInfo = record {
@@ -22,13 +12,10 @@ type GatewayRegistrationInput = record {
   gateway_uid : text;
 };
 type RequesterInfo = record { requester_ip : text; timestamp : nat64 };
-type Result = variant { Ok : vec DeviceInfo; Err : text };
-type Result_1 = variant { Ok : vec GatewayInfo; Err : text };
-type Result_2 = variant { Ok : VirtualPersona; Err };
-type Result_3 = variant { Ok : text; Err };
-type Result_4 = variant { Ok : DeviceInfo; Err : text };
-type Result_5 = variant { Ok : opt GatewayInfo; Err : text };
-type Result_6 = variant { Ok : EnvironmentInfo; Err : text };
+type Result = variant { Ok : VirtualPersona; Err };
+type Result_1 = variant { Ok : text; Err };
+type Result_2 = variant { Ok : opt GatewayInfo; Err : text };
+type Result_3 = variant { Ok : EnvironmentInfo; Err : text };
 type VirtualPersona = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;
@@ -39,16 +26,13 @@ service : {
   createNewEnvironment : (text, EnvironmentCreationInput) -> (
       EnvironmentCreationResult,
     );
-  getDevicesInEnvironment : (text) -> (Result);
-  getGatewaysInEnvironment : (text) -> (Result_1);
-  getVirtualPersona : (text, text) -> (Result_2);
+  getVirtualPersona : (text, text) -> (Result);
   getVirtualPersonaIfExists : (principal) -> (opt VirtualPersona) query;
-  initGateway : (text) -> (Result_3);
+  initGateway : (text) -> (Result_1);
   initNonceToIp : (text, RequesterInfo) -> (opt RequesterInfo);
-  registerDeviceInEnvironment : (text, DeviceRegistrationInput) -> (Result_4);
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
-      Result_5,
+      Result_2,
     );
-  resetUserFromEnvironment : (text) -> (Result_6);
-  setUserInEnvironment : (text, text) -> (Result_6);
+  resetUserFromEnvironment : (text) -> (Result_3);
+  setUserInEnvironment : (text, text) -> (Result_3);
 }

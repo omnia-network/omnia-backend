@@ -5,7 +5,7 @@ use omnia_types::environment::EnvironmentInfoResult;
 use omnia_types::http::{CanisterCallNonce, RequesterInfo};
 use omnia_types::{
     environment::{EnvironmentInfo, EnvironmentUID},
-    user::{VirtualPersona, PrincipalId},
+    user::{VirtualPersona, VirtualPersonaPrincipalId},
 };
 use omnia_utils::get_principal_from_string;
 
@@ -14,7 +14,7 @@ use crate::STATE;
 #[update(name = "setUserInEnvironment")]
 #[candid_method(update, rename = "setUserInEnvironment")]
 fn set_user_in_environment(
-    virtual_persona_principal_id: PrincipalId,
+    virtual_persona_principal_id: VirtualPersonaPrincipalId,
     env_uid: EnvironmentUID,
 ) -> EnvironmentInfoResult {
     let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id);
@@ -66,7 +66,7 @@ fn set_user_in_environment(
 
 #[update(name = "resetUserFromEnvironment")]
 #[candid_method(update, rename = "resetUserFromEnvironment")]
-fn reset_user_from_environment(virtual_persona_principal_id: PrincipalId) -> EnvironmentInfoResult {
+fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrincipalId) -> EnvironmentInfoResult {
     let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id);
 
     match get_virtual_persona_if_exists(virtual_persona_principal) {
@@ -123,7 +123,7 @@ fn reset_user_from_environment(virtual_persona_principal_id: PrincipalId) -> Env
 
 #[update(name = "getVirtualPersona")]
 #[candid_method(update, rename = "getVirtualPersona")]
-fn get_virtual_persona(nonce: CanisterCallNonce, virtual_persona_principal_id: PrincipalId) -> Result<VirtualPersona, ()> {
+fn get_virtual_persona(nonce: CanisterCallNonce, virtual_persona_principal_id: VirtualPersonaPrincipalId) -> Result<VirtualPersona, ()> {
     let requester_info_to_be_checked: Option<RequesterInfo> = STATE.with(|state| {
         state
             .borrow_mut()

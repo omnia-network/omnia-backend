@@ -89,49 +89,49 @@ async fn register_gateway(
     gateway_registration_result
 }
 
-#[update(name = "getGateways")]
-#[candid_method(update, rename = "getGateways")]
-async fn get_gateways(environment_uid: EnvironmentUID) -> MultipleGatewayInfoResult {
-    let (res,): (MultipleGatewayInfoResult,) = call(
-        get_database_principal(),
-        "getGatewaysInEnvironment",
-        (environment_uid.clone(),),
-    )
-    .await
-    .unwrap();
+// #[update(name = "getGateways")]
+// #[candid_method(update, rename = "getGateways")]
+// async fn get_gateways(environment_uid: EnvironmentUID) -> MultipleGatewayInfoResult {
+//     let (res,): (MultipleGatewayInfoResult,) = call(
+//         get_database_principal(),
+//         "getGatewaysInEnvironment",
+//         (environment_uid.clone(),),
+//     )
+//     .await
+//     .unwrap();
 
-    res
-}
+//     res
+// }
 
-#[update(name = "registerDevice")]
-#[candid_method(update, rename = "registerDevice")]
-async fn register_device(device_registration_input: DeviceRegistrationInput) -> DeviceInfoResult {
-    let environment_manager_principal = caller();
+// #[update(name = "registerDevice")]
+// #[candid_method(update, rename = "registerDevice")]
+// async fn register_device(device_registration_input: DeviceRegistrationInput) -> DeviceInfoResult {
+//     let environment_manager_principal = caller();
 
-    let (device_registration_result,): (DeviceInfoResult,) = call(
-        get_database_principal(),
-        "registerDeviceInEnvironment",
-        (
-            environment_manager_principal.to_string(),
-            Box::new(device_registration_input),
-        ),
-    )
-    .await
-    .unwrap();
+//     let (device_registration_result,): (DeviceInfoResult,) = call(
+//         get_database_principal(),
+//         "registerDeviceInEnvironment",
+//         (
+//             environment_manager_principal.to_string(),
+//             Box::new(device_registration_input),
+//         ),
+//     )
+//     .await
+//     .unwrap();
 
-    device_registration_result
-}
+//     device_registration_result
+// }
 
-#[update(name = "getDevices")]
-#[candid_method(update, rename = "getDevices")]
-async fn get_devices(environment_uid: EnvironmentUID) -> MultipleDeviceInfoResult {
-    let (res,): (MultipleDeviceInfoResult,) = call(
-        get_database_principal(),
-        "getDevicesInEnvironment",
-        (environment_uid.clone(),),
-    )
-    .await
-    .unwrap();
+// #[update(name = "getDevices")]
+// #[candid_method(update, rename = "getDevices")]
+// async fn get_devices(environment_uid: EnvironmentUID) -> MultipleDeviceInfoResult {
+//     let (res,): (MultipleDeviceInfoResult,) = call(
+//         get_database_principal(),
+//         "getDevicesInEnvironment",
+//         (environment_uid.clone(),),
+//     )
+//     .await
+//     .unwrap();
 
-    res
-}
+//     res
+// }

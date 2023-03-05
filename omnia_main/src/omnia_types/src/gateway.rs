@@ -8,6 +8,7 @@ use crate::device::{DeviceUID, StoredDeviceInfo};
 
 pub type GatewayUID = String;
 pub type GatewayIp = String;
+pub type GatewayPrincipalId = String;
 
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
 pub struct StoredGatewayInfo {
