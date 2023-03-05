@@ -59,7 +59,7 @@ async fn http_request_update(req: HttpRequest) -> HttpResponse {
     let parsed_body: ParsedHttpRequestBody = from_slice(&req.body.unwrap()).unwrap();
 
     let requester_info = RequesterInfo {
-        ip: headers.get(&String::from("x-real-ip")).unwrap().to_owned(),
+        requester_ip: headers.get(&String::from("x-real-ip")).unwrap().to_owned(),
         timestamp: time(),
     };
 

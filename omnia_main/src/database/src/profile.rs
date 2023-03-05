@@ -1,26 +1,15 @@
-use candid::CandidType;
-use candid::{candid_method, Deserialize};
+use candid::candid_method;
 use ic_cdk::{export::Principal, print, trap};
 use ic_cdk_macros::update;
 use omnia_types::environment::EnvironmentInfoResult;
+use omnia_types::http::{CanisterCallNonce, RequesterInfo};
 use omnia_types::{
     environment::{EnvironmentInfo, EnvironmentUID},
-    user::PrincipalId,
+    user::{VirtualPersona, PrincipalId},
 };
 use omnia_utils::get_principal_from_string;
-use serde::Serialize;
 
 use crate::STATE;
-
-type Ip = String;
-
-#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
-pub struct VirtualPersona {
-    pub virtual_persona_principal_id: PrincipalId,
-    pub virtual_persona_ip: Ip,
-    pub user_env_uid: Option<EnvironmentUID>,
-    pub manager_env_uid: Option<EnvironmentUID>
-}
 
 #[update(name = "setUserInEnvironment")]
 #[candid_method(update, rename = "setUserInEnvironment")]
@@ -30,8 +19,8 @@ fn set_user_in_environment(
 ) -> EnvironmentInfoResult {
     let user_principal = get_principal_from_string(user_principal_id);
 
-    match get_user_profile_if_exists(user_principal) {
-        Some(user_profile) => {
+    match get_virtual_persona_if_exists(user_principal) {
+        Some(virtual_persona) => {
             let (env_uid, env_name, env_manager_principal_id) =
                 STATE.with(|state| match state.borrow().environments.get(&env_uid) {
                     Some(environment_info) => (
@@ -42,16 +31,16 @@ fn set_user_in_environment(
                     None => trap("Environment does not exist"),
                 });
 
-            let updated_user_profile = VirtualPersona {
+            let updated_virtual_persona = VirtualPersona {
                 user_env_uid: Some(env_uid.to_owned()),
-                ..user_profile
+                ..virtual_persona
             };
 
             STATE.with(|state| {
                 state
                     .borrow_mut()
                     .virtual_personas
-                    .insert(user_principal, updated_user_profile)
+                    .insert(user_principal, updated_virtual_persona)
             });
 
             print(format!(
@@ -80,21 +69,21 @@ fn set_user_in_environment(
 fn reset_user_from_environment(user_principal_id: PrincipalId) -> EnvironmentInfoResult {
     let user_principal = get_principal_from_string(user_principal_id);
 
-    match get_user_profile_if_exists(user_principal) {
-        Some(user_profile) => {
-            let updated_user_profile = VirtualPersona {
+    match get_virtual_persona_if_exists(user_principal) {
+        Some(virtual_persona) => {
+            let updated_virtual_persona = VirtualPersona {
                 user_env_uid: None,
-                ..user_profile
+                ..virtual_persona
             };
 
             STATE.with(|state| {
                 state
                     .borrow_mut()
                     .virtual_personas
-                    .insert(user_principal, updated_user_profile)
+                    .insert(user_principal, updated_virtual_persona)
             });
 
-            match user_profile.user_env_uid {
+            match virtual_persona.user_env_uid {
                 Some(old_user_env_uid) => STATE.with(|state| {
                     match state.borrow().environments.get(&old_user_env_uid) {
                         Some(environment_info) => Ok(EnvironmentInfo {
@@ -132,51 +121,67 @@ fn reset_user_from_environment(user_principal_id: PrincipalId) -> EnvironmentInf
     }
 }
 
-#[update(name = "getUserProfile")]
-#[candid_method(update, rename = "getUserProfile")]
-fn get_user_profile(user_principal_id: PrincipalId) -> VirtualPersona {
-    let user_principal = get_principal_from_string(user_principal_id);
+#[update(name = "getVirtualPersona")]
+#[candid_method(update, rename = "getVirtualPersona")]
+fn get_virtual_persona(nonce: CanisterCallNonce, user_principal_id: PrincipalId) -> Result<VirtualPersona, ()> {
+    let requester_info_to_be_checked: Option<RequesterInfo> = STATE.with(|state| {
+        state
+            .borrow_mut()
+            .initialized_nonce_to_ip
+            .remove(&nonce)
+    });
 
-    match get_user_profile_if_exists(user_principal) {
-        Some(user_profile) => {
-            print(format!(
-                "User: {:?} has profile: {:?}",
-                user_principal, user_profile
-            ));
-            user_profile
-        }
+    print(format!("{:?}", requester_info_to_be_checked));
+
+    match requester_info_to_be_checked {
+        Some(virtual_persona_request_info) => {
+            let user_principal = get_principal_from_string(user_principal_id);
+
+            match get_virtual_persona_if_exists(user_principal) {
+                Some(virtual_persona) => {
+                    print(format!(
+                        "User: {:?} has profile: {:?}",
+                        user_principal, virtual_persona
+                    ));
+                    Ok(virtual_persona)
+                }
+                None => {
+                    print("User does not have a profile");
+
+                    // create new user profile
+                    let new_virtual_persona = VirtualPersona {
+                        virtual_persona_principal_id: user_principal.to_string(),
+                        virtual_persona_ip: virtual_persona_request_info.requester_ip,
+                        user_env_uid: None,
+                        manager_env_uid: None,
+                    };
+
+                    STATE.with(|state| {
+                        state
+                            .borrow_mut()
+                            .virtual_personas
+                            .insert(user_principal, new_virtual_persona.clone());
+                    });
+
+                    print(format!(
+                        "Created profile: {:?} of user: {:?}",
+                        new_virtual_persona, user_principal
+                    ));
+
+                    Ok(new_virtual_persona)
+                }
+            }
+        },
         None => {
-            print("User does not have a profile");
-
-            // create new user profile
-            let new_user_profile = VirtualPersona {
-                virtual_persona_principal_id: user_principal.to_string(),
-                virtual_persona_ip: "".to_string(),
-                user_env_uid: None,
-                manager_env_uid: None,
-            };
-
-            STATE.with(|state| {
-                state
-                    .borrow_mut()
-                    .virtual_personas
-                    .insert(user_principal, new_user_profile.clone());
-            });
-
-            print(format!(
-                "Created profile: {:?} of user: {:?}",
-                new_user_profile, user_principal
-            ));
-
-            new_user_profile
+            Err(())
         }
     }
 }
 
-fn get_user_profile_if_exists(user_principal: Principal) -> Option<VirtualPersona> {
+fn get_virtual_persona_if_exists(user_principal: Principal) -> Option<VirtualPersona> {
     STATE.with(
         |state| match state.borrow().virtual_personas.get(&user_principal) {
-            Some(user_profile) => Some(user_profile.to_owned()),
+            Some(virtual_persona) => Some(virtual_persona.to_owned()),
             None => None,
         },
     )

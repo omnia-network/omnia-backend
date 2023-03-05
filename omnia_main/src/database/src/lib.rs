@@ -8,7 +8,7 @@ use ic_cdk_macros::{post_upgrade, pre_upgrade};
 use omnia_types::environment::EnvironmentUID;
 use omnia_types::gateway::{GatewayUID, GatewayIp};
 use omnia_types::http::{CanisterCallNonce, RequesterInfo};
-use profile::VirtualPersona;
+use omnia_types::user::VirtualPersona;
 use serde::Serialize;
 
 mod environment;

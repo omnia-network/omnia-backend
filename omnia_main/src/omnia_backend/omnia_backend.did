@@ -37,24 +37,27 @@ type HttpResponse = record {
 };
 type Result = variant { Ok : vec DeviceInfo; Err : text };
 type Result_1 = variant { Ok : vec GatewayInfo; Err : text };
-type Result_2 = variant { Ok : text; Err };
-type Result_3 = variant { Ok : DeviceInfo; Err : text };
-type Result_4 = variant { Ok : opt GatewayInfo; Err : text };
-type Result_5 = variant { Ok : EnvironmentInfo; Err : text };
-type UserProfile = record {
-  user_principal_id : text;
-  environment_uid : opt text;
+type Result_2 = variant { Ok : VirtualPersona; Err };
+type Result_3 = variant { Ok : text; Err };
+type Result_4 = variant { Ok : DeviceInfo; Err : text };
+type Result_5 = variant { Ok : opt GatewayInfo; Err : text };
+type Result_6 = variant { Ok : EnvironmentInfo; Err : text };
+type VirtualPersona = record {
+  manager_env_uid : opt text;
+  user_env_uid : opt text;
+  virtual_persona_principal_id : text;
+  virtual_persona_ip : text;
 };
 service : (opt text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (EnvironmentCreationResult);
   getDevices : (text) -> (Result);
   getGateways : (text) -> (Result_1);
-  getProfile : () -> (UserProfile);
+  getProfile : (text) -> (Result_2);
   http_request : (HttpRequest) -> (HttpResponse) query;
   http_request_update : (HttpRequest) -> (HttpResponse);
-  initGateway : (text) -> (Result_2);
-  registerDevice : (DeviceRegistrationInput) -> (Result_3);
-  registerGateway : (text, GatewayRegistrationInput) -> (Result_4);
-  resetEnvironment : () -> (Result_5);
-  setEnvironment : (text) -> (Result_5);
+  initGateway : (text) -> (Result_3);
+  registerDevice : (DeviceRegistrationInput) -> (Result_4);
+  registerGateway : (text, GatewayRegistrationInput) -> (Result_5);
+  resetEnvironment : () -> (Result_6);
+  setEnvironment : (text) -> (Result_6);
 }

@@ -36,6 +36,6 @@ pub struct HttpResponse {
 
 #[derive(CandidType, Serialize, Deserialize, Debug)]
 pub struct RequesterInfo {
-    pub ip: RequesterIp,
+    pub requester_ip: RequesterIp,
     pub timestamp: u64,
 }

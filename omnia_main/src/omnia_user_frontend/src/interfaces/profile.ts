@@ -1,7 +1,7 @@
-import { UserProfile } from "../../../declarations/omnia_backend/omnia_backend.did";
+import { VirtualPersona } from "../../../declarations/omnia_backend/omnia_backend.did";
 
 export interface IProfileContext {
-  profile: UserProfile | null;
+  profile: VirtualPersona | null;
   isLoading: boolean;
   login: () => Promise<void>;
   fetchProfileFromCanister: () => Promise<void>;

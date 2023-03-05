@@ -46,7 +46,7 @@ async fn init_gateway(nonce: CanisterCallNonce) -> Result<String, ()> {
             .remove(&nonce)
     });
 
-    print(format!("{:?}", requester_info_to_be_checked));
+    print(format!("Requester info to be checked: {:?}", requester_info_to_be_checked));
 
     match requester_info_to_be_checked {
         Some(gateway_request_info) => {
@@ -56,7 +56,7 @@ async fn init_gateway(nonce: CanisterCallNonce) -> Result<String, ()> {
                 state
                     .borrow_mut()
                     .initialized_gateways
-                    .insert(gateway_request_info.ip, gateway_uid.clone());
+                    .insert(gateway_request_info.requester_ip, gateway_uid.clone());
             });
             Ok(gateway_uid)
 
@@ -126,7 +126,7 @@ fn register_gateway_in_environment(
                 let mut mutable_state = state.borrow_mut();
                 match mutable_state
                     .initialized_gateways
-                    .remove(&gateway_request_info.ip)
+                    .remove(&gateway_request_info.requester_ip)
                 {
                     Some(_gateway_uid) => {
                         match mutable_state
