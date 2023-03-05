@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { omnia_backend } from "../../../declarations/omnia_backend";
-import { GatewayInfo } from "../../../declarations/omnia_backend/omnia_backend.did";
+import { Registeredgateway } from "../../../declarations/omnia_backend/omnia_backend.did";
 import EnvironmentContext from "../contexts/EnvironmentContext";
 import { handleError } from "../services/errors";
 import { getGatewaysOfEnvironment } from "../services/gateways";
@@ -15,7 +15,7 @@ const Gateways: React.FC<IProps> = () => {
   const [gatewayUidInput, setGatewayUidInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
-  const [gateways, setGateways] = useState<GatewayInfo[]>([]);
+  const [gateways, setGateways] = useState<Registeredgateway[]>([]);
   const { envData } = useContext(EnvironmentContext);
 
   const registerGateway = async () => {

@@ -7,11 +7,12 @@ use crate::{environment::EnvironmentUID, errors::GenericError};
 use crate::device::{DeviceUID, StoredDeviceInfo};
 
 pub type GatewayUID = String;
+pub type GatewayPrincipald = String;
 pub type GatewayIp = String;
 pub type GatewayPrincipalId = String;
 
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
-pub struct StoredGatewayInfo {
+pub struct StoredRegisteredgateway {
     pub gateway_name: String,
     pub devices: BTreeMap<DeviceUID, StoredDeviceInfo>,
 }
@@ -20,14 +21,15 @@ pub struct StoredGatewayInfo {
 pub struct GatewayRegistrationInput {
     pub env_uid: EnvironmentUID,
     pub gateway_name: String,
-    pub gateway_uid: String,
 }
 
 #[derive(Debug, CandidType, Deserialize)]
-pub struct GatewayInfo {
+pub struct Registeredgateway {
     pub gateway_name: String,
-    pub gateway_uid: GatewayUID,
+    pub gateway_ip: GatewayIp,
+    pub env_uid: EnvironmentUID,
+
 }
 
-pub type GatewayInfoResult = Result<Option<GatewayInfo>, GenericError>;
-pub type MultipleGatewayInfoResult = Result<Vec<GatewayInfo>, GenericError>;
+pub type RegisteredgatewayResult = Result<Option<Registeredgateway>, GenericError>;
+pub type MultipleRegisteredgatewayResult = Result<Vec<Registeredgateway>, GenericError>;

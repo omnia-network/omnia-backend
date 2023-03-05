@@ -7,7 +7,7 @@ use ic_cdk_macros::update;
 use omnia_types::{
     device::{DeviceInfoResult, DeviceRegistrationInput, MultipleDeviceInfoResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{GatewayInfoResult, GatewayRegistrationInput, MultipleGatewayInfoResult, GatewayUID}, http::CanisterCallNonce, user::VirtualPersona,
+    gateway::{RegisteredgatewayResult, GatewayRegistrationInput, MultipleRegisteredgatewayResult, GatewayUID}, http::CanisterCallNonce, user::VirtualPersona,
 };
 
 use crate::utils::get_database_principal;
@@ -53,11 +53,14 @@ async fn create_environment(
 #[update(name = "initGateway")]
 #[candid_method(update, rename = "initGateway")]
 async fn init_gateway(nonce: CanisterCallNonce) -> Result<String, ()> {
-    
-    match call(get_database_principal(), "initGateway", (nonce, ))
-        .await
-        .unwrap()
-    {
+    let gateway_principal = caller();
+
+    match call(get_database_principal(), "initGatewayWithIp", (
+        nonce,
+        gateway_principal.to_string(),
+    ))
+    .await
+    .unwrap() {
         (Ok(gateway_uuid),) => {
             print(format!("Initialized gateway with UUID: {:?}", gateway_uuid));
             Ok(gateway_uuid)
@@ -70,17 +73,17 @@ async fn init_gateway(nonce: CanisterCallNonce) -> Result<String, ()> {
 #[candid_method(update, rename = "getInitializedGateways")]
 async fn get_initialized_gateways(nonce: CanisterCallNonce) -> Result<Vec<GatewayUID>, ()> {
     
-    let initialized_gateway_uids_result: Result<Vec<GatewayUID>, ()> = match call(get_database_principal(), "getInitializedGatewaysByIp", (nonce, ))
+    let initialized_gateway_principals_result: Result<Vec<GatewayUID>, ()> = match call(get_database_principal(), "getInitializedGatewaysByIp", (nonce, ))
         .await
         .unwrap()
     {
-        (Ok(initialized_gateway_uids),) => {
-            print(format!("Initialized gateways in the local network have UIDs {:?}", initialized_gateway_uids));
-            Ok(initialized_gateway_uids)
+        (Ok(initialized_gateway_principals),) => {
+            print(format!("Initialized gateways in the local network have principals {:?}", initialized_gateway_principals));
+            Ok(initialized_gateway_principals)
         },
         (Err(()),) => Err(())
     };
-    initialized_gateway_uids_result
+    initialized_gateway_principals_result
 }
 
 #[update(name = "registerGateway")]
@@ -88,10 +91,10 @@ async fn get_initialized_gateways(nonce: CanisterCallNonce) -> Result<Vec<Gatewa
 async fn register_gateway(
     nonce: CanisterCallNonce,
     gateway_registration_input: GatewayRegistrationInput,
-) -> GatewayInfoResult {
+) -> RegisteredgatewayResult {
     let environment_manager_principal = caller();
 
-    let (gateway_registration_result,): (GatewayInfoResult,) = call(
+    let (gateway_registration_result,): (RegisteredgatewayResult,) = call(
         get_database_principal(),
         "registerGatewayInEnvironment",
         (
@@ -108,8 +111,8 @@ async fn register_gateway(
 
 // #[update(name = "getGateways")]
 // #[candid_method(update, rename = "getGateways")]
-// async fn get_gateways(environment_uid: EnvironmentUID) -> MultipleGatewayInfoResult {
-//     let (res,): (MultipleGatewayInfoResult,) = call(
+// async fn get_gateways(environment_uid: EnvironmentUID) -> MultipleRegisteredgatewayResult {
+//     let (res,): (MultipleRegisteredgatewayResult,) = call(
 //         get_database_principal(),
 //         "getGatewaysInEnvironment",
 //         (environment_uid.clone(),),
