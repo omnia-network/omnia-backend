@@ -1,11 +1,11 @@
 use candid::candid_method;
-use ic_cdk::{export::Principal, print, trap};
+use ic_cdk::{export::Principal, print};
 use ic_cdk_macros::{update, query};
 use omnia_types::environment::EnvironmentInfoResult;
 use omnia_types::http::{CanisterCallNonce, RequesterInfo};
 use omnia_types::{
     environment::{EnvironmentInfo, EnvironmentUID},
-    user::{VirtualPersona, VirtualPersonaPrincipalId},
+    virtual_persona::{VirtualPersona, VirtualPersonaPrincipalId},
 };
 use omnia_utils::get_principal_from_string;
 

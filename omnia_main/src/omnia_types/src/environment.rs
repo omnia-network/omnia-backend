@@ -3,7 +3,7 @@ use serde::Serialize;
 
 use crate::gateway::GatewayPrincipalId;
 use crate::errors::GenericError;
-use crate::user::VirtualPersonaPrincipalId;
+use crate::virtual_persona::VirtualPersonaPrincipalId;
 
 pub type EnvironmentUID = String;
 pub type Ip = String;

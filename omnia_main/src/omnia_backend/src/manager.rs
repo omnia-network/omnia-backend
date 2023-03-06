@@ -5,9 +5,8 @@ use ic_cdk::{
 };
 use ic_cdk_macros::update;
 use omnia_types::{
-    device::{DeviceInfoResult, DeviceRegistrationInput, MultipleDeviceInfoResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, GatewayUID}, http::CanisterCallNonce, user::VirtualPersona,
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, GatewayUID}, http::CanisterCallNonce, virtual_persona::VirtualPersona,
 };
 
 use crate::utils::get_database_principal;
@@ -122,36 +121,3 @@ async fn get_gateways(environment_uid: EnvironmentUID) -> MultipleRegisteredGate
 
     res
 }
-
-// #[update(name = "registerDevice")]
-// #[candid_method(update, rename = "registerDevice")]
-// async fn register_device(device_registration_input: DeviceRegistrationInput) -> DeviceInfoResult {
-//     let environment_manager_principal = caller();
-
-//     let (device_registration_result,): (DeviceInfoResult,) = call(
-//         get_database_principal(),
-//         "registerDeviceInEnvironment",
-//         (
-//             environment_manager_principal.to_string(),
-//             Box::new(device_registration_input),
-//         ),
-//     )
-//     .await
-//     .unwrap();
-
-//     device_registration_result
-// }
-
-// #[update(name = "getDevices")]
-// #[candid_method(update, rename = "getDevices")]
-// async fn get_devices(environment_uid: EnvironmentUID) -> MultipleDeviceInfoResult {
-//     let (res,): (MultipleDeviceInfoResult,) = call(
-//         get_database_principal(),
-//         "getDevicesInEnvironment",
-//         (environment_uid.clone(),),
-//     )
-//     .await
-//     .unwrap();
-
-//     res
-// }

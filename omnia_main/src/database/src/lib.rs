@@ -7,11 +7,11 @@ use ic_cdk_macros::{post_upgrade, pre_upgrade};
 use omnia_types::environment::{EnvironmentUID, Environment};
 use omnia_types::gateway::{GatewayPrincipald, GatewayIp, GatewayPrincipalId, RegisteredGateway};
 use omnia_types::http::{CanisterCallNonce, RequesterInfo};
-use omnia_types::user::VirtualPersona;
+use omnia_types::virtual_persona::VirtualPersona;
 use serde::Serialize;
 
 mod environment;
-mod profile;
+mod virtual_persona;
 mod uuid;
 mod auth;
 
@@ -63,10 +63,9 @@ mod tests {
 
     #[test]
     fn save_candid() {
-        use omnia_types::device::*;
         use omnia_types::environment::*;
         use omnia_types::gateway::*;
-        use omnia_types::user::*;
+        use omnia_types::virtual_persona::*;
         use std::env;
         use std::fs::write;
         use std::path::PathBuf;

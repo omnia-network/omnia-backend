@@ -5,7 +5,7 @@ use ic_cdk::{
 };
 use omnia_types::{
     environment::{EnvironmentUID, EnvironmentInfoResult},
-    user::VirtualPersona, http::CanisterCallNonce,
+    virtual_persona::VirtualPersona, http::CanisterCallNonce,
 };
 
 use crate::utils::get_database_principal;

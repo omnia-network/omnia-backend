@@ -1,18 +1,14 @@
 use candid::candid_method;
 use ic_cdk::print;
-use ic_cdk_macros::{update, query};
+use ic_cdk_macros::update;
 use omnia_types::{
-    device::{
-        DeviceInfo, DeviceInfoResult, DeviceRegistrationInput, MultipleDeviceInfoResult, StoredDeviceInfo,
-    },
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID, Environment},
     gateway::{
         RegisteredGateway, RegisteredGatewayResult, GatewayRegistrationInput,
-        MultipleRegisteredGatewayResult, StoredRegisteredGateway, GatewayPrincipalId,
+        MultipleRegisteredGatewayResult, GatewayPrincipalId,
     },
-    user::VirtualPersonaPrincipalId, http::{CanisterCallNonce, RequesterInfo},
+    virtual_persona::VirtualPersonaPrincipalId, http::{CanisterCallNonce, RequesterInfo},
 };
-use std::collections::BTreeMap;
 
 use crate::{uuid::generate_uuid, STATE};
 
@@ -214,72 +210,6 @@ fn register_gateway_in_environment(
     }
 }
 
-// #[update(name = "registerDeviceInEnvironment")]
-// #[candid_method(update, rename = "registerDeviceInEnvironment")]
-// async fn register_device_in_environment(
-//     environment_manager_principal_id: VirtualPersonaPrincipalId,
-//     device_registration_input: DeviceRegistrationInput,
-// ) -> DeviceInfoResult {
-//     let device_uid = generate_uuid().await;
-
-//     STATE.with(|state| {
-//         let mut mutable_state = state.borrow_mut();
-//         match mutable_state
-//             .environments
-//             .get_mut(&device_registration_input.env_uid)
-//         {
-//             Some(environment_info) => {
-//                 match environment_info
-//                     .env_gateways
-//                     .get_mut(&device_registration_input.gateway_uid)
-//                 {
-//                     Some(gateway_info) => {
-//                         print(format!("Device UID: {:?}", device_uid));
-
-//                         gateway_info.devices.insert(
-//                             device_uid.clone(),
-//                             StoredDeviceInfo {
-//                                 device_name: device_registration_input.device_name.clone(),
-//                             },
-//                         );
-
-//                         print(format!(
-//                             "Updated environment: {:?} managed by: {:?}",
-//                             environment_info, environment_manager_principal_id
-//                         ));
-
-//                         let device_registration_result = DeviceInfo {
-//                             device_name: device_registration_input.device_name,
-//                             device_uid,
-//                             gateway_uid: device_registration_input.gateway_uid.clone(),
-//                         };
-
-//                         Ok(device_registration_result)
-//                     },
-//                     None => {
-//                         let err = format!(
-//                             "Gateway with uid {:?} does not exist in environment",
-//                             device_registration_input.gateway_uid
-//                         );
-
-//                         print(err.as_str());
-//                         Err(err)
-//                     }
-//                 }
-//             },
-//             None => {
-//                 let err = format!(
-//                     "Environment with uid {:?} does not exist",
-//                     device_registration_input.env_uid
-//                 );
-
-//                 print(err.as_str());
-//                 Err(err)
-//             }
-//         }
-//     })
-// }
-
 #[update(name = "getRegisteredGatewaysInEnvironment")]
 #[candid_method(update, rename = "getRegisteredGatewaysInEnvironment")]
 fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
@@ -315,35 +245,3 @@ fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> Mu
         Err(e) => Err(e) 
     }
 }
-
-// #[update(name = "getDevicesInEnvironment")]
-// #[candid_method(update, rename = "getDevicesInEnvironment")]
-// fn get_devices_in_environment(environment_uid: EnvironmentUID) -> MultipleDeviceInfoResult {
-//     STATE.with(
-//         |state| match state.borrow().environments.get(&environment_uid) {
-//             Some(environment_info) => {
-//                 let registered_devices = environment_info.env_gateways.iter().fold(
-//                     Vec::new(),
-//                     |mut registered_devices, (gateway_uid, gateway_info)| {
-//                         for (uuid, info) in gateway_info.devices.clone() {
-//                             let device_info = DeviceInfo {
-//                                 device_name: info.device_name,
-//                                 device_uid: uuid,
-//                                 gateway_uid: gateway_uid.clone(),
-//                             };
-//                             registered_devices.push(device_info);
-//                         }
-//                         registered_devices
-//                     },
-//                 );
-//                 Ok(registered_devices)
-//             }
-//             None => {
-//                 let err = format!("Environmnent: {:?} does not exist", environment_uid);
-
-//                 print(err.as_str());
-//                 Err(err)
-//             }
-//         },
-//     )
-// }

@@ -40,10 +40,9 @@ fn post_upgrade(_: Option<String>, arg2: String) {
 #[cfg(test)]
 mod tests {
     use candid::export_service;
-    use omnia_types::device::*;
     use omnia_types::environment::*;
     use omnia_types::gateway::*;
-    use omnia_types::user::*;
+    use omnia_types::virtual_persona::*;
     use omnia_types::http::*;
 
     #[test]

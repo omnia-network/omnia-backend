@@ -1,21 +1,13 @@
-use std::collections::BTreeMap;
 use candid::{CandidType, Deserialize};
 use serde::Serialize;
 
 
 use crate::{environment::EnvironmentUID, errors::GenericError};
-use crate::device::{DeviceUID, StoredDeviceInfo};
 
 pub type GatewayUID = String;
 pub type GatewayPrincipald = String;
 pub type GatewayIp = String;
 pub type GatewayPrincipalId = String;
-
-#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
-pub struct StoredRegisteredGateway {
-    pub gateway_name: String,
-    pub devices: BTreeMap<DeviceUID, StoredDeviceInfo>,
-}
 
 #[derive(Debug, CandidType, Deserialize)]
 pub struct GatewayRegistrationInput {
