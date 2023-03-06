@@ -1,7 +1,7 @@
 type EnvironmentCreationInput = record { env_name : text };
 type EnvironmentCreationResult = record { env_uid : text; env_name : text };
 type GatewayRegistrationInput = record { gateway_name : text; env_uid : text };
-type Registeredgateway = record {
+type RegisteredGateway = record {
   gateway_name : text;
   gateway_ip : text;
   env_uid : text;
@@ -10,7 +10,7 @@ type RequesterInfo = record { requester_ip : text; timestamp : nat64 };
 type Result = variant { Ok : vec text; Err };
 type Result_1 = variant { Ok : VirtualPersona; Err };
 type Result_2 = variant { Ok : text; Err };
-type Result_3 = variant { Ok : opt Registeredgateway; Err : text };
+type Result_3 = variant { Ok : RegisteredGateway; Err : text };
 type VirtualPersona = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;

@@ -7,8 +7,8 @@ use omnia_types::{
     },
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID, Environment},
     gateway::{
-        Registeredgateway, RegisteredgatewayResult, GatewayRegistrationInput,
-        MultipleRegisteredgatewayResult, StoredRegisteredgateway, GatewayPrincipalId,
+        RegisteredGateway, RegisteredGatewayResult, GatewayRegistrationInput,
+        MultipleRegisteredGatewayResult, StoredRegisteredGateway, GatewayPrincipalId,
     },
     user::VirtualPersonaPrincipalId, http::{CanisterCallNonce, RequesterInfo},
 };
@@ -126,7 +126,7 @@ fn register_gateway_in_environment(
     nonce: CanisterCallNonce,
     environment_manager_principal_id: VirtualPersonaPrincipalId,
     gateway_registration_input: GatewayRegistrationInput,
-) -> RegisteredgatewayResult {
+) -> RegisteredGatewayResult {
 
     let requester_info_to_be_checked: Option<RequesterInfo> = STATE.with(|state| {
         state
@@ -137,16 +137,17 @@ fn register_gateway_in_environment(
 
     match requester_info_to_be_checked {
         Some(virtual_persona_request_info) => {
-            STATE.with(|state| {
-                let mut mutable_state = state.borrow_mut();
-                match mutable_state
+            let gateway_principal_id_option = STATE.with(|state| {
+                state.borrow_mut()
                     .initialized_gateways
                     .remove(&virtual_persona_request_info.requester_ip)
-                {
-                    Some(gateway_principal_id) => {
-                        match mutable_state
+            });
+            match gateway_principal_id_option {
+                Some(gateway_principal_id) => {
+                    let registered_gateway_result = STATE.with(|state| {
+                        match state.borrow_mut()
                             .environments
-                            .get_mut(&gateway_registration_input.env_uid)
+                            .get_mut(&gateway_registration_input.env_uid) 
                         {
                             Some(environment) => {
                                 print(format!(
@@ -155,16 +156,16 @@ fn register_gateway_in_environment(
                                     environment_manager_principal_id
                                 ));
 
-                                // TODO: get gateway principal using requester IP
-                                environment.env_gateway_principal_ids.push(gateway_principal_id);
-                
-                                print(format!("Updated environment: {:?}", environment));
-                
-                                Ok(Some(Registeredgateway {
+                                let registered_gateway = RegisteredGateway {
                                     gateway_name: gateway_registration_input.gateway_name,
                                     gateway_ip: virtual_persona_request_info.requester_ip,
                                     env_uid: gateway_registration_input.env_uid,
-                                }))
+                                };
+
+                                // add principal ID of registered Gateway to Environment
+                                environment.env_gateway_principal_ids.push(gateway_principal_id.clone());
+                                print(format!("Updated environment: {:?}", environment));
+                                Ok(registered_gateway)
                             }
                             None => {
                                 let err = format!(
@@ -176,18 +177,30 @@ fn register_gateway_in_environment(
                                 Err(err)
                             }
                         }
-                    },
-                    None => {
-                        let err = format!(
-                            "Gateway with IP {:?} has not been initialized",
-                            virtual_persona_request_info.requester_ip
-                        );
-
-                        print(err.as_str());
-                        Err(err)
+                    });
+                    match registered_gateway_result {
+                        Ok(registered_gateway) => {
+                            STATE.with(|state| {
+                                state.borrow_mut()
+                                    .registered_gateways
+                                    .insert(gateway_principal_id, registered_gateway.clone());
+                            });
+                            Ok(registered_gateway)
+                        },
+                        Err(e) => Err(e),
                     }
+                    
+                },
+                None => {
+                    let err = format!(
+                        "Gateway with IP {:?} has not been initialized",
+                        virtual_persona_request_info.requester_ip
+                    );
+
+                    print(err.as_str());
+                    Err(err)
                 }
-            })
+            }
         },
         None => {
             let err = format!(
@@ -269,13 +282,13 @@ fn register_gateway_in_environment(
 
 // #[update(name = "getGatewaysInEnvironment")]
 // #[candid_method(update, rename = "getGatewaysInEnvironment")]
-// fn get_gateways_in_environment(environment_uid: EnvironmentUID) -> MultipleRegisteredgatewayResult {
+// fn get_gateways_in_environment(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
 //     STATE.with(
 //         |state| match state.borrow().environments.get(&environment_uid) {
 //             Some(environment_info) => {
-//                 let mut registered_gateways: Vec<Registeredgateway> = vec![];
+//                 let mut registered_gateways: Vec<RegisteredGateway> = vec![];
 //                 for (uuid, info) in environment_info.env_gateways.clone() {
-//                     let gateway_info = Registeredgateway {
+//                     let gateway_info = RegisteredGateway {
 //                         gateway_name: info.gateway_name,
 //                         gateway_uid: uuid,
 //                     };

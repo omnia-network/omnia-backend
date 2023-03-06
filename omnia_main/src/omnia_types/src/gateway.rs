@@ -12,7 +12,7 @@ pub type GatewayIp = String;
 pub type GatewayPrincipalId = String;
 
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
-pub struct StoredRegisteredgateway {
+pub struct StoredRegisteredGateway {
     pub gateway_name: String,
     pub devices: BTreeMap<DeviceUID, StoredDeviceInfo>,
 }
@@ -23,13 +23,13 @@ pub struct GatewayRegistrationInput {
     pub gateway_name: String,
 }
 
-#[derive(Debug, CandidType, Deserialize)]
-pub struct Registeredgateway {
+#[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
+pub struct RegisteredGateway {
     pub gateway_name: String,
     pub gateway_ip: GatewayIp,
     pub env_uid: EnvironmentUID,
 
 }
 
-pub type RegisteredgatewayResult = Result<Option<Registeredgateway>, GenericError>;
-pub type MultipleRegisteredgatewayResult = Result<Vec<Registeredgateway>, GenericError>;
+pub type RegisteredGatewayResult = Result<RegisteredGateway, GenericError>;
+pub type MultipleRegisteredGatewayResult = Result<Vec<RegisteredGateway>, GenericError>;

@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { omnia_backend } from "../../../declarations/omnia_backend";
-import { DeviceInfo, Registeredgateway } from "../../../declarations/omnia_backend/omnia_backend.did";
+import { DeviceInfo, RegisteredGateway } from "../../../declarations/omnia_backend/omnia_backend.did";
 import EnvironmentContext from "../contexts/EnvironmentContext";
 import { getDevicesOfGateway } from "../services/devices";
 import { handleError } from "../services/errors";
@@ -8,7 +8,7 @@ import { resultParser } from "../utils/resultParser";
 import DataView from "./DataView";
 
 interface IProps {
-  gateway_uid: Registeredgateway["gateway_uid"];
+  gateway_uid: RegisteredGateway["gateway_uid"];
 };
 
 const Devices: React.FC<IProps> = ({ gateway_uid }) => {

@@ -7,7 +7,7 @@ use ic_cdk_macros::update;
 use omnia_types::{
     device::{DeviceInfoResult, DeviceRegistrationInput, MultipleDeviceInfoResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredgatewayResult, GatewayRegistrationInput, MultipleRegisteredgatewayResult, GatewayUID}, http::CanisterCallNonce, user::VirtualPersona,
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, GatewayUID}, http::CanisterCallNonce, user::VirtualPersona,
 };
 
 use crate::utils::get_database_principal;
@@ -91,10 +91,10 @@ async fn get_initialized_gateways(nonce: CanisterCallNonce) -> Result<Vec<Gatewa
 async fn register_gateway(
     nonce: CanisterCallNonce,
     gateway_registration_input: GatewayRegistrationInput,
-) -> RegisteredgatewayResult {
+) -> RegisteredGatewayResult {
     let environment_manager_principal = caller();
 
-    let (gateway_registration_result,): (RegisteredgatewayResult,) = call(
+    let (gateway_registration_result,): (RegisteredGatewayResult,) = call(
         get_database_principal(),
         "registerGatewayInEnvironment",
         (
@@ -111,8 +111,8 @@ async fn register_gateway(
 
 // #[update(name = "getGateways")]
 // #[candid_method(update, rename = "getGateways")]
-// async fn get_gateways(environment_uid: EnvironmentUID) -> MultipleRegisteredgatewayResult {
-//     let (res,): (MultipleRegisteredgatewayResult,) = call(
+// async fn get_gateways(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
+//     let (res,): (MultipleRegisteredGatewayResult,) = call(
 //         get_database_principal(),
 //         "getGatewaysInEnvironment",
 //         (environment_uid.clone(),),
