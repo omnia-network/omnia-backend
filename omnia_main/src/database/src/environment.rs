@@ -280,31 +280,41 @@ fn register_gateway_in_environment(
 //     })
 // }
 
-// #[update(name = "getGatewaysInEnvironment")]
-// #[candid_method(update, rename = "getGatewaysInEnvironment")]
-// fn get_gateways_in_environment(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
-//     STATE.with(
-//         |state| match state.borrow().environments.get(&environment_uid) {
-//             Some(environment_info) => {
-//                 let mut registered_gateways: Vec<RegisteredGateway> = vec![];
-//                 for (uuid, info) in environment_info.env_gateways.clone() {
-//                     let gateway_info = RegisteredGateway {
-//                         gateway_name: info.gateway_name,
-//                         gateway_uid: uuid,
-//                     };
-//                     registered_gateways.push(gateway_info);
-//                 }
-//                 Ok(registered_gateways)
-//             }
-//             None => {
-//                 let err = format!("Environmnent: {:?} does not exist", environment_uid);
+#[update(name = "getRegisteredGatewaysInEnvironment")]
+#[candid_method(update, rename = "getRegisteredGatewaysInEnvironment")]
+fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
+    let gateways_principal_ids_in_environment_result = STATE.with(
+        |state| match state.borrow().environments.get(&environment_uid) {
+            Some(environment) => Ok(environment.env_gateway_principal_ids.clone()),
+            None => {
+                let err = format!("Environmnent: {:?} does not exist", environment_uid);
 
-//                 print(err.as_str());
-//                 Err(err)
-//             }
-//         },
-//     )
-// }
+                print(err.as_str());
+                Err(err)
+            }
+        },
+    );
+
+    match gateways_principal_ids_in_environment_result {
+        Ok(gateways_principal_ids_in_environment) => {
+            let mut registered_gateways: Vec<RegisteredGateway> = vec![];
+            for gateway_principal_id in gateways_principal_ids_in_environment {
+                STATE.with(|state| {
+                    match state
+                        .borrow()
+                        .registered_gateways
+                        .get(&gateway_principal_id) 
+                    {
+                        Some(registered_gateway) => registered_gateways.push(registered_gateway.clone()),
+                        None => ()
+                    };
+                });
+            }
+            Ok(registered_gateways)
+        }
+        Err(e) => Err(e) 
+    }
+}
 
 // #[update(name = "getDevicesInEnvironment")]
 // #[candid_method(update, rename = "getDevicesInEnvironment")]
