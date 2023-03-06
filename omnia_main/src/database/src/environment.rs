@@ -140,6 +140,14 @@ fn register_gateway_in_environment(
             });
             match gateway_principal_id_option {
                 Some(gateway_principal_id) => {
+                    // register mapping IP to Environment UID in order to be able to retrive the UID of the environment from the IP when a User registers in an environment
+                    STATE.with(|state| {
+                        state
+                            .borrow_mut()
+                            .ip_to_env_uid
+                            .insert(virtual_persona_request_info.requester_ip.clone(), gateway_registration_input.env_uid.clone());
+                    });
+
                     let registered_gateway_result = STATE.with(|state| {
                         match state.borrow_mut()
                             .environments

@@ -4,7 +4,7 @@ use std::{cell::RefCell, ops::Deref};
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{post_upgrade, pre_upgrade};
-use omnia_types::environment::{EnvironmentUID, Environment};
+use omnia_types::environment::{EnvironmentUID, Environment, Ip};
 use omnia_types::gateway::{GatewayPrincipald, GatewayIp, GatewayPrincipalId, RegisteredGateway};
 use omnia_types::http::{CanisterCallNonce, RequesterInfo};
 use omnia_types::virtual_persona::VirtualPersona;
@@ -19,6 +19,7 @@ mod auth;
 struct State {
     pub virtual_personas: BTreeMap<Principal, VirtualPersona>,
     pub environments: BTreeMap<EnvironmentUID, Environment>,
+    pub ip_to_env_uid: BTreeMap<Ip, EnvironmentUID>,
     pub registered_gateways: BTreeMap<GatewayPrincipalId, RegisteredGateway>,
     pub initialized_nonce_to_ip: BTreeMap<CanisterCallNonce, RequesterInfo>,
     pub initialized_gateways: BTreeMap<GatewayIp, GatewayPrincipald>,
@@ -29,6 +30,7 @@ impl State {
         Self {
             virtual_personas: BTreeMap::default(),
             environments: BTreeMap::default(),
+            ip_to_env_uid: BTreeMap::default(),
             registered_gateways: BTreeMap::default(),
             initialized_nonce_to_ip: BTreeMap::default(),
             initialized_gateways: BTreeMap::default(),
