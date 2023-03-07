@@ -108,9 +108,9 @@ async fn register_gateway(
     gateway_registration_result
 }
 
-#[update(name = "getGateways")]
-#[candid_method(update, rename = "getGateways")]
-async fn get_gateways(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
+#[update(name = "getRegisteredGateways")]
+#[candid_method(update, rename = "getRegisteredGateways")]
+async fn get_registered_gateways(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
     let (res,): (MultipleRegisteredGatewayResult,) = call(
         get_database_principal(),
         "getRegisteredGatewaysInEnvironment",

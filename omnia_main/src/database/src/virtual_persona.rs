@@ -4,7 +4,7 @@ use ic_cdk_macros::{update, query};
 use omnia_types::environment::EnvironmentInfoResult;
 use omnia_types::http::{CanisterCallNonce, RequesterInfo};
 use omnia_types::{
-    environment::{EnvironmentInfo, EnvironmentUID},
+    environment::EnvironmentInfo,
     virtual_persona::{VirtualPersona, VirtualPersonaPrincipalId},
 };
 use omnia_utils::get_principal_from_string;
