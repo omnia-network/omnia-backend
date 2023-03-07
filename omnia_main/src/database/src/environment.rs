@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use candid::candid_method;
 use ic_cdk::print;
 use ic_cdk_macros::update;
@@ -96,8 +97,8 @@ async fn create_new_environment(
             Environment {
                 env_name: environment_creation_input.env_name.clone(),
                 env_ip: None,
-                env_users_principals_ids: vec![],
-                env_gateway_principal_ids: vec![],
+                env_users_principals_ids: BTreeMap::default(),
+                env_gateway_principal_ids: BTreeMap::default(),
                 env_manager_principal_id: environment_manager_principal_id,
             },
         );
@@ -167,7 +168,7 @@ fn register_gateway_in_environment(
                                 };
 
                                 // add principal ID of registered Gateway to Environment
-                                environment.env_gateway_principal_ids.push(gateway_principal_id.clone());
+                                environment.env_gateway_principal_ids.insert(gateway_principal_id.clone(), ());
                                 print(format!("Updated environment: {:?}", environment));
                                 Ok(registered_gateway)
                             }
@@ -236,7 +237,7 @@ fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> Mu
     match gateways_principal_ids_in_environment_result {
         Ok(gateways_principal_ids_in_environment) => {
             let mut registered_gateways: Vec<RegisteredGateway> = vec![];
-            for gateway_principal_id in gateways_principal_ids_in_environment {
+            for (gateway_principal_id, _) in gateways_principal_ids_in_environment {
                 STATE.with(|state| {
                     match state
                         .borrow()

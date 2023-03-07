@@ -47,7 +47,7 @@ fn set_user_in_environment(
                                     .get_mut(&environment_uid)
                                 {
                                     Some(environment) => {
-                                        environment.env_users_principals_ids.push(virtual_persona_principal_id.clone());
+                                        environment.env_users_principals_ids.insert(virtual_persona_principal_id.clone(), ());
                                     },
                                     None => trap("Environment does not exist"),
                                 };
