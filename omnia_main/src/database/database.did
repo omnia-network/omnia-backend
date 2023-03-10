@@ -21,13 +21,13 @@ type VirtualPersona = record {
   virtual_persona_ip : text;
 };
 service : {
+  checkIfVirtualPersonaExists : (principal) -> (bool) query;
   createNewEnvironment : (text, EnvironmentCreationInput) -> (
       EnvironmentCreationResult,
     );
   getInitializedGatewaysByIp : (text) -> (Result);
   getRegisteredGatewaysInEnvironment : (text) -> (Result_1);
   getVirtualPersona : (text, text) -> (Result_2);
-  getVirtualPersonaIfExists : (principal) -> (opt VirtualPersona) query;
   initGatewayWithIp : (text, text) -> (Result_3);
   initNonceToIp : (text, RequesterInfo) -> (opt RequesterInfo);
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (

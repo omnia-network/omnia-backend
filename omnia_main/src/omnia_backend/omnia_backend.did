@@ -22,9 +22,9 @@ type RegisteredGateway = record {
   env_uid : text;
 };
 type Result = variant { Ok : EnvironmentCreationResult; Err };
-type Result_1 = variant { Ok : vec RegisteredGateway; Err : text };
-type Result_2 = variant { Ok : vec text; Err };
-type Result_3 = variant { Ok : VirtualPersona; Err };
+type Result_1 = variant { Ok : vec text; Err };
+type Result_2 = variant { Ok : VirtualPersona; Err };
+type Result_3 = variant { Ok : vec RegisteredGateway; Err : text };
 type Result_4 = variant { Ok : text; Err };
 type Result_5 = variant { Ok : RegisteredGateway; Err : text };
 type Result_6 = variant { Ok : EnvironmentInfo; Err : text };
@@ -36,9 +36,9 @@ type VirtualPersona = record {
 };
 service : (opt text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (Result);
-  getGateways : (text) -> (Result_1);
-  getInitializedGateways : (text) -> (Result_2);
-  getProfile : (text) -> (Result_3);
+  getInitializedGateways : (text) -> (Result_1);
+  getProfile : (text) -> (Result_2);
+  getRegisteredGateways : (text) -> (Result_3);
   http_request : (HttpRequest) -> (HttpResponse) query;
   http_request_update : (HttpRequest) -> (HttpResponse);
   initGateway : (text) -> (Result_4);

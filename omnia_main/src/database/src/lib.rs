@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::{cell::RefCell, ops::Deref};
+use std::{cell::RefCell, rc::Rc};
 
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::api::stable::{StableReader, StableWriter};
@@ -36,16 +36,20 @@ impl State {
             initialized_gateways: BTreeMap::default(),
         }
     }
+
+    pub fn create_virtual_persona(&mut self, virtual_persona_principal: Principal, new_virtual_persona: VirtualPersona) {
+        self.virtual_personas.insert(virtual_persona_principal, new_virtual_persona);
+    }
 }
 
 thread_local! {
-    static STATE: RefCell<State>  = RefCell::new(State::default());
+    static STATE: Rc<RefCell<State>>  = Rc::new(RefCell::new(State::default()));
 }
 
 #[pre_upgrade]
 fn pre_upgrade() {
-    STATE.with(|cell| {
-        ciborium::ser::into_writer(cell.borrow().deref(), StableWriter::default())
+    STATE.with(|state| {
+        ciborium::ser::into_writer(&*state.borrow(), StableWriter::default())
             .expect("failed to encode state")
     })
 }
