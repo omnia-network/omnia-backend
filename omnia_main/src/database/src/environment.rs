@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, rc::Rc, cell::RefCell};
+use std::{collections::BTreeMap, rc::Rc, cell::{RefCell, RefMut}};
 use candid::candid_method;
 use ic_cdk::print;
 use ic_cdk_macros::update;
@@ -18,8 +18,8 @@ use crate::{uuid::generate_uuid, STATE, State};
 async fn init_gateway_with_ip(nonce: CanisterCallNonce, gateway_principal_id: GatewayPrincipalId) -> Result<String, ()> {
 
     STATE.with(|state| {
-        let requester_info_to_be_checked = state
-            .borrow_mut()
+        let mut mutable_state = state.borrow_mut();
+        let requester_info_to_be_checked = mutable_state
             .initialized_nonce_to_ip
             .remove(&nonce);
 
@@ -27,8 +27,7 @@ async fn init_gateway_with_ip(nonce: CanisterCallNonce, gateway_principal_id: Ga
     
         match requester_info_to_be_checked {
             Some(gateway_request_info) => {        
-                state
-                    .borrow_mut()
+                mutable_state
                     .initialized_gateways
                     .insert(gateway_request_info.requester_ip, gateway_principal_id.clone());
                 Ok(gateway_principal_id)
@@ -45,8 +44,8 @@ async fn init_gateway_with_ip(nonce: CanisterCallNonce, gateway_principal_id: Ga
 #[candid_method(update, rename = "getInitializedGatewaysByIp")]
 async fn get_initialized_gateways_by_ip(nonce: CanisterCallNonce) -> Result<Vec<GatewayPrincipalId>, ()> {
     STATE.with(|state| {
-        let requester_info_to_be_checked = state
-            .borrow_mut()
+        let mut mutable_state = state.borrow_mut();
+        let requester_info_to_be_checked = mutable_state
             .initialized_nonce_to_ip
             .remove(&nonce);
 
@@ -54,8 +53,7 @@ async fn get_initialized_gateways_by_ip(nonce: CanisterCallNonce) -> Result<Vec<
 
         match requester_info_to_be_checked {
             Some(virtual_persona_request_info) => {
-                match state
-                    .borrow()
+                match mutable_state
                     .initialized_gateways
                     .get(&virtual_persona_request_info.requester_ip) 
                 {
@@ -87,7 +85,8 @@ async fn create_new_environment(
     print(format!("Environment UID: {:?}", environment_uid));
 
     STATE.with(|state| {
-        state.borrow_mut().environments.insert(
+        let mut mutable_state = state.borrow_mut();
+        mutable_state.environments.insert(
             environment_uid.clone(),
             Environment {
                 env_name: environment_creation_input.env_name.clone(),
@@ -121,21 +120,19 @@ fn register_gateway_in_environment(
 ) -> RegisteredGatewayResult {
 
     STATE.with(|state| {
-        let requester_info_to_be_checked = state
-            .borrow_mut()
+        let mut mutable_state = state.borrow_mut();
+        let requester_info_to_be_checked = mutable_state
             .initialized_nonce_to_ip
             .remove(&nonce);
         match requester_info_to_be_checked {
             Some(virtual_persona_request_info) => {
-                let gateway_principal_id_option = state
-                    .borrow_mut()
+                let gateway_principal_id_option = mutable_state
                     .initialized_gateways
                     .remove(&virtual_persona_request_info.requester_ip);
                 match gateway_principal_id_option {
                     Some(gateway_principal_id) => {
                         // register mapping IP to Environment UID in order to be able to retrive the UID of the environment from the IP when a User registers in an environment
-                        state
-                            .borrow_mut()
+                        mutable_state
                             .ip_to_env_uid
                             .insert(virtual_persona_request_info.requester_ip.clone(), gateway_registration_input.env_uid.clone());
 
@@ -145,12 +142,11 @@ fn register_gateway_in_environment(
                             env_uid: gateway_registration_input.env_uid.clone(),
                         };
 
-                        state.borrow_mut()
+                        mutable_state
                             .registered_gateways
                             .insert(gateway_principal_id.clone(), registered_gateway.clone());
 
-                        match state
-                            .borrow_mut()
+                        match mutable_state
                             .environments
                             .get_mut(&gateway_registration_input.env_uid)
                         {
@@ -205,7 +201,8 @@ fn register_gateway_in_environment(
 #[candid_method(update, rename = "getRegisteredGatewaysInEnvironment")]
 fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
     STATE.with(|state| {
-        let environment_result = get_environment_from_uid(Rc::clone(&state), &environment_uid);
+        let mut mutable_state = state.borrow_mut();
+        let environment_result = get_environment_from_uid(&mut mutable_state, &environment_uid);
 
         match environment_result {
             Ok(environment) => {
@@ -214,8 +211,7 @@ fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> Mu
                 print(format!("{:?}", environment.env_gateway_principal_ids));
                 for (gateway_principal_id, _) in environment.env_gateway_principal_ids {
                     print(format!("{:?}", gateway_principal_id));
-                    match state
-                        .borrow()
+                    match mutable_state
                         .registered_gateways
                         .get(&gateway_principal_id) 
                     {
@@ -232,9 +228,8 @@ fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> Mu
 
 }
 
-fn get_environment_from_uid(state: Rc<RefCell<State>>, env_uid: &EnvironmentUID) -> Result<Environment, GenericError> {
-    match state
-        .borrow_mut()
+fn get_environment_from_uid(mutable_state: &mut RefMut<State>, env_uid: &EnvironmentUID) -> Result<Environment, GenericError> {
+    match mutable_state
         .environments
         .get_mut(env_uid)
     {

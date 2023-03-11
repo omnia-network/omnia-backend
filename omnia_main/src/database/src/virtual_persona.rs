@@ -1,5 +1,4 @@
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::cell::RefMut;
 
 use candid::candid_method;
 use ic_cdk::{export::Principal, print, trap};
@@ -23,18 +22,17 @@ fn set_user_in_environment(
     let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id.clone());
 
     STATE.with(|state| {
-        let virtual_persona_request_info_option = state
-            .borrow_mut()
+        let mut mutable_state = state.borrow_mut();
+        let virtual_persona_request_info_option = mutable_state
             .initialized_nonce_to_ip
             .remove(&nonce);
         match virtual_persona_request_info_option {
             Some(virtual_persona_request_info) => {
-                match get_virtual_persona_if_exists(Rc::clone(&state), virtual_persona_principal) {
+                match get_virtual_persona_if_exists(&mut mutable_state, virtual_persona_principal) {
                     Some(virtual_persona) => {
-                        match get_environment_uid_from_ip(Rc::clone(&state), &virtual_persona_request_info.requester_ip) {
+                        match get_environment_uid_from_ip(&mut mutable_state, &virtual_persona_request_info.requester_ip) {
                             Some(environment_uid) => {
-                                match state
-                                    .borrow_mut()
+                                match mutable_state
                                     .environments
                                     .get_mut(&environment_uid)
                                 {
@@ -49,8 +47,7 @@ fn set_user_in_environment(
                                     ..virtual_persona
                                 };
 
-                                state
-                                    .borrow_mut()
+                                mutable_state
                                     .virtual_personas
                                     .insert(virtual_persona_principal, updated_virtual_persona);
 
@@ -101,19 +98,18 @@ fn set_user_in_environment(
 fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrincipalId, nonce: CanisterCallNonce) -> EnvironmentInfoResult {
     let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id.clone());
     STATE.with(|state| {
-        let virtual_persona_request_info_option = state
-            .borrow_mut()
+        let mut mutable_state = state.borrow_mut();
+        let virtual_persona_request_info_option = mutable_state
             .initialized_nonce_to_ip
             .remove(&nonce);
         match virtual_persona_request_info_option {
             Some(virtual_persona_request_info) => {
-                match get_virtual_persona_if_exists(Rc::clone(&state), virtual_persona_principal) {
+                match get_virtual_persona_if_exists(&mut mutable_state, virtual_persona_principal) {
                     Some(virtual_persona) => {
-                        let environment_uid_option = get_environment_uid_from_ip(Rc::clone(&state), &virtual_persona_request_info.requester_ip);
+                        let environment_uid_option = get_environment_uid_from_ip(&mut mutable_state, &virtual_persona_request_info.requester_ip);
                         match environment_uid_option {
                             Some(environment_uid) => {
-                                match state
-                                    .borrow_mut()
+                                match mutable_state
                                     .environments
                                     .get_mut(&environment_uid)
                                 {
@@ -128,8 +124,7 @@ fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrinc
                                     ..virtual_persona
                                 };
 
-                                state
-                                    .borrow_mut()
+                                mutable_state
                                     .virtual_personas
                                     .insert(virtual_persona_principal, updated_virtual_persona);
 
@@ -179,15 +174,15 @@ fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrinc
 #[candid_method(update, rename = "getVirtualPersona")]
 fn get_virtual_persona(nonce: CanisterCallNonce, virtual_persona_principal_id: VirtualPersonaPrincipalId) -> Result<VirtualPersona, ()> {
     STATE.with(|state| {
-        let virtual_persona_request_info_option = state
-            .borrow_mut()
+        let mut mutable_state = state.borrow_mut();
+        let virtual_persona_request_info_option = mutable_state
             .initialized_nonce_to_ip
             .remove(&nonce);
         match virtual_persona_request_info_option {
             Some(virtual_persona_request_info) => {
                 let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id);
 
-                let virtual_persona_option = get_virtual_persona_if_exists(Rc::clone(&state), virtual_persona_principal);
+                let virtual_persona_option = get_virtual_persona_if_exists(&mut mutable_state, virtual_persona_principal);
 
                 match virtual_persona_option {
                     Some(virtual_persona) => {
@@ -208,8 +203,7 @@ fn get_virtual_persona(nonce: CanisterCallNonce, virtual_persona_principal_id: V
                             manager_env_uid: None,
                         };
 
-                        state
-                            .borrow_mut()
+                        mutable_state
                             .create_virtual_persona(virtual_persona_principal, new_virtual_persona.clone());
 
                         print(format!(
@@ -239,15 +233,15 @@ fn check_if_virtual_persona_exists(virtual_persona_principal: Principal) -> bool
     )
 }
 
-fn get_virtual_persona_if_exists(state: Rc<RefCell<State>>, virtual_persona_principal: Principal) -> Option<VirtualPersona> {
-    match state.borrow().virtual_personas.get(&virtual_persona_principal) {
+fn get_virtual_persona_if_exists(mutable_state: &mut RefMut<State>, virtual_persona_principal: Principal) -> Option<VirtualPersona> {
+    match mutable_state.virtual_personas.get(&virtual_persona_principal) {
         Some(virtual_persona) => Some(virtual_persona.to_owned()),
         None => None,
     }
 }
 
-fn get_environment_uid_from_ip(state: Rc<RefCell<State>>, requester_ip: &VirtualPersonaPrincipalId) -> Option<EnvironmentUID>{
-    match state.borrow()
+fn get_environment_uid_from_ip(mutable_state: &mut RefMut<State>, requester_ip: &VirtualPersonaPrincipalId) -> Option<EnvironmentUID>{
+    match mutable_state
         .ip_to_env_uid
         .get(requester_ip)
     {
