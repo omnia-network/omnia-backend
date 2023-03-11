@@ -54,7 +54,7 @@ async fn create_environment(
 async fn init_gateway(nonce: CanisterCallNonce) -> Result<String, ()> {
     let gateway_principal = caller();
 
-    match call(get_database_principal(), "initGatewayWithIp", (
+    match call(get_database_principal(), "initGatewayByIp", (
         nonce,
         gateway_principal.to_string(),
     ))

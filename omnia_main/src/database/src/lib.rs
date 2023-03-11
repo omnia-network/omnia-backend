@@ -8,7 +8,7 @@ use omnia_types::environment::{EnvironmentUID, Environment, Ip};
 use omnia_types::errors::GenericError;
 use omnia_types::gateway::{GatewayPrincipald, GatewayIp, GatewayPrincipalId, RegisteredGateway};
 use omnia_types::http::{CanisterCallNonce, RequesterInfo};
-use omnia_types::virtual_persona::{VirtualPersona, VirtualPersonaPrincipalId, VirtualPersonaIp};
+use omnia_types::virtual_persona::{VirtualPersona, VirtualPersonaIp};
 use serde::Serialize;
 
 mod environment;

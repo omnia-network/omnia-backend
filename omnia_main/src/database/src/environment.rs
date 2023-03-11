@@ -13,8 +13,8 @@ use omnia_types::{
 
 use crate::{uuid::generate_uuid, STATE};
 
-#[update(name = "initGatewayWithIp")]
-#[candid_method(update, rename = "initGatewayWithIp")]
+#[update(name = "initGatewayByIp")]
+#[candid_method(update, rename = "initGatewayByIp")]
 async fn init_gateway_with_ip(nonce: CanisterCallNonce, gateway_principal_id: GatewayPrincipalId) -> Result<String, ()> {
 
     STATE.with(|state| {

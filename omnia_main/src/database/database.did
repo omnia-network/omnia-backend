@@ -28,7 +28,7 @@ service : {
   getInitializedGatewaysByIp : (text) -> (Result);
   getRegisteredGatewaysInEnvironment : (text) -> (Result_1);
   getVirtualPersona : (text, text) -> (Result_2);
-  initGatewayWithIp : (text, text) -> (Result_3);
+  initGatewayByIp : (text, text) -> (Result_3);
   initNonceToIp : (text, RequesterInfo) -> (opt RequesterInfo);
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
       Result_4,
