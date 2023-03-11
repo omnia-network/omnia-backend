@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, ops::Deref};
 
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::api::stable::{StableReader, StableWriter};
@@ -43,13 +43,13 @@ impl State {
 }
 
 thread_local! {
-    static STATE: Rc<RefCell<State>>  = Rc::new(RefCell::new(State::default()));
+    static STATE: RefCell<State>  = RefCell::new(State::default());
 }
 
 #[pre_upgrade]
 fn pre_upgrade() {
     STATE.with(|state| {
-        ciborium::ser::into_writer(&*state.borrow(), StableWriter::default())
+        ciborium::ser::into_writer(state.borrow().deref(), StableWriter::default())
             .expect("failed to encode state")
     })
 }
