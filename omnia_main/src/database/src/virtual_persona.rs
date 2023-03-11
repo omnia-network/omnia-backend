@@ -23,10 +23,10 @@ fn set_user_in_environment(
 
     STATE.with(|state| {
         let mut mutable_state = state.borrow_mut();
-        let virtual_persona_request_info_option = mutable_state
+        match mutable_state
             .initialized_nonce_to_ip
-            .remove(&nonce);
-        match virtual_persona_request_info_option {
+            .remove(&nonce)
+        {
             Some(virtual_persona_request_info) => {
                 match get_virtual_persona_if_exists(&mut mutable_state, virtual_persona_principal) {
                     Some(virtual_persona) => {
@@ -99,10 +99,10 @@ fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrinc
     let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id.clone());
     STATE.with(|state| {
         let mut mutable_state = state.borrow_mut();
-        let virtual_persona_request_info_option = mutable_state
+        match mutable_state
             .initialized_nonce_to_ip
-            .remove(&nonce);
-        match virtual_persona_request_info_option {
+            .remove(&nonce)
+        {
             Some(virtual_persona_request_info) => {
                 match get_virtual_persona_if_exists(&mut mutable_state, virtual_persona_principal) {
                     Some(virtual_persona) => {
@@ -175,10 +175,10 @@ fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrinc
 fn get_virtual_persona(nonce: CanisterCallNonce, virtual_persona_principal_id: VirtualPersonaPrincipalId) -> Result<VirtualPersona, ()> {
     STATE.with(|state| {
         let mut mutable_state = state.borrow_mut();
-        let virtual_persona_request_info_option = mutable_state
+        match mutable_state
             .initialized_nonce_to_ip
-            .remove(&nonce);
-        match virtual_persona_request_info_option {
+            .remove(&nonce)
+        {
             Some(virtual_persona_request_info) => {
                 let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id);
 

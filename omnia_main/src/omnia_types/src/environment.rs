@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use candid::{CandidType, Deserialize};
 use serde::Serialize;
 
-use crate::gateway::{GatewayPrincipalId, RegisteredGateway};
+use crate::gateway::GatewayPrincipalId;
 use crate::errors::GenericError;
 use crate::virtual_persona::VirtualPersonaPrincipalId;
 

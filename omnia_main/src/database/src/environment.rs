@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, rc::Rc, cell::{RefCell, RefMut}};
+use std::{collections::BTreeMap, cell::RefMut};
 use candid::candid_method;
 use ic_cdk::print;
 use ic_cdk_macros::update;
@@ -19,13 +19,10 @@ async fn init_gateway_with_ip(nonce: CanisterCallNonce, gateway_principal_id: Ga
 
     STATE.with(|state| {
         let mut mutable_state = state.borrow_mut();
-        let requester_info_to_be_checked = mutable_state
+        match mutable_state
             .initialized_nonce_to_ip
-            .remove(&nonce);
-
-        print(format!("Requester info to be checked: {:?}", requester_info_to_be_checked));
-    
-        match requester_info_to_be_checked {
+            .remove(&nonce)
+        {
             Some(gateway_request_info) => {        
                 mutable_state
                     .initialized_gateways
@@ -45,13 +42,10 @@ async fn init_gateway_with_ip(nonce: CanisterCallNonce, gateway_principal_id: Ga
 async fn get_initialized_gateways_by_ip(nonce: CanisterCallNonce) -> Result<Vec<GatewayPrincipalId>, ()> {
     STATE.with(|state| {
         let mut mutable_state = state.borrow_mut();
-        let requester_info_to_be_checked = mutable_state
+        match mutable_state
             .initialized_nonce_to_ip
-            .remove(&nonce);
-
-        print(format!("Requester info to be checked: {:?}", requester_info_to_be_checked));
-
-        match requester_info_to_be_checked {
+            .remove(&nonce)
+        {
             Some(virtual_persona_request_info) => {
                 match mutable_state
                     .initialized_gateways
@@ -121,15 +115,15 @@ fn register_gateway_in_environment(
 
     STATE.with(|state| {
         let mut mutable_state = state.borrow_mut();
-        let requester_info_to_be_checked = mutable_state
+        match mutable_state
             .initialized_nonce_to_ip
-            .remove(&nonce);
-        match requester_info_to_be_checked {
+            .remove(&nonce)
+        {
             Some(virtual_persona_request_info) => {
-                let gateway_principal_id_option = mutable_state
+                match mutable_state
                     .initialized_gateways
-                    .remove(&virtual_persona_request_info.requester_ip);
-                match gateway_principal_id_option {
+                    .remove(&virtual_persona_request_info.requester_ip)
+                {
                     Some(gateway_principal_id) => {
                         // register mapping IP to Environment UID in order to be able to retrive the UID of the environment from the IP when a User registers in an environment
                         mutable_state
@@ -202,9 +196,7 @@ fn register_gateway_in_environment(
 fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
     STATE.with(|state| {
         let mut mutable_state = state.borrow_mut();
-        let environment_result = get_environment_from_uid(&mut mutable_state, &environment_uid);
-
-        match environment_result {
+        match get_environment_from_uid(&mut mutable_state, &environment_uid) {
             Ok(environment) => {
                 print(format!("{:?}", environment));
                 let mut registered_gateways: Vec<RegisteredGateway> = vec![];
