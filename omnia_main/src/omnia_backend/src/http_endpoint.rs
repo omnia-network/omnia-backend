@@ -8,7 +8,7 @@ use omnia_types::http::{
     CONTENT_TYPE_HEADER_KEY,
     ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_KEY,
     CONNECTION_HEADER_KEY,
-    RequesterInfo,
+    IpChallengeValue,
 };
 use crate::utils::get_database_principal;
 
@@ -58,12 +58,12 @@ async fn http_request_update(req: HttpRequest) -> HttpResponse {
 
     let parsed_body: ParsedHttpRequestBody = from_slice(&req.body.unwrap()).unwrap();
 
-    let requester_info = RequesterInfo {
+    let requester_info = IpChallengeValue {
         requester_ip: headers.get(&String::from("x-real-ip")).unwrap().to_owned(),
         timestamp: time(),
     };
 
-    let _: (Option<RequesterInfo>, ) = call(
+    let _: (Option<IpChallengeValue>, ) = call(
         get_database_principal(),
         "initNonceToIp",
         (

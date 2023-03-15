@@ -1,7 +1,3 @@
-type EnvironmentCreationInput = record { env_name : text };
-type EnvironmentCreationResult = record { env_uid : text; env_name : text };
-type EnvironmentInfo = record { env_uid : text };
-type GatewayRegistrationInput = record { gateway_name : text; env_uid : text };
 type HttpRequest = record {
   url : text;
   method : text;
@@ -16,33 +12,15 @@ type HttpResponse = record {
   streaming_strategy : opt text;
   status_code : nat16;
 };
-type RegisteredGateway = record {
-  gateway_name : text;
-  gateway_ip : text;
-  env_uid : text;
-};
-type Result = variant { Ok : EnvironmentCreationResult; Err };
-type Result_1 = variant { Ok : vec text; Err };
-type Result_2 = variant { Ok : VirtualPersona; Err };
-type Result_3 = variant { Ok : vec RegisteredGateway; Err : text };
-type Result_4 = variant { Ok : text; Err };
-type Result_5 = variant { Ok : RegisteredGateway; Err : text };
-type Result_6 = variant { Ok : EnvironmentInfo; Err : text };
-type VirtualPersona = record {
+type Result = variant { Ok : VirtualPersonaValue; Err };
+type VirtualPersonaValue = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
 service : (opt text, text) -> {
-  createEnvironment : (EnvironmentCreationInput) -> (Result);
-  getInitializedGateways : (text) -> (Result_1);
-  getProfile : (text) -> (Result_2);
-  getRegisteredGateways : (text) -> (Result_3);
+  getProfile : (text) -> (Result);
   http_request : (HttpRequest) -> (HttpResponse) query;
   http_request_update : (HttpRequest) -> (HttpResponse);
-  initGateway : (text) -> (Result_4);
-  registerGateway : (text, GatewayRegistrationInput) -> (Result_5);
-  resetEnvironment : (text) -> (Result_6);
-  setEnvironment : (text) -> (Result_6);
 }

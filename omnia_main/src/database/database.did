@@ -1,38 +1,8 @@
-type EnvironmentCreationInput = record { env_name : text };
-type EnvironmentCreationResult = record { env_uid : text; env_name : text };
-type EnvironmentInfo = record { env_uid : text };
-type GatewayRegistrationInput = record { gateway_name : text; env_uid : text };
-type RegisteredGateway = record {
-  gateway_name : text;
-  gateway_ip : text;
-  env_uid : text;
-};
-type RequesterInfo = record { requester_ip : text; timestamp : nat64 };
-type Result = variant { Ok : vec text; Err };
-type Result_1 = variant { Ok : vec RegisteredGateway; Err : text };
-type Result_2 = variant { Ok : VirtualPersona; Err };
-type Result_3 = variant { Ok : text; Err };
-type Result_4 = variant { Ok : RegisteredGateway; Err : text };
-type Result_5 = variant { Ok : EnvironmentInfo; Err : text };
-type VirtualPersona = record {
+type Result = variant { Ok : VirtualPersonaValue; Err };
+type VirtualPersonaValue = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
-service : {
-  checkIfVirtualPersonaExists : (principal) -> (bool) query;
-  createNewEnvironment : (text, EnvironmentCreationInput) -> (
-      EnvironmentCreationResult,
-    );
-  getInitializedGatewaysByIp : (text) -> (Result);
-  getRegisteredGatewaysInEnvironment : (text) -> (Result_1);
-  getVirtualPersona : (text, text) -> (Result_2);
-  initGatewayByIp : (text, text) -> (Result_3);
-  initNonceToIp : (text, RequesterInfo) -> (opt RequesterInfo);
-  registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
-      Result_4,
-    );
-  resetUserFromEnvironment : (text, text) -> (Result_5);
-  setUserInEnvironment : (text, text) -> (Result_5);
-}
+service : { getVirtualPersona : (text, text) -> (Result) }
