@@ -1,8 +1,10 @@
 use std::collections::BTreeMap;
 
 use candid::{CandidType, Deserialize};
-use http::{IpChallengeIndex, IpChallengeValue};
+use errors::GenericError;
+use http::{IpChallengeIndex, IpChallengeValue, IpChallengeValueResult};
 use serde::Serialize;
+use std::fmt::Debug;
 
 pub mod virtual_persona;
 pub mod environment;
@@ -11,11 +13,11 @@ pub mod errors;
 pub mod http;
 
 #[derive(Default, CandidType, Serialize, Deserialize)]
-pub struct CrudMap<I: Ord, V> {
+pub struct CrudMap<I: Ord + Debug, V> {
     map: BTreeMap<I, V>,
 }
 
-impl<I: Ord, V> CrudMap<I, V> {
+impl<I: Ord + Debug, V> CrudMap<I, V> {
     pub fn default() -> Self {
         Self {
             map: BTreeMap::<I, V>::default()
@@ -34,13 +36,24 @@ impl<I: Ord, V> CrudMap<I, V> {
         self.map.insert(index, value);
     }
 
-    pub fn delete(&mut self, index: &I) -> Option<V> {
-        self.map.remove(index)
+    pub fn delete(&mut self, index: &I) -> Result<V, GenericError> {
+        match self.map.remove(index) {
+            Some(deleted_value) => Ok(deleted_value),
+            None => {
+                let err = format!(
+                    "Entry with index {:?} does not exist",
+                    index
+                );
+                
+                println!("{}", err);
+                Err(err)
+            }
+        }
     }
 }
 
 impl CrudMap<IpChallengeIndex, IpChallengeValue> {
-    pub fn validate_ip_challenge(&mut self, nonce: &IpChallengeIndex) -> Option<IpChallengeValue> {
-        self.delete(nonce)
+    pub fn validate_ip_challenge(&mut self, nonce: &IpChallengeIndex) -> IpChallengeValueResult {
+        Ok(self.delete(nonce)?)
     }
 }

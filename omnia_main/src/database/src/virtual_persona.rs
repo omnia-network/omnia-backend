@@ -163,49 +163,37 @@ fn get_virtual_persona(nonce: IpChallengeNonce, virtual_persona_principal_id: Vi
         let ip_challenge_index = IpChallengeIndex {
             nonce,
         };
-        let validated_ip_challenge = state.borrow_mut().ip_challenges.validate_ip_challenge(&ip_challenge_index);
-        match validated_ip_challenge {
-            Some(ip_challenge_value) => {
-                let virtual_persona_index = VirtualPersonaIndex {
-                    principal_id: virtual_persona_principal_id.clone(),
-                };
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge(&ip_challenge_index)?;
         
-                // if virtual persona exists, return it
-                if let Some(existing_virtual_persona_value) = state.borrow().virtual_personas.read(&virtual_persona_index) {
-                    print(format!(
-                        "User: {:?} has profile: {:?}",
-                        virtual_persona_index.principal_id, existing_virtual_persona_value
-                    ));
-                    return Ok(existing_virtual_persona_value.clone());
-                }
-        
-                // otherwise, create a new one
-                let new_virtual_persona_value = VirtualPersonaValue {
-                    virtual_persona_principal_id,
-                    virtual_persona_ip: ip_challenge_value.requester_ip,
-                    user_env_uid: None,
-                    manager_env_uid: None,
-                };
+        let virtual_persona_index = VirtualPersonaIndex {
+            principal_id: virtual_persona_principal_id.clone(),
+        };
 
-                print(format!(
-                    "Created profile: {:?} of user: {:?}",
-                    new_virtual_persona_value, virtual_persona_index.principal_id
-                ));
-
-                state.borrow_mut().virtual_personas.create(virtual_persona_index, new_virtual_persona_value.clone());
-        
-                Ok(new_virtual_persona_value)
-            },
-            None => {
-                let err = format!(
-                    "Did not receive http request with nonce {:?} before canister call",
-                    ip_challenge_index.nonce
-                );
-                
-                print(err.as_str());
-                Err(err)
-            }
+        // if virtual persona exists, return it
+        if let Some(existing_virtual_persona_value) = state.borrow().virtual_personas.read(&virtual_persona_index) {
+            print(format!(
+                "User: {:?} has profile: {:?}",
+                virtual_persona_index.principal_id, existing_virtual_persona_value
+            ));
+            return Ok(existing_virtual_persona_value.clone());
         }
+
+        // otherwise, create a new one
+        let new_virtual_persona_value = VirtualPersonaValue {
+            virtual_persona_principal_id,
+            virtual_persona_ip: ip_challenge_value.requester_ip,
+            user_env_uid: None,
+            manager_env_uid: None,
+        };
+
+        print(format!(
+            "Created profile: {:?} of user: {:?}",
+            new_virtual_persona_value, virtual_persona_index.principal_id
+        ));
+
+        state.borrow_mut().virtual_personas.create(virtual_persona_index, new_virtual_persona_value.clone());
+
+        Ok(new_virtual_persona_value)
     })
 }
 

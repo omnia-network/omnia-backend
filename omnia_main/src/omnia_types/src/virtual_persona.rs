@@ -9,7 +9,7 @@ pub type VirtualPersonaPrincipalId = String;
 
 pub type VirtualPersonaIp = String;
 
-#[derive(Clone, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
+#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
 pub struct VirtualPersonaIndex {
     pub principal_id: VirtualPersonaPrincipalId,
 }

@@ -3,6 +3,8 @@ use std::cmp::Ordering;
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
+use crate::errors::GenericError;
+
 pub const CONTENT_TYPE_HEADER_KEY: &str = "content-type";
 
 pub const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_KEY: &str = "Access-Control-Allow-Origin";
@@ -42,7 +44,7 @@ pub struct IpChallengeValue {
     pub timestamp: u64,
 }
 
-#[derive(Clone, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
+#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
 pub struct IpChallengeIndex {
     pub nonce: IpChallengeNonce,
 }
@@ -52,3 +54,5 @@ impl Ord for IpChallengeIndex {
         self.nonce.cmp(&other.nonce)
     }
 }
+
+pub type IpChallengeValueResult = Result<IpChallengeValue, GenericError>;
