@@ -170,12 +170,12 @@ fn get_virtual_persona(nonce: IpChallengeNonce, virtual_persona_principal_id: Vi
         };
 
         // if virtual persona exists, return it
-        if let Some(existing_virtual_persona_value) = state.borrow().virtual_personas.read(&virtual_persona_index) {
+        if let Ok(existing_virtual_persona_value) = state.borrow().virtual_personas.read(&virtual_persona_index) {
             print(format!(
                 "User: {:?} has profile: {:?}",
                 virtual_persona_index.principal_id, existing_virtual_persona_value
             ));
-            return Ok(existing_virtual_persona_value.clone());
+            return Ok(existing_virtual_persona_value.to_owned());
         }
 
         // otherwise, create a new one
@@ -191,7 +191,7 @@ fn get_virtual_persona(nonce: IpChallengeNonce, virtual_persona_principal_id: Vi
             new_virtual_persona_value, virtual_persona_index.principal_id
         ));
 
-        state.borrow_mut().virtual_personas.create(virtual_persona_index, new_virtual_persona_value.clone());
+        state.borrow_mut().virtual_personas.create(virtual_persona_index, new_virtual_persona_value.clone()).expect("previous entry should not exist");
 
         Ok(new_virtual_persona_value)
     })

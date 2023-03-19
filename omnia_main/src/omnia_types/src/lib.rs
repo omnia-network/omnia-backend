@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use candid::{CandidType, Deserialize};
-use errors::GenericError;
+use errors::GenericResult;
 use http::{IpChallengeIndex, IpChallengeValue, IpChallengeValueResult};
 use serde::Serialize;
 use std::fmt::Debug;
@@ -24,19 +24,55 @@ impl<I: Ord + Debug, V> CrudMap<I, V> {
         }
     }
 
-    pub fn create(&mut self, index: I, value: V) {
-        self.map.insert(index, value);
+    pub fn create(&mut self, index: I, value: V) -> GenericResult<()>{
+        match self.map.contains_key(&index) {
+            false => {
+                self.map.insert(index, value);
+                Ok(())
+            },
+            true => {
+                let err = format!(
+                    "Entry with index {:?} already exists, use UPDATE method instead",
+                    index
+                );
+                
+                println!("{}", err);
+                Err(err)
+            }
+        }
     }
 
-    pub fn read(&self, index: &I) -> Option<&V>{
-        self.map.get(index)
+    pub fn read(&self, index: &I) -> GenericResult<&V>{
+        match self.map.get(index) {
+            Some(value) => Ok(value),
+            None => {
+                let err = format!(
+                    "Entry with index {:?} does not exist",
+                    index
+                );
+                
+                println!("{}", err);
+                Err(err)
+            }
+        }
     }
 
-    pub fn update(&mut self, index: I, value: V) {
-        self.map.insert(index, value);
+    pub fn update(&mut self, index: I, value: V) -> GenericResult<V> {
+        match self.map.contains_key(&index) {
+            true => Ok(self.map.insert(index, value).expect("should contain previous value")),
+            false => {
+                let err = format!(
+                    "Entry with index {:?} does not exist, use CREATE method instead",
+                    index
+                );
+                
+                println!("{}", err);
+                Err(err)
+            }
+        }
     }
 
-    pub fn delete(&mut self, index: &I) -> Result<V, GenericError> {
+    pub fn delete(&mut self, index: &I) -> GenericResult<V> {
         match self.map.remove(index) {
             Some(deleted_value) => Ok(deleted_value),
             None => {
