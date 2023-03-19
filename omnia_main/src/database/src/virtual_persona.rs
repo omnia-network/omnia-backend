@@ -163,7 +163,7 @@ fn get_virtual_persona(nonce: IpChallengeNonce, virtual_persona_principal_id: Vi
         let ip_challenge_index = IpChallengeIndex {
             nonce,
         };
-        let validated_ip_challenge = state.borrow_mut().validate_ip_challenge(&ip_challenge_index);
+        let validated_ip_challenge = state.borrow_mut().ip_challenges.validate_ip_challenge(&ip_challenge_index);
         match validated_ip_challenge {
             Some(ip_challenge_value) => {
                 let virtual_persona_index = VirtualPersonaIndex {

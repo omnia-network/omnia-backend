@@ -36,10 +36,6 @@ impl State {
             // initialized_gateways: CrudMap::default(),
         }
     }
-
-    pub fn validate_ip_challenge(&mut self, nonce: &IpChallengeIndex) -> Option<IpChallengeValue> {
-        self.ip_challenges.delete(nonce)
-    }
 }
 
 

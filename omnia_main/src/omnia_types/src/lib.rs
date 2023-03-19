@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use candid::{CandidType, Deserialize};
+use http::{IpChallengeIndex, IpChallengeValue};
 use serde::Serialize;
 
 pub mod virtual_persona;
@@ -35,5 +36,11 @@ impl<I: Ord, V> CrudMap<I, V> {
 
     pub fn delete(&mut self, index: &I) -> Option<V> {
         self.map.remove(index)
+    }
+}
+
+impl CrudMap<IpChallengeIndex, IpChallengeValue> {
+    pub fn validate_ip_challenge(&mut self, nonce: &IpChallengeIndex) -> Option<IpChallengeValue> {
+        self.delete(nonce)
     }
 }
