@@ -2,16 +2,16 @@ use candid::candid_method;
 use ic_cdk::{export::Principal, print, trap};
 use ic_cdk_macros::{update, query};
 use omnia_types::environment::EnvironmentInfoResult;
-use omnia_types::http::IpChallengeNonce;
-use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaEntry};
+use omnia_types::errors::GenericError;
+use omnia_types::http::{IpChallengeNonce, IpChallengeIndex};
+use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaEntry, VirtualPersonaValueResult};
 use omnia_types::{
     environment::EnvironmentInfo,
     virtual_persona::{VirtualPersonaValue, VirtualPersonaPrincipalId},
 };
-use omnia_types::MapCrudOperations;
 use omnia_utils::get_principal_from_string;
 
-use crate::VIRTUAL_PERSONAS_STATE;
+use crate::STATE;
 
 // #[update(name = "setUserInEnvironment")]
 // #[candid_method(update, rename = "setUserInEnvironment")]
@@ -158,75 +158,56 @@ use crate::VIRTUAL_PERSONAS_STATE;
 
 #[update(name = "getVirtualPersona")]
 #[candid_method(update, rename = "getVirtualPersona")]
-fn get_virtual_persona(nonce: IpChallengeNonce, virtual_persona_principal_id: VirtualPersonaPrincipalId) -> Result<VirtualPersonaValue, ()> {
-    VIRTUAL_PERSONAS_STATE.with(|state| {
-        let virtual_persona_index = VirtualPersonaIndex {
-            principal_id: virtual_persona_principal_id.clone(),
+fn get_virtual_persona(nonce: IpChallengeNonce, virtual_persona_principal_id: VirtualPersonaPrincipalId) -> VirtualPersonaValueResult {
+    STATE.with(|state| {
+        let ip_challenge_index = IpChallengeIndex {
+            nonce,
         };
+        let validated_ip_challenge = state.borrow_mut().validate_ip_challenge(&ip_challenge_index);
+        match validated_ip_challenge {
+            Some(ip_challenge_value) => {
+                let virtual_persona_index = VirtualPersonaIndex {
+                    principal_id: virtual_persona_principal_id.clone(),
+                };
+        
+                // if virtual persona exists, return it
+                if let Some(existing_virtual_persona_value) = state.borrow().virtual_personas.read(&virtual_persona_index) {
+                    print(format!(
+                        "User: {:?} has profile: {:?}",
+                        virtual_persona_index.principal_id, existing_virtual_persona_value
+                    ));
+                    return Ok(existing_virtual_persona_value.clone());
+                }
+        
+                // otherwise, create a new one
+                let new_virtual_persona_value = VirtualPersonaValue {
+                    virtual_persona_principal_id,
+                    virtual_persona_ip: ip_challenge_value.requester_ip,
+                    user_env_uid: None,
+                    manager_env_uid: None,
+                };
 
-        // if virtual persona exists, return it
-        if let Some(existing_virtual_persona_value) = state.borrow().read(&virtual_persona_index) {
-            return Ok(existing_virtual_persona_value);
+                print(format!(
+                    "Created profile: {:?} of user: {:?}",
+                    new_virtual_persona_value, virtual_persona_index.principal_id
+                ));
+
+                state.borrow_mut().virtual_personas.create(virtual_persona_index, new_virtual_persona_value.clone());
+        
+                Ok(new_virtual_persona_value)
+            },
+            None => {
+                let err = format!(
+                    "Did not receive http request with nonce {:?} before canister call",
+                    ip_challenge_index.nonce
+                );
+                
+                print(err.as_str());
+                Err(err)
+            }
         }
-
-        // otherwise create a new one
-        let new_virtual_persona_value = VirtualPersonaValue {
-            virtual_persona_principal_id,
-            virtual_persona_ip: String::from("234567"),
-            user_env_uid: None,
-            manager_env_uid: None,
-        };
-
-        state.borrow_mut().create(VirtualPersonaEntry {
-            index: virtual_persona_index,
-            value: new_virtual_persona_value.clone(),
-        });
-
-        Ok(new_virtual_persona_value)
     })
 }
-
-
-        // let mut mutable_state = state.borrow_mut();
-        // match mutable_state.consume_ip_challenge(&nonce)
-        // {
-        //     Some(virtual_persona_request_info) => {
-        //         let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id);
-
-        //         match mutable_state.get_virtual_persona_by_principal(&virtual_persona_principal) {
-        //             Some(virtual_persona) => {
-        //                 print(format!(
-        //                     "User: {:?} has profile: {:?}",
-        //                     virtual_persona_principal, virtual_persona
-        //                 ));
-        //                 Ok(virtual_persona)
-        //             }
-        //             None => {
-        //                 print("User does not have a profile");
-    
-        //                 // create new user profile
-        //                 let new_virtual_persona = VirtualPersonaValue {
-        //                     virtual_persona_principal_id: virtual_persona_principal.to_string(),
-        //                     virtual_persona_ip: virtual_persona_request_info.requester_ip,
-        //                     user_env_uid: None,
-        //                     manager_env_uid: None,
-        //                 };
-
-        //                 mutable_state.create_virtual_persona(virtual_persona_principal, new_virtual_persona.clone());
-
-        //                 print(format!(
-        //                     "Created profile: {:?} of user: {:?}",
-        //                     new_virtual_persona, virtual_persona_principal
-        //                 ));
-
-        //                 Ok(new_virtual_persona)
-        //             }
-        //         }
-        //     },
-        //     None => {
-        //         Err(())
-        //     }
-        // }
 
 // #[query(name = "checkIfVirtualPersonaExists")]
 // #[candid_method(query, rename = "checkIfVirtualPersonaExists")]

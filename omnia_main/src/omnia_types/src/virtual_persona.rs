@@ -3,13 +3,13 @@ use std::cmp::Ordering;
 use candid::{CandidType, Deserialize};
 use serde::Serialize;
 
-use crate::{environment::EnvironmentUID, MapEntry};
+use crate::{environment::EnvironmentUID, errors::GenericError};
 
 pub type VirtualPersonaPrincipalId = String;
 
 pub type VirtualPersonaIp = String;
 
-#[derive(Clone, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
+#[derive(Clone, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
 pub struct VirtualPersonaIndex {
     pub principal_id: VirtualPersonaPrincipalId,
 }
@@ -33,15 +33,4 @@ pub struct VirtualPersonaEntry {
     pub value: VirtualPersonaValue,
 }
 
-impl MapEntry for VirtualPersonaEntry {
-    type MapIndex = VirtualPersonaIndex;
-    type MapValue = VirtualPersonaValue;
-
-    fn get_index(&self) ->  Self::MapIndex {
-        self.index.clone()
-    }
-
-    fn get_value(&self) -> Self::MapValue {
-        self.value.clone()
-    }
-}
+pub type VirtualPersonaValueResult = Result<VirtualPersonaValue, GenericError>;

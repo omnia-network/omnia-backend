@@ -1,8 +1,12 @@
-type Result = variant { Ok : VirtualPersonaValue; Err };
+type IpChallengeValue = record { requester_ip : text; timestamp : nat64 };
+type Result = variant { Ok : VirtualPersonaValue; Err : text };
 type VirtualPersonaValue = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
-service : { getVirtualPersona : (text, text) -> (Result) }
+service : {
+  getVirtualPersona : (text, text) -> (Result);
+  initNonceToIp : (text, IpChallengeValue) -> ();
+}

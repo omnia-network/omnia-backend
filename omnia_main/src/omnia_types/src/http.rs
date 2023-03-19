@@ -36,13 +36,13 @@ pub struct HttpResponse {
     pub upgrade: Option<bool>,
 }
 
-#[derive(CandidType, Serialize, Deserialize, Debug)]
+#[derive(Clone, Default, CandidType, Serialize, Deserialize, Debug)]
 pub struct IpChallengeValue {
     pub requester_ip: RequesterIp,
     pub timestamp: u64,
 }
 
-#[derive(Clone, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
+#[derive(Clone, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
 pub struct IpChallengeIndex {
     pub nonce: IpChallengeNonce,
 }

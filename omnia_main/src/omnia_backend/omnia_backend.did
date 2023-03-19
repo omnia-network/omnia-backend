@@ -12,7 +12,7 @@ type HttpResponse = record {
   streaming_strategy : opt text;
   status_code : nat16;
 };
-type Result = variant { Ok : VirtualPersonaValue; Err };
+type Result = variant { Ok : VirtualPersonaValue; Err : text };
 type VirtualPersonaValue = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;

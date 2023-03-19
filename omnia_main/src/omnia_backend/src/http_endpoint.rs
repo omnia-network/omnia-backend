@@ -63,7 +63,7 @@ async fn http_request_update(req: HttpRequest) -> HttpResponse {
         timestamp: time(),
     };
 
-    let _: (Option<IpChallengeValue>, ) = call(
+    ((), ) = call(
         get_database_principal(),
         "initNonceToIp",
         (

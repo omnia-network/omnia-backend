@@ -5,14 +5,14 @@ use ic_cdk::{
 };
 use omnia_types::{
     environment::EnvironmentInfoResult,
-    virtual_persona::VirtualPersonaValue, http::IpChallengeNonce,
+    virtual_persona::{VirtualPersonaValue, VirtualPersonaValueResult}, http::IpChallengeNonce,
 };
 
 use crate::utils::get_database_principal;
 
 #[ic_cdk_macros::update(name = "getProfile")]
 #[candid_method(update, rename = "getProfile")]
-async fn get_profile(nonce: IpChallengeNonce) -> Result<VirtualPersonaValue, ()> {
+async fn get_profile(nonce: IpChallengeNonce) -> VirtualPersonaValueResult {
     let virtual_persona_principal = caller();
 
     match call(
@@ -24,7 +24,7 @@ async fn get_profile(nonce: IpChallengeNonce) -> Result<VirtualPersonaValue, ()>
             print(format!("User profile: {:?}", virtual_persona));
             Ok(virtual_persona)
         },
-        (Err(()), ) => Err(())
+        (Err(e), ) => Err(e)
     }
 }
 
