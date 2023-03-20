@@ -1,8 +1,4 @@
 import path from "path";
-import { Actor, ActorSubclass, HttpAgent } from "@dfinity/agent";
-// @ts-ignore
-import { idlFactory } from "../../src/declarations/omnia_backend/omnia_backend.did.js";
-import { _SERVICE } from "../../src/declarations/omnia_backend/omnia_backend.did";
 
 function initCanisterEnv() {
   let localCanisters, prodCanisters;
@@ -50,29 +46,4 @@ function initCanisterEnv() {
     }, defaultEnv);
 };
 
-// we need to recreate the agent because the environment variables are not available at the time of import
-const createActor = () => {
-  const conf = initCanisterEnv();
-
-  const agent = new HttpAgent({
-    host: "http://localhost:4943",
-  });
-
-  // Fetch root key for certificate validation during development
-  if (process.env.DFX_NETWORK !== "ic") {
-    agent.fetchRootKey().catch((err) => {
-      console.warn(
-        "Unable to fetch root key. Check to ensure that your local replica is running"
-      );
-      console.error(err);
-    });
-  }
-
-  return Actor.createActor(idlFactory, {
-    agent,
-    // @ts-ignore
-    canisterId: conf.OMNIA_BACKEND_CANISTER_ID,
-  }) as ActorSubclass<_SERVICE>;
-};
-
-export const omniaApi = createActor();
+export const canisterEnv = initCanisterEnv();

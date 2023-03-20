@@ -1,0 +1,1 @@
+export { omniaApi } from "./omniaApi";
