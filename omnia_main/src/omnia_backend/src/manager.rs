@@ -91,28 +91,28 @@ async fn get_initialized_gateways(nonce: IpChallengeNonce) -> GenericResult<Vec<
     initialized_gateway_principals_result
 }
 
-// #[update(name = "registerGateway")]
-// #[candid_method(update, rename = "registerGateway")]
-// async fn register_gateway(
-//     nonce: CanisterCallNonce,
-//     gateway_registration_input: GatewayRegistrationInput,
-// ) -> RegisteredGatewayResult {
-//     let environment_manager_principal = caller();
+#[update(name = "registerGateway")]
+#[candid_method(update, rename = "registerGateway")]
+async fn register_gateway(
+    nonce: IpChallengeNonce,
+    gateway_registration_input: GatewayRegistrationInput,
+) -> RegisteredGatewayResult {
+    let environment_manager_principal = caller();
 
-//     let (gateway_registration_result,): (RegisteredGatewayResult,) = call(
-//         get_database_principal(),
-//         "registerGatewayInEnvironment",
-//         (
-//             nonce,
-//             environment_manager_principal.to_string(),
-//             Box::new(gateway_registration_input),
-//         ),
-//     )
-//     .await
-//     .unwrap();
+    let (gateway_registration_result,): (RegisteredGatewayResult,) = call(
+        get_database_principal(),
+        "registerGatewayInEnvironment",
+        (
+            nonce,
+            environment_manager_principal.to_string(),
+            Box::new(gateway_registration_input),
+        ),
+    )
+    .await
+    .unwrap();
 
-//     gateway_registration_result
-// }
+    gateway_registration_result
+}
 
 // #[update(name = "getRegisteredGateways")]
 // #[candid_method(update, rename = "getRegisteredGateways")]

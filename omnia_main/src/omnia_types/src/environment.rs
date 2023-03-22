@@ -47,3 +47,19 @@ pub struct EnvironmentInfo {
 }
 
 pub type EnvironmentInfoResult = Result<EnvironmentInfo, GenericError>;
+
+#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
+pub struct EnvironemntUidIndex {
+    pub ip: Ip,
+}
+
+impl Ord for EnvironemntUidIndex {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.ip.cmp(&other.ip)
+    }
+}
+
+#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
+pub struct EnvironmentUidValue {
+    pub env_uid: EnvironmentUID,
+}

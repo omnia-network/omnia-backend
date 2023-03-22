@@ -30,13 +30,25 @@ pub struct GatewayRegistrationInput {
     pub gateway_name: String,
 }
 
-#[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
-pub struct RegisteredGateway {
+#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
+pub struct RegisteredGatewayIndex {
+    pub principal_id: GatewayPrincipalId,
+}
+
+impl Ord for RegisteredGatewayIndex {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.principal_id.cmp(&other.principal_id)
+    }
+}
+
+
+#[derive(Debug, Clone, CandidType, Default, Deserialize, Serialize)]
+pub struct RegisteredGatewayValue {
     pub gateway_name: String,
     pub gateway_ip: Ip,
     pub env_uid: EnvironmentUID,
 
 }
 
-pub type RegisteredGatewayResult = Result<RegisteredGateway, GenericError>;
-pub type MultipleRegisteredGatewayResult = Result<Vec<RegisteredGateway>, GenericError>;
+pub type RegisteredGatewayResult = Result<RegisteredGatewayValue, GenericError>;
+pub type MultipleRegisteredGatewayResult = Result<Vec<RegisteredGatewayValue>, GenericError>;

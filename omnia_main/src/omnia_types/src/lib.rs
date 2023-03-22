@@ -1,7 +1,9 @@
 use std::collections::BTreeMap;
 
 use candid::{CandidType, Deserialize};
+use environment::{EnvironmentValue, EnvironmentIndex};
 use errors::GenericResult;
+use gateway::GatewayPrincipalId;
 use http::{IpChallengeIndex, IpChallengeValue, IpChallengeValueResult};
 use serde::Serialize;
 use std::fmt::Debug;
@@ -91,5 +93,14 @@ impl<I: Ord + Debug, V> CrudMap<I, V> {
 impl CrudMap<IpChallengeIndex, IpChallengeValue> {
     pub fn validate_ip_challenge(&mut self, nonce: &IpChallengeIndex) -> IpChallengeValueResult {
         Ok(self.delete(nonce)?)
+    }
+}
+
+impl CrudMap<EnvironmentIndex, EnvironmentValue> {
+    pub fn update_env_gateway_principal_ids(&mut self, environment_index: EnvironmentIndex, gateway_principal_id: GatewayPrincipalId) -> GenericResult<EnvironmentValue> {
+        let environment_value = self.read(&environment_index)?;
+        let mut updatable_environment_value = environment_value.clone();
+        updatable_environment_value.env_gateway_principal_ids.insert(gateway_principal_id, ());
+        self.update(environment_index, updatable_environment_value)
     }
 }
