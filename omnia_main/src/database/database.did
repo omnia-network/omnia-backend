@@ -1,3 +1,5 @@
+type EnvironmentCreationInput = record { env_name : text };
+type EnvironmentCreationResult = record { env_uid : text; env_name : text };
 type IpChallengeValue = record { requester_ip : text; timestamp : nat64 };
 type Result = variant { Ok : VirtualPersonaValue; Err : text };
 type VirtualPersonaValue = record {
@@ -7,6 +9,10 @@ type VirtualPersonaValue = record {
   virtual_persona_ip : text;
 };
 service : {
+  checkIfVirtualPersonaExists : (text) -> (bool) query;
+  createNewEnvironment : (text, EnvironmentCreationInput) -> (
+      EnvironmentCreationResult,
+    );
   getVirtualPersona : (text, text) -> (Result);
   initNonceToIp : (text, IpChallengeValue) -> ();
 }

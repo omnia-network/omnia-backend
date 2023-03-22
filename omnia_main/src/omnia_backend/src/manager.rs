@@ -1,53 +1,53 @@
-// use candid::candid_method;
-// use ic_cdk::{
-//     api::{call::call, caller},
-//     print,
-// };
-// use ic_cdk_macros::update;
-// use omnia_types::{
-//     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-//     gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, GatewayUID}, http::CanisterCallNonce
-// };
+use candid::candid_method;
+use ic_cdk::{
+    api::{call::call, caller},
+    print,
+};
+use ic_cdk_macros::update;
+use omnia_types::{
+    environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, GatewayUID}, http::IpChallengeNonce
+};
 
-// use crate::utils::get_database_principal;
+use crate::utils::get_database_principal;
 
-// #[update(name = "createEnvironment")]
-// #[candid_method(update, rename = "createEnvironment")]
-// async fn create_environment(
-//     environment_creation_input: EnvironmentCreationInput,
-// ) -> Result<EnvironmentCreationResult, ()> {
-//     let environment_manager_principal = caller();
+#[update(name = "createEnvironment")]
+#[candid_method(update, rename = "createEnvironment")]
+async fn create_environment(
+    environment_creation_input: EnvironmentCreationInput,
+) -> Result<EnvironmentCreationResult, ()> {
+    let environment_manager_principal_id = caller().to_string();
 
-//     let (virtual_persona_exists, ): (bool, ) = call(
-//         get_database_principal(),
-//         "checkIfVirtualPersonaExists",
-//         (environment_manager_principal,),
-//     ).await.unwrap();
-//     match virtual_persona_exists {
-//         true => {
-//             let (environment_creation_result,): (EnvironmentCreationResult,) = call(
-//                 get_database_principal(),
-//                 "createNewEnvironment",
-//                 (
-//                     environment_manager_principal.to_string(),
-//                     Box::new(environment_creation_input),
-//                 ),
-//             )
-//             .await
-//             .unwrap();
+    let (virtual_persona_exists, ): (bool, ) = call(
+        get_database_principal(),
+        "checkIfVirtualPersonaExists",
+        (environment_manager_principal_id.clone(),),
+    ).await.unwrap();
+    match virtual_persona_exists {
+        true => {
+            let (environment_creation_result,): (EnvironmentCreationResult,) = call(
+                get_database_principal(),
+                "createNewEnvironment",
+                (
+                    environment_manager_principal_id,
+                    Box::new(environment_creation_input),
+                ),
+            )
+            .await
+            .unwrap();
         
-//             print(format!(
-//                 "Created new environment: {:?}",
-//                 environment_creation_result
-//             ));
+            print(format!(
+                "Created new environment: {:?}",
+                environment_creation_result
+            ));
         
-//             Ok(environment_creation_result)
-//         },
-//         false => {
-//             Err(())
-//         }
-//     }
-// }
+            Ok(environment_creation_result)
+        },
+        false => {
+            Err(())
+        }
+    }
+}
 
 // #[update(name = "initGateway")]
 // #[candid_method(update, rename = "initGateway")]

@@ -197,13 +197,16 @@ fn get_virtual_persona(nonce: IpChallengeNonce, virtual_persona_principal_id: Vi
     })
 }
 
-// #[query(name = "checkIfVirtualPersonaExists")]
-// #[candid_method(query, rename = "checkIfVirtualPersonaExists")]
-// fn check_if_virtual_persona_exists(virtual_persona_principal: Principal) -> bool {
-//     STATE.with(
-//         |state| match state.borrow_mut().get_virtual_persona_by_principal(&virtual_persona_principal) {
-//             Some(_) => true,
-//             None => false,
-//         },
-//     )
-// }
+#[query(name = "checkIfVirtualPersonaExists")]
+#[candid_method(query, rename = "checkIfVirtualPersonaExists")]
+fn check_if_virtual_persona_exists(virtual_persona_principal_id: VirtualPersonaPrincipalId) -> bool {
+    let virtual_persona_index = VirtualPersonaIndex {
+        principal_id: virtual_persona_principal_id,
+    };
+    STATE.with(
+        |state| match state.borrow_mut().virtual_personas.read(&virtual_persona_index) {
+            Ok(_) => true,
+            Err(_) => false,
+        },
+    )
+}

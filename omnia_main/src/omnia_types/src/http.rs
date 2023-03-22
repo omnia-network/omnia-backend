@@ -13,7 +13,7 @@ pub const CONNECTION_HEADER_KEY: &str = "Connection";
 
 pub type HttpHeader = (String, String);
 pub type IpChallengeNonce = String;
-pub type RequesterIp = String;
+pub type Ip = String;
 
 #[derive(CandidType, Deserialize, Debug, PartialEq, Clone)]
 pub struct HttpRequest {
@@ -40,7 +40,7 @@ pub struct HttpResponse {
 
 #[derive(Clone, Default, CandidType, Serialize, Deserialize, Debug)]
 pub struct IpChallengeValue {
-    pub requester_ip: RequesterIp,
+    pub requester_ip: Ip,
     pub timestamp: u64,
 }
 

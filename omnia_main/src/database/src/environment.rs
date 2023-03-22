@@ -1,17 +1,17 @@
-// use std::collections::BTreeMap;
-// use candid::candid_method;
-// use ic_cdk::print;
-// use ic_cdk_macros::update;
-// use omnia_types::{
-//     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID, Environment},
-//     gateway::{
-//         RegisteredGateway, RegisteredGatewayResult, GatewayRegistrationInput,
-//         MultipleRegisteredGatewayResult, GatewayPrincipalId,
-//     },
-//     virtual_persona::VirtualPersonaPrincipalId, http::CanisterCallNonce
-// };
+use std::collections::BTreeMap;
+use candid::candid_method;
+use ic_cdk::print;
+use ic_cdk_macros::update;
+use omnia_types::{
+    environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentIndex, EnvironmentValue},
+    gateway::{
+        RegisteredGateway, RegisteredGatewayResult, GatewayRegistrationInput,
+        MultipleRegisteredGatewayResult, GatewayPrincipalId,
+    },
+    virtual_persona::VirtualPersonaPrincipalId, http::IpChallengeNonce
+};
 
-// use crate::{uuid::generate_uuid, STATE};
+use crate::{uuid::generate_uuid, STATE};
 
 // #[update(name = "initGatewayByIp")]
 // #[candid_method(update, rename = "initGatewayByIp")]
@@ -47,46 +47,51 @@
 //     })
 // }
 
-// #[update(name = "createNewEnvironment")]
-// #[candid_method(update, rename = "createNewEnvironment")]
-// async fn create_new_environment(
-//     environment_manager_principal_id: VirtualPersonaPrincipalId,
-//     environment_creation_input: EnvironmentCreationInput,
-// ) -> EnvironmentCreationResult {
-//     print(format!(
-//         "Creating new environment: {:?} managed by: {:?}",
-//         environment_creation_input, environment_manager_principal_id
-//     ));
+#[update(name = "createNewEnvironment")]
+#[candid_method(update, rename = "createNewEnvironment")]
+async fn create_new_environment(
+    environment_manager_principal_id: VirtualPersonaPrincipalId,
+    environment_creation_input: EnvironmentCreationInput,
+) -> EnvironmentCreationResult {
+    print(format!(
+        "Creating new environment: {:?} managed by: {:?}",
+        environment_creation_input, environment_manager_principal_id
+    ));
 
-//     let environment_uid = generate_uuid().await;
-//     print(format!("Environment UID: {:?}", environment_uid));
+    let environment_uid = generate_uuid().await;
+    print(format!("New environment UID: {:?}", environment_uid));
 
-//     STATE.with(|state| {
-//         let mut mutable_state = state.borrow_mut();
-//         mutable_state.create_environment(
-//             environment_uid.clone(),
-//             Environment {
-//                 env_name: environment_creation_input.env_name.clone(),
-//                 env_ip: None,
-//                 env_users_principals_ids: BTreeMap::default(),
-//                 env_gateway_principal_ids: BTreeMap::default(),
-//                 env_manager_principal_id: environment_manager_principal_id,
-//             },
-//         );
-//     });
+    let environment_index = EnvironmentIndex {
+        environment_uid: environment_uid.clone(),
+    };
 
-//     let environment_creation_result = EnvironmentCreationResult {
-//         env_name: environment_creation_input.env_name,
-//         env_uid: environment_uid,
-//     };
+    let environment_value = EnvironmentValue {
+        env_name: environment_creation_input.env_name.clone(),
+        env_ip: None,
+        env_users_principals_ids: BTreeMap::default(),
+        env_gateway_principal_ids: BTreeMap::default(),
+        env_manager_principal_id: environment_manager_principal_id,
+    };
 
-//     print(format!(
-//         "Created new environment: {:?}",
-//         environment_creation_result
-//     ));
+    STATE.with(|state| {
+        state.borrow_mut().environments.create(
+            environment_index,
+            environment_value
+        )
+    }).expect("previous entry should not exist");
 
-//     environment_creation_result
-// }
+    let environment_creation_result = EnvironmentCreationResult {
+        env_name: environment_creation_input.env_name,
+        env_uid: environment_uid,
+    };
+
+    print(format!(
+        "Created new environment: {:?}",
+        environment_creation_result
+    ));
+
+    environment_creation_result
+}
 
 // #[update(name = "registerGatewayInEnvironment")]
 // #[candid_method(update, rename = "registerGatewayInEnvironment")]
