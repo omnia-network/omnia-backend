@@ -6,46 +6,60 @@ use omnia_types::{
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentIndex, EnvironmentValue},
     gateway::{
         RegisteredGateway, RegisteredGatewayResult, GatewayRegistrationInput,
-        MultipleRegisteredGatewayResult, GatewayPrincipalId,
+        MultipleRegisteredGatewayResult, GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue,
     },
-    virtual_persona::VirtualPersonaPrincipalId, http::IpChallengeNonce
+    virtual_persona::VirtualPersonaPrincipalId, http::{IpChallengeNonce, IpChallengeIndex},
+    errors::GenericResult
 };
 
 use crate::{uuid::generate_uuid, STATE};
 
-// #[update(name = "initGatewayByIp")]
-// #[candid_method(update, rename = "initGatewayByIp")]
-// async fn init_gateway_with_ip(nonce: CanisterCallNonce, gateway_principal_id: GatewayPrincipalId) -> Result<String, ()> {
+#[update(name = "initGatewayByIp")]
+#[candid_method(update, rename = "initGatewayByIp")]
+async fn init_gateway_by_ip(nonce: IpChallengeNonce, gateway_principal_id: GatewayPrincipalId) -> GenericResult<GatewayPrincipalId> {
 
-//     STATE.with(|state| {
-//         let mut mutable_state = state.borrow_mut();
-//         match mutable_state.consume_ip_challenge(&nonce)
-//         {
-//             Some(gateway_request_info) => {        
-//                 mutable_state.initialize_gateway_by_ip(gateway_request_info.requester_ip, gateway_principal_id.clone());
-//                 Ok(gateway_principal_id)
-    
-//             },
-//             None => {
-//                 Err(())
-//             }
-//         }
-//     })
-// }
+    let ip_challenge_index = IpChallengeIndex {
+        nonce,
+    };
 
-// #[update(name = "getInitializedGatewaysByIp")]
-// #[candid_method(update, rename = "getInitializedGatewaysByIp")]
-// async fn get_initialized_gateways_by_ip(nonce: CanisterCallNonce) -> Result<Vec<GatewayPrincipalId>, ()> {
-//     STATE.with(|state| {
-//         let mut mutable_state = state.borrow_mut();
-//         match mutable_state.consume_ip_challenge(&nonce) {
-//             Some(virtual_persona_request_info) => mutable_state.get_initialized_gateways_by_ip(&virtual_persona_request_info.requester_ip),
-//             None => {
-//                 Err(())
-//             }
-//         }
-//     })
-// }
+    STATE.with(|state| {   
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge(&ip_challenge_index)?;
+
+        let initialized_gateway_index = InitializedGatewayIndex {
+            ip: ip_challenge_value.requester_ip,
+        };
+
+        let initialized_gateway_value = InitializedGatewayValue {
+            principal_id: gateway_principal_id.clone()
+        };
+
+        state.borrow_mut().initialized_gateways.create(initialized_gateway_index, initialized_gateway_value).expect("previous entry should not exist");
+        Ok(gateway_principal_id)
+    })
+}
+
+#[update(name = "getInitializedGatewaysByIp")]
+#[candid_method(update, rename = "getInitializedGatewaysByIp")]
+async fn get_initialized_gateways_by_ip(nonce: IpChallengeNonce) -> GenericResult<Vec<InitializedGatewayValue>> {
+
+    let ip_challenge_index = IpChallengeIndex {
+        nonce,
+    };
+
+    STATE.with(|state| {
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge(&ip_challenge_index)?;
+
+        let initialized_gateway_index = InitializedGatewayIndex {
+            ip: ip_challenge_value.requester_ip,
+        };
+
+        match state.borrow_mut().initialized_gateways.read(&initialized_gateway_index) {
+            Ok(initialized_gateway_value) => Ok(vec![initialized_gateway_value.to_owned()]),
+            Err(e) => Err(e),
+
+        }
+    })
+}
 
 #[update(name = "createNewEnvironment")]
 #[candid_method(update, rename = "createNewEnvironment")]

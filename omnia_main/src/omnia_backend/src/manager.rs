@@ -6,7 +6,7 @@ use ic_cdk::{
 use ic_cdk_macros::update;
 use omnia_types::{
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, GatewayUID}, http::IpChallengeNonce
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, GatewayUID, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::GenericResult
 };
 
 use crate::utils::get_database_principal;
@@ -15,7 +15,7 @@ use crate::utils::get_database_principal;
 #[candid_method(update, rename = "createEnvironment")]
 async fn create_environment(
     environment_creation_input: EnvironmentCreationInput,
-) -> Result<EnvironmentCreationResult, ()> {
+) -> GenericResult<EnvironmentCreationResult> {
     let environment_manager_principal_id = caller().to_string();
 
     let (virtual_persona_exists, ): (bool, ) = call(
@@ -44,46 +44,52 @@ async fn create_environment(
             Ok(environment_creation_result)
         },
         false => {
-            Err(())
+            let err = format!(
+                "Virtual persona with principal id: {:?} does not exist",
+                environment_manager_principal_id
+            );
+
+            println!("{}", err);
+            Err(err)
         }
     }
 }
 
-// #[update(name = "initGateway")]
-// #[candid_method(update, rename = "initGateway")]
-// async fn init_gateway(nonce: CanisterCallNonce) -> Result<String, ()> {
-//     let gateway_principal = caller();
+#[update(name = "initGateway")]
+#[candid_method(update, rename = "initGateway")]
+async fn init_gateway(nonce: IpChallengeNonce) -> GenericResult<GatewayPrincipalId> {
+    let gateway_principal_id = caller().to_string();
 
-//     match call(get_database_principal(), "initGatewayByIp", (
-//         nonce,
-//         gateway_principal.to_string(),
-//     ))
-//     .await
-//     .unwrap() {
-//         (Ok(gateway_uuid),) => {
-//             print(format!("Initialized gateway with UUID: {:?}", gateway_uuid));
-//             Ok(gateway_uuid)
-//         },
-//         (Err(()),) => Err(())
-//     }
-// }
+    match call(get_database_principal(), "initGatewayByIp", (
+        nonce,
+        gateway_principal_id,
+    ))
+    .await
+    .unwrap() {
+        (Ok(principal_id),) => {
+            print(format!("Initialized gateway with prinipal ID: {:?}", principal_id));
+            Ok(principal_id)
+        },
+        (Err(e),) => Err(e)
+    }
+}
 
-// #[update(name = "getInitializedGateways")]
-// #[candid_method(update, rename = "getInitializedGateways")]
-// async fn get_initialized_gateways(nonce: CanisterCallNonce) -> Result<Vec<GatewayUID>, ()> {
+#[update(name = "getInitializedGateways")]
+#[candid_method(update, rename = "getInitializedGateways")]
+async fn get_initialized_gateways(nonce: IpChallengeNonce) -> GenericResult<Vec<InitializedGatewayValue>> {
     
-//     let initialized_gateway_principals_result: Result<Vec<GatewayUID>, ()> = match call(get_database_principal(), "getInitializedGatewaysByIp", (nonce, ))
-//         .await
-//         .unwrap()
-//     {
-//         (Ok(initialized_gateway_principals),) => {
-//             print(format!("Initialized gateways in the local network have principals {:?}", initialized_gateway_principals));
-//             Ok(initialized_gateway_principals)
-//         },
-//         (Err(()),) => Err(())
-//     };
-//     initialized_gateway_principals_result
-// }
+    let initialized_gateway_principals_result: GenericResult<Vec<InitializedGatewayValue>> = match call(get_database_principal(), "getInitializedGatewaysByIp", (nonce, ))
+        .await
+        .unwrap()
+    {
+        (Ok(initialized_gateway_principals),) => {
+            print(format!("Initialized gateways in the local network have principals {:?}", initialized_gateway_principals));
+            Ok(initialized_gateway_principals)
+        },
+        (Err(e),) => Err(e)
+    };
+    initialized_gateway_principals_result
+}
 
 // #[update(name = "registerGateway")]
 // #[candid_method(update, rename = "registerGateway")]

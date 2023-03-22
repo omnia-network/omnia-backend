@@ -13,8 +13,8 @@ pub type EnvironmentUID = String;
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
 pub struct EnvironmentIndex {
     pub environment_uid: EnvironmentUID,
-    
 }
+
 impl Ord for EnvironmentIndex {
     fn cmp(&self, other: &Self) -> Ordering {
         self.environment_uid.cmp(&other.environment_uid)

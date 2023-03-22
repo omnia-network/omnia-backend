@@ -4,8 +4,8 @@ use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{post_upgrade, pre_upgrade};
 use omnia_types::CrudMap;
 use omnia_types::environment::{EnvironmentIndex, EnvironmentValue};
-use omnia_types::errors::GenericError;
-use omnia_types::gateway::{GatewayPrincipald, GatewayIp, GatewayPrincipalId, RegisteredGateway};
+use omnia_types::errors::GenericResult;
+use omnia_types::gateway::{GatewayPrincipald, GatewayPrincipalId, RegisteredGateway, InitializedGatewayValue, InitializedGatewayIndex};
 use omnia_types::http::{Ip, IpChallengeNonce, IpChallengeValue, IpChallengeIndex};
 use omnia_types::virtual_persona::{VirtualPersonaIp, VirtualPersonaPrincipalId, VirtualPersonaEntry, VirtualPersonaIndex, VirtualPersonaValue};
 use serde::Serialize;
@@ -22,7 +22,7 @@ struct State {
     // pub environment_uids: CrudMap<EnvironemntUidsIndex, EnvironmentUidsValue>,
     // pub registered_gateways: CrudMap<RegisteredgatewayIndex, RegisteredGatewayValue>,
     pub ip_challenges: CrudMap<IpChallengeIndex, IpChallengeValue>,
-    // pub initialized_gateways: CrudMap<GatewayIp, GatewayPrincipald>,
+    pub initialized_gateways: CrudMap<InitializedGatewayIndex, InitializedGatewayValue>,
 }
 
 impl State {
@@ -33,7 +33,7 @@ impl State {
             // environment_uids: CrudMap::default(),
             // registered_gateways: CrudMap::default(),
             ip_challenges: CrudMap::default(),
-            // initialized_gateways: CrudMap::default(),
+            initialized_gateways: CrudMap::default(),
         }
     }
 }
