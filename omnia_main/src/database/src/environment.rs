@@ -3,7 +3,7 @@ use candid::candid_method;
 use ic_cdk::print;
 use ic_cdk_macros::update;
 use omnia_types::{
-    environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentIndex, EnvironmentValue, EnvironemntUidIndex, EnvironmentUidValue},
+    environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentIndex, EnvironmentValue, EnvironemntUidIndex, EnvironmentUidValue, EnvironmentUID},
     gateway::{
         RegisteredGatewayResult, GatewayRegistrationInput,
         MultipleRegisteredGatewayResult, GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue, RegisteredGatewayIndex, RegisteredGatewayValue,
@@ -170,33 +170,40 @@ fn register_gateway_in_environment(
     })
 }
 
-// #[update(name = "getRegisteredGatewaysInEnvironment")]
-// #[candid_method(update, rename = "getRegisteredGatewaysInEnvironment")]
-// fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
-//     STATE.with(|state| {
-//         let mut mutable_state = state.borrow_mut();
-//         match mutable_state.get_environment_by_uid(&environment_uid) {
-//             Ok(environment) => {
-//                 let gateway_principal_ids: Vec<GatewayPrincipalId> = environment
-//                     .env_gateway_principal_ids
-//                     .iter()
-//                     .fold(vec![], |mut gateway_principal_ids, (gateway_principal_id, _)| 
-//                 {
-//                     gateway_principal_ids.push(gateway_principal_id.clone());
-//                     gateway_principal_ids
-//                 });
-//                 let mut registered_gateways: Vec<RegisteredGateway> = vec![];
-//                 for gateway_principal_id in gateway_principal_ids {
-//                     match mutable_state.get_registered_gateway_by_principal_id(&gateway_principal_id) {
-//                         Some(registered_gateway) => registered_gateways.push(registered_gateway.clone()),
-//                         None => ()
-//                     };
-//                 }
-//                 print(format!("{:?}", registered_gateways));
-//                 Ok(registered_gateways)
-//             }
-//             Err(e) => Err(e) 
-//         }
-//     })
+#[update(name = "getRegisteredGatewaysInEnvironment")]
+#[candid_method(update, rename = "getRegisteredGatewaysInEnvironment")]
+fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
+    STATE.with(|state| {
+        let environment_index = EnvironmentIndex {
+            environment_uid,
+        };
 
-// }
+        let environment_value = match state.borrow().environments.read(&environment_index) {
+            Ok(environment_value) => {
+                Ok(environment_value.clone())
+            },
+            Err(e) => Err(e)
+        }?;
+        let gateway_principal_ids: Vec<GatewayPrincipalId> = environment_value
+            .env_gateway_principal_ids
+            .iter()
+            .fold(vec![], |mut gateway_principal_ids, (gateway_principal_id, _)| 
+        {
+            gateway_principal_ids.push(gateway_principal_id.clone());
+            gateway_principal_ids
+        });
+        let mut registered_gateways: Vec<RegisteredGatewayValue> = vec![];
+        for gateway_principal_id in gateway_principal_ids {
+            let registered_gateway_index = RegisteredGatewayIndex {
+                principal_id: gateway_principal_id,
+            };
+            let registered_gateway_value = match state.borrow().registered_gateways.read(&registered_gateway_index) {
+                Ok(registered_gateway_value) => Ok(registered_gateway_value.clone()),
+                Err(e) => Err(e),
+            }?;
+            registered_gateways.push(registered_gateway_value.clone());
+        }
+        print(format!("{:?}", registered_gateways));
+        Ok(registered_gateways)
+    })
+}

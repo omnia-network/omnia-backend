@@ -114,16 +114,16 @@ async fn register_gateway(
     gateway_registration_result
 }
 
-// #[update(name = "getRegisteredGateways")]
-// #[candid_method(update, rename = "getRegisteredGateways")]
-// async fn get_registered_gateways(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
-//     let (res,): (MultipleRegisteredGatewayResult,) = call(
-//         get_database_principal(),
-//         "getRegisteredGatewaysInEnvironment",
-//         (environment_uid.clone(),),
-//     )
-//     .await
-//     .unwrap();
+#[update(name = "getRegisteredGateways")]
+#[candid_method(update, rename = "getRegisteredGateways")]
+async fn get_registered_gateways(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
+    let (res,): (MultipleRegisteredGatewayResult,) = call(
+        get_database_principal(),
+        "getRegisteredGatewaysInEnvironment",
+        (environment_uid.clone(),),
+    )
+    .await
+    .unwrap();
 
-//     res
-// }
+    res
+}
