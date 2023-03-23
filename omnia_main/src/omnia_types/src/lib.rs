@@ -121,7 +121,7 @@ impl CrudMap<EnvironmentIndex, EnvironmentValue> {
 }
 
 impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
-    pub fn insert_env_in_virtual_persona(&mut self, virtual_persona_index: VirtualPersonaIndex, environment_uid: EnvironmentUID) -> GenericResult<VirtualPersonaValue> {
+    pub fn insert_env_in_virtual_persona_as_user(&mut self, virtual_persona_index: VirtualPersonaIndex, environment_uid: EnvironmentUID) -> GenericResult<VirtualPersonaValue> {
         let virtual_persona_value = match self.read(&virtual_persona_index) {
             Ok(virtual_persona_value) => Ok(virtual_persona_value.clone()),
             Err(e) => Err(e),
@@ -133,13 +133,25 @@ impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
         self.update(virtual_persona_index, updated_virtual_persona)
     }
 
-    pub fn remove_env_in_virtual_persona(&mut self, virtual_persona_index: VirtualPersonaIndex) -> GenericResult<VirtualPersonaValue> {
+    pub fn remove_env_in_virtual_persona_as_user(&mut self, virtual_persona_index: VirtualPersonaIndex) -> GenericResult<VirtualPersonaValue> {
         let virtual_persona_value = match self.read(&virtual_persona_index) {
             Ok(virtual_persona_value) => Ok(virtual_persona_value.clone()),
             Err(e) => Err(e),
         }?;
         let updated_virtual_persona = VirtualPersonaValue {
             user_env_uid: None,
+            ..virtual_persona_value.to_owned()
+        };
+        self.update(virtual_persona_index, updated_virtual_persona)
+    }
+
+    pub fn insert_env_in_virtual_persona_as_manager(&mut self, virtual_persona_index: VirtualPersonaIndex, environment_uid: EnvironmentUID) -> GenericResult<VirtualPersonaValue> {
+        let virtual_persona_value = match self.read(&virtual_persona_index) {
+            Ok(virtual_persona_value) => Ok(virtual_persona_value.clone()),
+            Err(e) => Err(e),
+        }?;
+        let updated_virtual_persona = VirtualPersonaValue {
+            manager_env_uid: Some(environment_uid),
             ..virtual_persona_value.to_owned()
         };
         self.update(virtual_persona_index, updated_virtual_persona)

@@ -32,7 +32,7 @@ fn set_user_in_environment(
         let virtual_persona_index = VirtualPersonaIndex {
             principal_id: virtual_persona_principal_id.clone()
         };
-        state.borrow_mut().virtual_personas.insert_env_in_virtual_persona(virtual_persona_index, environment_uid.clone())?;
+        state.borrow_mut().virtual_personas.insert_env_in_virtual_persona_as_user(virtual_persona_index, environment_uid.clone())?;
 
         print(format!(
             "User: {:?} set in environment with UUID: {:?}",
@@ -63,7 +63,7 @@ fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrinc
         let virtual_persona_index = VirtualPersonaIndex {
             principal_id: virtual_persona_principal_id.clone()
         };
-        state.borrow_mut().virtual_personas.remove_env_in_virtual_persona(virtual_persona_index)?;
+        state.borrow_mut().virtual_personas.remove_env_in_virtual_persona_as_user(virtual_persona_index)?;
 
         print(format!(
             "User: {:?} removed from environment with UUID: {:?}",

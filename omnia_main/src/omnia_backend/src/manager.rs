@@ -6,7 +6,7 @@ use ic_cdk::{
 use ic_cdk_macros::update;
 use omnia_types::{
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::GenericResult
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::{GenericResult, GenericError}
 };
 
 use crate::utils::get_database_principal;
@@ -25,7 +25,7 @@ async fn create_environment(
     ).await.unwrap();
     match virtual_persona_exists {
         true => {
-            let (environment_creation_result,): (EnvironmentCreationResult,) = call(
+            let (environment_creation_result,): (Result<EnvironmentCreationResult, GenericError>,) = call(
                 get_database_principal(),
                 "createNewEnvironment",
                 (
@@ -41,7 +41,7 @@ async fn create_environment(
                 environment_creation_result
             ));
         
-            Ok(environment_creation_result)
+            environment_creation_result
         },
         false => {
             let err = format!(

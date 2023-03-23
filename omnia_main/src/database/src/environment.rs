@@ -8,8 +8,8 @@ use omnia_types::{
         RegisteredGatewayResult, GatewayRegistrationInput,
         MultipleRegisteredGatewayResult, GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue, RegisteredGatewayIndex, RegisteredGatewayValue,
     },
-    virtual_persona::VirtualPersonaPrincipalId, http::IpChallengeNonce,
-    errors::GenericResult
+    virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex}, http::IpChallengeNonce,
+    errors::{GenericResult, GenericError}
 };
 
 use crate::{uuid::generate_uuid, STATE};
@@ -58,42 +58,47 @@ async fn get_initialized_gateways_by_ip(nonce: IpChallengeNonce) -> GenericResul
 async fn create_new_environment(
     environment_manager_principal_id: VirtualPersonaPrincipalId,
     environment_creation_input: EnvironmentCreationInput,
-) -> EnvironmentCreationResult {
-    // create new environment
-    print(format!(
-        "Creating new environment: {:?} managed by: {:?}",
-        environment_creation_input, environment_manager_principal_id
-    ));
+) -> Result<EnvironmentCreationResult, GenericError> {
     let environment_uid = generate_uuid().await;
-    print(format!("New environment UID: {:?}", environment_uid));
-    let environment_index = EnvironmentIndex {
-        environment_uid: environment_uid.clone(),
-    };
-    let environment_value = EnvironmentValue {
-        env_name: environment_creation_input.env_name.clone(),
-        env_ip: None,
-        env_users_principals_ids: BTreeMap::default(),
-        env_gateways_principals_ids: BTreeMap::default(),
-        env_manager_principal_id: environment_manager_principal_id,
-    };
+
     STATE.with(|state| {
+        // create new environment
+        print(format!(
+            "Creating new environment: {:?} managed by: {:?}",
+            environment_creation_input, environment_manager_principal_id
+        ));
+        print(format!("New environment UID: {:?}", environment_uid));
+        let environment_index = EnvironmentIndex {
+            environment_uid: environment_uid.clone(),
+        };
+        let environment_value = EnvironmentValue {
+            env_name: environment_creation_input.env_name.clone(),
+            env_ip: None,
+            env_users_principals_ids: BTreeMap::default(),
+            env_gateways_principals_ids: BTreeMap::default(),
+            env_manager_principal_id: environment_manager_principal_id.clone(),
+        };
         state.borrow_mut().environments.create(
             environment_index,
             environment_value
-        )
-    }).expect("previous entry should not exist");
+        ).expect("previous entry should not exist");
+        
+        // update manager environment in virtual persona
+        let virtual_persona_index = VirtualPersonaIndex {
+            principal_id: environment_manager_principal_id
+        };
+        state.borrow_mut().virtual_personas.insert_env_in_virtual_persona_as_manager(virtual_persona_index, environment_uid.clone())?;
 
-    let environment_creation_result = EnvironmentCreationResult {
-        env_name: environment_creation_input.env_name,
-        env_uid: environment_uid,
-    };
-
-    print(format!(
-        "Created new environment: {:?}",
-        environment_creation_result
-    ));
-
-    environment_creation_result
+        let environment_creation_result = EnvironmentCreationResult {
+            env_name: environment_creation_input.env_name,
+            env_uid: environment_uid,
+        };
+        print(format!(
+            "Created new environment: {:?}",
+            environment_creation_result
+        ));
+        Ok(environment_creation_result)
+    })
 }
 
 #[update(name = "registerGatewayInEnvironment")]
