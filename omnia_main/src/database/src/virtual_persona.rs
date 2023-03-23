@@ -38,13 +38,13 @@ fn set_user_in_environment(
         let environment_index = EnvironmentIndex {
             environment_uid: environment_uid_value.env_uid.clone(),
         };
-        state.borrow_mut().environments.update_env_users_principals_ids(environment_index, virtual_persona_principal_id.clone())?;
+        state.borrow_mut().environments.insert_user_principal_id_in_env(environment_index, virtual_persona_principal_id.clone())?;
 
         // update environment in virtual persona
         let virtual_persona_index = VirtualPersonaIndex {
             principal_id: virtual_persona_principal_id.clone()
         };
-        state.borrow_mut().virtual_personas.update_virtual_persona_environment(virtual_persona_index, environment_uid.clone())?;
+        state.borrow_mut().virtual_personas.insert_env_in_virtual_persona(virtual_persona_index, environment_uid.clone())?;
 
         print(format!(
             "User: {:?} set in environment with UUID: {:?}",
@@ -57,73 +57,46 @@ fn set_user_in_environment(
     })
 }
 
-// #[update(name = "resetUserFromEnvironment")]
-// #[candid_method(update, rename = "resetUserFromEnvironment")]
-// fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrincipalId, nonce: CanisterCallNonce) -> EnvironmentInfoResult {
-//     let virtual_persona_principal = get_principal_from_string(virtual_persona_principal_id.clone());
-//     STATE.with(|state| {
-//         let mut mutable_state = state.borrow_mut();
-//         match mutable_state.consume_ip_challenge(&nonce) {
-//             Some(virtual_persona_request_info) => {
-//                 match mutable_state.get_virtual_persona_by_principal_id(&virtual_persona_principal_id) {
-//                     Some(virtual_persona) => {
-//                         match mutable_state.get_environment_uid_from_ip(&virtual_persona_request_info.requester_ip) {
-//                             Some(environment_uid) => {
-//                                 match mutable_state.get_environment_by_uid(&environment_uid) {
-//                                     Ok(environment) => {
-//                                         environment.env_users_principals_ids.remove(&virtual_persona_principal_id);
-//                                     },
-//                                     Err(_) => trap("Environment does not exist"),
-//                                 };
+#[update(name = "resetUserFromEnvironment")]
+#[candid_method(update, rename = "resetUserFromEnvironment")]
+fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrincipalId, nonce: IpChallengeNonce) -> EnvironmentInfoResult {
+    STATE.with(|state| {
+        // validate IP challenge
+        let ip_challenge_index = IpChallengeIndex {
+            nonce,
+        };
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge(&ip_challenge_index)?;
 
-//                                 let updated_virtual_persona = VirtualPersonaValue {
-//                                     user_env_uid: None,
-//                                     ..virtual_persona
-//                                 };
+        // update users in environment
+        let environment_uid_index = EnvironmentUidIndex {
+            ip: ip_challenge_value.requester_ip,
+        };
+        let environment_uid_value = match state.borrow().environment_uids.read(&environment_uid_index) {
+            Ok(environment_uid_value) => Ok(environment_uid_value.clone()),
+            Err(e) => Err(e),
+        }?;
+        let environment_uid = environment_uid_value.env_uid.clone();
+        let environment_index = EnvironmentIndex {
+            environment_uid: environment_uid_value.env_uid.clone(),
+        };
+        state.borrow_mut().environments.remove_user_principal_id_in_env(environment_index, virtual_persona_principal_id.clone())?;
 
-//                                 mutable_state.create_virtual_persona(virtual_persona_principal_id, updated_virtual_persona);
+        // update environment in virtual persona
+        let virtual_persona_index = VirtualPersonaIndex {
+            principal_id: virtual_persona_principal_id.clone()
+        };
+        state.borrow_mut().virtual_personas.remove_env_in_virtual_persona(virtual_persona_index)?;
 
-//                                 print(format!(
-//                                     "User: {:?} removed from environment with UUID: {:?}",
-//                                     virtual_persona_principal_id, environment_uid
-//                                 ));
+        print(format!(
+            "User: {:?} set in environment with UUID: {:?}",
+            virtual_persona_principal_id, environment_uid
+        ));
 
-//                                 Ok(EnvironmentInfo {
-//                                     env_uid: environment_uid.clone(),
-//                                 })
-//                             },
-//                             None => {
-//                                 let err = format!(
-//                                     "No environment with IP: {}",
-//                                     virtual_persona_request_info.requester_ip
-//                                 );
-
-//                                 print(err.as_str());
-//                                 Err(err)
-//                             }
-//                         }
-//                     }
-//                     None => {
-//                         let err = format!("User does not have a profile");
-
-//                         print(err.as_str());
-
-//                         Err(err)
-//                     }
-//                 }
-//             },
-//             None => {
-//                 let err = format!(
-//                     "Did not receive http request with nonce {:?} before canister call",
-//                     nonce
-//                 );
-
-//                 print(err.as_str());
-//                 Err(err)
-//             },
-//         }
-//     })
-// }
+        Ok(EnvironmentInfo {
+            env_uid: environment_uid.clone(),
+        })
+    })
+}
 
 #[update(name = "getVirtualPersona")]
 #[candid_method(update, rename = "getVirtualPersona")]

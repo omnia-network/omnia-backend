@@ -34,5 +34,6 @@ service : {
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
       Result_4,
     );
+  resetUserFromEnvironment : (text, text) -> (Result_5);
   setUserInEnvironment : (text, text) -> (Result_5);
 }

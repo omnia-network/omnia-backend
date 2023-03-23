@@ -164,7 +164,7 @@ fn register_gateway_in_environment(
             environment_uid: gateway_registration_input.env_uid,
         };
 
-        state.borrow_mut().environments.update_env_gateways_principals_ids(environment_index,registered_gateway_index.principal_id)?;
+        state.borrow_mut().environments.insert_gateway_principal_id_in_env(environment_index,registered_gateway_index.principal_id)?;
 
         Ok(registered_gateway_value)
     })
