@@ -28,23 +28,23 @@ async fn get_profile(nonce: IpChallengeNonce) -> VirtualPersonaValueResult {
     }
 }
 
-// #[ic_cdk_macros::update(name = "setEnvironment")]
-// #[candid_method(update, rename = "setEnvironment")]
-// async fn set_environment(nonce: CanisterCallNonce) -> EnvironmentInfoResult {
-//     let virtual_persona_principal = caller();
+#[ic_cdk_macros::update(name = "setEnvironment")]
+#[candid_method(update, rename = "setEnvironment")]
+async fn set_environment(nonce: IpChallengeNonce) -> EnvironmentInfoResult {
+    let virtual_persona_principal = caller();
 
-//     let (environment_info,): (EnvironmentInfoResult,) = call(
-//         get_database_principal(),
-//         "setUserInEnvironment",
-//         (virtual_persona_principal.to_string(), nonce, ),
-//     )
-//     .await
-//     .unwrap();
+    let (environment_info,): (EnvironmentInfoResult,) = call(
+        get_database_principal(),
+        "setUserInEnvironment",
+        (virtual_persona_principal.to_string(), nonce, ),
+    )
+    .await
+    .unwrap();
 
-//     print(format!("User in environment: {:?}", environment_info));
+    print(format!("User in environment: {:?}", environment_info));
 
-//     environment_info
-// }
+    environment_info
+}
 
 // #[ic_cdk_macros::update(name = "resetEnvironment")]
 // #[candid_method(update, rename = "resetEnvironment")]

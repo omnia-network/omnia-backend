@@ -3,7 +3,7 @@ use candid::candid_method;
 use ic_cdk::print;
 use ic_cdk_macros::update;
 use omnia_types::{
-    environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentIndex, EnvironmentValue, EnvironemntUidIndex, EnvironmentUidValue, EnvironmentUID},
+    environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentIndex, EnvironmentValue, EnvironmentUidIndex, EnvironmentUidValue, EnvironmentUID},
     gateway::{
         RegisteredGatewayResult, GatewayRegistrationInput,
         MultipleRegisteredGatewayResult, GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue, RegisteredGatewayIndex, RegisteredGatewayValue,
@@ -83,7 +83,7 @@ async fn create_new_environment(
         env_name: environment_creation_input.env_name.clone(),
         env_ip: None,
         env_users_principals_ids: BTreeMap::default(),
-        env_gateway_principal_ids: BTreeMap::default(),
+        env_gateways_principals_ids: BTreeMap::default(),
         env_manager_principal_id: environment_manager_principal_id,
     };
 
@@ -130,7 +130,7 @@ fn register_gateway_in_environment(
         let initialized_gateway_value = state.borrow_mut().initialized_gateways.delete(&initialized_gateway_index)?;
 
         // register mapping IP to Environment UID in order to be able to retrive the UID of the environment from the IP when a User registers in an environment
-        let environment_uid_index = EnvironemntUidIndex {
+        let environment_uid_index = EnvironmentUidIndex {
             ip: ip_challenge_value.requester_ip.clone(),
         };
 
@@ -164,7 +164,7 @@ fn register_gateway_in_environment(
             environment_uid: gateway_registration_input.env_uid,
         };
 
-        state.borrow_mut().environments.update_env_gateway_principal_ids(environment_index,registered_gateway_index.principal_id)?;
+        state.borrow_mut().environments.update_env_gateways_principals_ids(environment_index,registered_gateway_index.principal_id)?;
 
         Ok(registered_gateway_value)
     })
@@ -185,13 +185,14 @@ fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> Mu
             Err(e) => Err(e)
         }?;
         let gateway_principal_ids: Vec<GatewayPrincipalId> = environment_value
-            .env_gateway_principal_ids
+            .env_gateways_principals_ids
             .iter()
             .fold(vec![], |mut gateway_principal_ids, (gateway_principal_id, _)| 
         {
             gateway_principal_ids.push(gateway_principal_id.clone());
             gateway_principal_ids
         });
+
         let mut registered_gateways: Vec<RegisteredGatewayValue> = vec![];
         for gateway_principal_id in gateway_principal_ids {
             let registered_gateway_index = RegisteredGatewayIndex {

@@ -3,7 +3,7 @@ use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{post_upgrade, pre_upgrade};
 use omnia_types::CrudMap;
-use omnia_types::environment::{EnvironmentIndex, EnvironmentValue, EnvironmentUidValue, EnvironemntUidIndex};
+use omnia_types::environment::{EnvironmentIndex, EnvironmentValue, EnvironmentUidValue, EnvironmentUidIndex};
 use omnia_types::errors::GenericResult;
 use omnia_types::gateway::{GatewayPrincipald, GatewayPrincipalId, RegisteredGatewayValue, InitializedGatewayValue, InitializedGatewayIndex, RegisteredGatewayIndex};
 use omnia_types::http::{Ip, IpChallengeNonce, IpChallengeValue, IpChallengeIndex};
@@ -19,7 +19,7 @@ mod auth;
 struct State {
     pub virtual_personas: CrudMap<VirtualPersonaIndex, VirtualPersonaValue>,
     pub environments: CrudMap<EnvironmentIndex, EnvironmentValue>,
-    pub environment_uids: CrudMap<EnvironemntUidIndex, EnvironmentUidValue>,
+    pub environment_uids: CrudMap<EnvironmentUidIndex, EnvironmentUidValue>,
     pub registered_gateways: CrudMap<RegisteredGatewayIndex, RegisteredGatewayValue>,
     pub ip_challenges: CrudMap<IpChallengeIndex, IpChallengeValue>,
     pub initialized_gateways: CrudMap<InitializedGatewayIndex, InitializedGatewayValue>,
@@ -141,6 +141,7 @@ mod tests {
     fn save_candid() {
         use omnia_types::environment::*;
         use omnia_types::gateway::*;
+        use omnia_types::http::*;
         use omnia_types::virtual_persona::*;
         use std::env;
         use std::fs::write;

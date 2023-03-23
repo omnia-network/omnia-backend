@@ -26,7 +26,7 @@ pub struct EnvironmentValue {
     pub env_name: String,
     pub env_ip: Option<Ip>,
     pub env_users_principals_ids: BTreeMap<VirtualPersonaPrincipalId, ()>,  // TODO: VirtualPersonaInfo
-    pub env_gateway_principal_ids: BTreeMap<GatewayPrincipalId, ()>,    // TODO: GatewayInfo
+    pub env_gateways_principals_ids: BTreeMap<GatewayPrincipalId, ()>,    // TODO: GatewayInfo
     pub env_manager_principal_id: VirtualPersonaPrincipalId,
 }
 
@@ -49,11 +49,11 @@ pub struct EnvironmentInfo {
 pub type EnvironmentInfoResult = Result<EnvironmentInfo, GenericError>;
 
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
-pub struct EnvironemntUidIndex {
+pub struct EnvironmentUidIndex {
     pub ip: Ip,
 }
 
-impl Ord for EnvironemntUidIndex {
+impl Ord for EnvironmentUidIndex {
     fn cmp(&self, other: &Self) -> Ordering {
         self.ip.cmp(&other.ip)
     }

@@ -1,11 +1,12 @@
 use std::collections::BTreeMap;
 
 use candid::{CandidType, Deserialize};
-use environment::{EnvironmentValue, EnvironmentIndex};
+use environment::{EnvironmentValue, EnvironmentIndex, EnvironmentUID};
 use errors::GenericResult;
 use gateway::GatewayPrincipalId;
 use http::{IpChallengeIndex, IpChallengeValue, IpChallengeValueResult};
 use serde::Serialize;
+use virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex, VirtualPersonaValue};
 use std::fmt::Debug;
 
 pub mod virtual_persona;
@@ -97,10 +98,31 @@ impl CrudMap<IpChallengeIndex, IpChallengeValue> {
 }
 
 impl CrudMap<EnvironmentIndex, EnvironmentValue> {
-    pub fn update_env_gateway_principal_ids(&mut self, environment_index: EnvironmentIndex, gateway_principal_id: GatewayPrincipalId) -> GenericResult<EnvironmentValue> {
+    pub fn update_env_gateways_principals_ids(&mut self, environment_index: EnvironmentIndex, gateway_principal_id: GatewayPrincipalId) -> GenericResult<EnvironmentValue> {
         let environment_value = self.read(&environment_index)?;
         let mut updatable_environment_value = environment_value.clone();
-        updatable_environment_value.env_gateway_principal_ids.insert(gateway_principal_id, ());
+        updatable_environment_value.env_gateways_principals_ids.insert(gateway_principal_id, ());
         self.update(environment_index, updatable_environment_value)
+    }
+
+    pub fn update_env_users_principals_ids(&mut self, environment_index: EnvironmentIndex, virtual_persona_principal_id: VirtualPersonaPrincipalId) -> GenericResult<EnvironmentValue> {
+        let environment_value = self.read(&environment_index)?;
+        let mut updatable_environment_value = environment_value.clone();
+        updatable_environment_value.env_users_principals_ids.insert(virtual_persona_principal_id, ());
+        self.update(environment_index, updatable_environment_value)
+    }
+}
+
+impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
+    pub fn update_virtual_persona_environment(&mut self, virtual_persona_index: VirtualPersonaIndex, environment_uid: EnvironmentUID) -> GenericResult<VirtualPersonaValue> {
+        let virtual_persona_value = match self.read(&virtual_persona_index) {
+            Ok(virtual_persona_value) => Ok(virtual_persona_value.clone()),
+            Err(e) => Err(e),
+        }?;
+        let updated_virtual_persona = VirtualPersonaValue {
+            user_env_uid: Some(environment_uid),
+            ..virtual_persona_value.to_owned()
+        };
+        self.update(virtual_persona_index, updated_virtual_persona)
     }
 }

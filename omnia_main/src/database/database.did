@@ -1,5 +1,6 @@
 type EnvironmentCreationInput = record { env_name : text };
 type EnvironmentCreationResult = record { env_uid : text; env_name : text };
+type EnvironmentInfo = record { env_uid : text };
 type GatewayRegistrationInput = record { gateway_name : text; env_uid : text };
 type InitializedGatewayValue = record { principal_id : text };
 type IpChallengeValue = record { requester_ip : text; timestamp : nat64 };
@@ -13,6 +14,7 @@ type Result_1 = variant { Ok : vec RegisteredGatewayValue; Err : text };
 type Result_2 = variant { Ok : VirtualPersonaValue; Err : text };
 type Result_3 = variant { Ok : text; Err : text };
 type Result_4 = variant { Ok : RegisteredGatewayValue; Err : text };
+type Result_5 = variant { Ok : EnvironmentInfo; Err : text };
 type VirtualPersonaValue = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;
@@ -32,4 +34,5 @@ service : {
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
       Result_4,
     );
+  setUserInEnvironment : (text, text) -> (Result_5);
 }
