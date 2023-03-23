@@ -5,7 +5,7 @@ use ic_cdk::{
 };
 use omnia_types::{
     environment::EnvironmentInfoResult,
-    virtual_persona::{VirtualPersonaValue, VirtualPersonaValueResult}, http::IpChallengeNonce,
+    virtual_persona::{VirtualPersonaValueResult}, http::IpChallengeNonce,
 };
 
 use crate::utils::get_database_principal;

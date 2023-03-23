@@ -6,7 +6,7 @@ use ic_cdk::{
 use ic_cdk_macros::update;
 use omnia_types::{
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, GatewayUID, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::GenericResult
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::GenericResult
 };
 
 use crate::utils::get_database_principal;

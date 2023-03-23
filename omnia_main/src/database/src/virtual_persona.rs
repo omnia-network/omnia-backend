@@ -1,15 +1,13 @@
 use candid::candid_method;
-use ic_cdk::{export::Principal, print, trap};
+use ic_cdk::print;
 use ic_cdk_macros::{update, query};
 use omnia_types::environment::{EnvironmentInfoResult, EnvironmentUidIndex, EnvironmentIndex};
-use omnia_types::errors::GenericError;
 use omnia_types::http::{IpChallengeNonce, IpChallengeIndex};
-use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaEntry, VirtualPersonaValueResult};
+use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValueResult};
 use omnia_types::{
     environment::EnvironmentInfo,
     virtual_persona::{VirtualPersonaValue, VirtualPersonaPrincipalId},
 };
-use omnia_utils::get_principal_from_string;
 
 use crate::STATE;
 

@@ -8,7 +8,7 @@ use omnia_types::{
         RegisteredGatewayResult, GatewayRegistrationInput,
         MultipleRegisteredGatewayResult, GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue, RegisteredGatewayIndex, RegisteredGatewayValue,
     },
-    virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex}, http::{IpChallengeNonce, IpChallengeIndex},
+    virtual_persona::VirtualPersonaPrincipalId, http::{IpChallengeNonce, IpChallengeIndex},
     errors::GenericResult
 };
 
