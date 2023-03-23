@@ -3,9 +3,10 @@ use candid::{CandidType, Deserialize};
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{post_upgrade, pre_upgrade};
 use omnia_types::CrudMap;
-use omnia_types::environment::{EnvironmentIndex, EnvironmentValue, EnvironmentUidValue, EnvironmentUidIndex};
+use omnia_types::environment::{EnvironmentIndex, EnvironmentValue, EnvironmentUidValue, EnvironmentUidIndex, EnvironmentUID};
+use omnia_types::errors::GenericResult;
 use omnia_types::gateway::{RegisteredGatewayValue, InitializedGatewayValue, InitializedGatewayIndex, RegisteredGatewayIndex};
-use omnia_types::http::{IpChallengeValue, IpChallengeIndex};
+use omnia_types::http::{IpChallengeValue, IpChallengeIndex, Ip, IpChallengeNonce};
 use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValue};
 use serde::Serialize;
 
@@ -34,6 +35,25 @@ impl State {
             ip_challenges: CrudMap::default(),
             initialized_gateways: CrudMap::default(),
         }
+    }
+
+    pub fn get_environment_uid_by_ip(&self, ip: Ip) -> GenericResult<EnvironmentUID> {
+        let environment_uid_index = EnvironmentUidIndex {
+            ip,
+        };
+        let environment_uid_value = match self.environment_uids.read(&environment_uid_index) {
+            Ok(environment_uid_value) => Ok(environment_uid_value.clone()),
+            Err(e) => Err(e),
+        }?;
+        Ok(environment_uid_value.env_uid)
+    }
+
+    pub fn validate_ip_challenge_by_nonce(&mut self, nonce: IpChallengeNonce) -> GenericResult<IpChallengeValue> {
+        let ip_challenge_index = IpChallengeIndex {
+            nonce,
+        };
+        let ip_challenge_value = self.ip_challenges.validate_ip_challenge(&ip_challenge_index)?;
+        Ok(ip_challenge_value)
     }
 }
 

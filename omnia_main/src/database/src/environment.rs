@@ -8,7 +8,7 @@ use omnia_types::{
         RegisteredGatewayResult, GatewayRegistrationInput,
         MultipleRegisteredGatewayResult, GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue, RegisteredGatewayIndex, RegisteredGatewayValue,
     },
-    virtual_persona::VirtualPersonaPrincipalId, http::{IpChallengeNonce, IpChallengeIndex},
+    virtual_persona::VirtualPersonaPrincipalId, http::IpChallengeNonce,
     errors::GenericResult
 };
 
@@ -17,23 +17,19 @@ use crate::{uuid::generate_uuid, STATE};
 #[update(name = "initGatewayByIp")]
 #[candid_method(update, rename = "initGatewayByIp")]
 async fn init_gateway_by_ip(nonce: IpChallengeNonce, gateway_principal_id: GatewayPrincipalId) -> GenericResult<GatewayPrincipalId> {
+    STATE.with(|state| {
+        // validate IP challenge
+        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
 
-    let ip_challenge_index = IpChallengeIndex {
-        nonce,
-    };
-
-    STATE.with(|state| {   
-        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge(&ip_challenge_index)?;
-
+        // create initialized gateway
         let initialized_gateway_index = InitializedGatewayIndex {
             ip: ip_challenge_value.requester_ip,
         };
-
         let initialized_gateway_value = InitializedGatewayValue {
             principal_id: gateway_principal_id.clone()
         };
-
         state.borrow_mut().initialized_gateways.create(initialized_gateway_index, initialized_gateway_value).expect("previous entry should not exist");
+
         Ok(gateway_principal_id)
     })
 }
@@ -41,18 +37,14 @@ async fn init_gateway_by_ip(nonce: IpChallengeNonce, gateway_principal_id: Gatew
 #[update(name = "getInitializedGatewaysByIp")]
 #[candid_method(update, rename = "getInitializedGatewaysByIp")]
 async fn get_initialized_gateways_by_ip(nonce: IpChallengeNonce) -> GenericResult<Vec<InitializedGatewayValue>> {
-
-    let ip_challenge_index = IpChallengeIndex {
-        nonce,
-    };
-
     STATE.with(|state| {
-        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge(&ip_challenge_index)?;
+        // validate IP challenge
+        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
 
+        // get initialized gateways by IP
         let initialized_gateway_index = InitializedGatewayIndex {
             ip: ip_challenge_value.requester_ip,
         };
-
         match state.borrow_mut().initialized_gateways.read(&initialized_gateway_index) {
             Ok(initialized_gateway_value) => Ok(vec![initialized_gateway_value.to_owned()]),
             Err(e) => Err(e),
@@ -67,18 +59,16 @@ async fn create_new_environment(
     environment_manager_principal_id: VirtualPersonaPrincipalId,
     environment_creation_input: EnvironmentCreationInput,
 ) -> EnvironmentCreationResult {
+    // create new environment
     print(format!(
         "Creating new environment: {:?} managed by: {:?}",
         environment_creation_input, environment_manager_principal_id
     ));
-
     let environment_uid = generate_uuid().await;
     print(format!("New environment UID: {:?}", environment_uid));
-
     let environment_index = EnvironmentIndex {
         environment_uid: environment_uid.clone(),
     };
-
     let environment_value = EnvironmentValue {
         env_name: environment_creation_input.env_name.clone(),
         env_ip: None,
@@ -86,7 +76,6 @@ async fn create_new_environment(
         env_gateways_principals_ids: BTreeMap::default(),
         env_manager_principal_id: environment_manager_principal_id,
     };
-
     STATE.with(|state| {
         state.borrow_mut().environments.create(
             environment_index,
@@ -114,56 +103,44 @@ fn register_gateway_in_environment(
     environment_manager_principal_id: VirtualPersonaPrincipalId,
     gateway_registration_input: GatewayRegistrationInput,
 ) -> RegisteredGatewayResult {
-    
     STATE.with(|state| {
+        // validate IP challenge
+        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
 
-        let ip_challenge_index = IpChallengeIndex {
-            nonce,
-        };
-
-        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge(&ip_challenge_index)?;
-
+        // remove initialized gateways
         let initialized_gateway_index = InitializedGatewayIndex {
             ip: ip_challenge_value.requester_ip.clone(),
         };
-
         let initialized_gateway_value = state.borrow_mut().initialized_gateways.delete(&initialized_gateway_index)?;
-
         // register mapping IP to Environment UID in order to be able to retrive the UID of the environment from the IP when a User registers in an environment
         let environment_uid_index = EnvironmentUidIndex {
             ip: ip_challenge_value.requester_ip.clone(),
         };
-
         let environment_uid_value = EnvironmentUidValue {
             env_uid: gateway_registration_input.env_uid.clone(),
         };
-
         state.borrow_mut().environment_uids.create(environment_uid_index, environment_uid_value).expect("previous entry should not exist");
 
+        // created registered gateway
         print(format!(
             "Registering gateway in environment with UID: {:?} managed by: {:?}",
             gateway_registration_input.env_uid,
             environment_manager_principal_id
         ));
-
         let registered_gateway_index = RegisteredGatewayIndex {
             principal_id: initialized_gateway_value.principal_id,
         };
-
         let registered_gateway_value = RegisteredGatewayValue {
             gateway_name: gateway_registration_input.gateway_name,
             gateway_ip: ip_challenge_value.requester_ip,
             env_uid: gateway_registration_input.env_uid.clone(),
         };
-
         state.borrow_mut().registered_gateways.create(registered_gateway_index.clone(), registered_gateway_value.clone())?;
-        
 
         // add principal ID of registered Gateway to Environment
         let environment_index = EnvironmentIndex {
             environment_uid: gateway_registration_input.env_uid,
         };
-
         state.borrow_mut().environments.insert_gateway_principal_id_in_env(environment_index,registered_gateway_index.principal_id)?;
 
         Ok(registered_gateway_value)
@@ -174,10 +151,10 @@ fn register_gateway_in_environment(
 #[candid_method(update, rename = "getRegisteredGatewaysInEnvironment")]
 fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
     STATE.with(|state| {
+        // get principal IDs of gateways registered in environment
         let environment_index = EnvironmentIndex {
             environment_uid,
         };
-
         let environment_value = match state.borrow().environments.read(&environment_index) {
             Ok(environment_value) => {
                 Ok(environment_value.clone())
@@ -193,6 +170,7 @@ fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> Mu
             gateway_principal_ids
         });
 
+        // get registered gateways by principal ID
         let mut registered_gateways: Vec<RegisteredGatewayValue> = vec![];
         for gateway_principal_id in gateway_principal_ids {
             let registered_gateway_index = RegisteredGatewayIndex {
@@ -204,7 +182,7 @@ fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> Mu
             }?;
             registered_gateways.push(registered_gateway_value.clone());
         }
-        print(format!("{:?}", registered_gateways));
+        print(format!("Registered gateways: {:?}", registered_gateways));
         Ok(registered_gateways)
     })
 }
