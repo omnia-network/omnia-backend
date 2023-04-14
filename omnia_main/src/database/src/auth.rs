@@ -18,6 +18,7 @@ async fn init_nonce_to_ip(nonce: IpChallengeNonce, ip_challenge_value: IpChallen
         state
             .borrow_mut()
             .ip_challenges
-            .create(ip_challenge_index, ip_challenge_value)
-    }).expect("should create ip challenge");
+            .create(ip_challenge_index.clone(), ip_challenge_value)
+            .expect("should create ip challenge");
+    });
 }

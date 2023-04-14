@@ -60,18 +60,42 @@ async fn create_environment(
 async fn init_gateway(nonce: IpChallengeNonce) -> GenericResult<GatewayPrincipalId> {
     let gateway_principal_id = caller().to_string();
 
-    match call(get_database_principal(), "initGatewayByIp", (
-        nonce,
-        gateway_principal_id,
-    ))
-    .await
-    .unwrap() {
-        (Ok(principal_id),) => {
-            print(format!("Initialized gateway with prinipal ID: {:?}", principal_id));
-            Ok(principal_id)
-        },
-        (Err(e),) => Err(e)
+    let is_registered = 
+        call::<
+            (GatewayPrincipalId, ),
+            (bool, )
+        >(
+            get_database_principal(),
+            "isGatewayRegistered",
+            (
+                gateway_principal_id.clone(),
+            )
+        )
+        .await
+        .unwrap()
+        .0;
+
+    if !is_registered {
+        print(format!("Gateway with principal ID: {:?} is not yet registered", gateway_principal_id));
+        let principal_id =
+            call::<
+                (IpChallengeNonce, GatewayPrincipalId),
+                (GenericResult<GatewayPrincipalId>,)
+            >(
+                get_database_principal(),
+                "initGatewayByIp", 
+                (
+                    nonce,
+                    gateway_principal_id,
+                )
+            )
+            .await
+            .unwrap()
+            .0?;
+
+        return Ok(principal_id);
     }
+    Ok(gateway_principal_id)
 }
 
 #[update(name = "getInitializedGateways")]

@@ -30,6 +30,7 @@ service : {
   getVirtualPersona : (text, text) -> (Result_3);
   initGatewayByIp : (text, text) -> (Result_4);
   initNonceToIp : (text, IpChallengeValue) -> ();
+  isGatewayRegistered : (text) -> (bool);
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
       Result_5,
     );

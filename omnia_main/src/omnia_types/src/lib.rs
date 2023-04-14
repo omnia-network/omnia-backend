@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use candid::{CandidType, Deserialize};
 use environment::{EnvironmentValue, EnvironmentIndex, EnvironmentUID};
 use errors::GenericResult;
-use gateway::GatewayPrincipalId;
+use gateway::{GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue};
 use http::{IpChallengeIndex, IpChallengeValue, IpChallengeValueResult};
 use serde::Serialize;
 use virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex, VirtualPersonaValue};
@@ -94,6 +94,16 @@ impl<I: Ord + Debug, V> CrudMap<I, V> {
 impl CrudMap<IpChallengeIndex, IpChallengeValue> {
     pub fn validate_ip_challenge(&mut self, nonce: &IpChallengeIndex) -> IpChallengeValueResult {
         Ok(self.delete(nonce)?)
+    }
+}
+
+impl CrudMap<InitializedGatewayIndex, InitializedGatewayValue> {
+    pub fn is_gateway_initialized(&self, initialized_gateway_index: InitializedGatewayIndex) -> bool {
+        // check existance in initialized gateways
+        match self.read(&initialized_gateway_index) {
+            Ok(_) => true,
+            Err(_) => false
+        }
     }
 }
 

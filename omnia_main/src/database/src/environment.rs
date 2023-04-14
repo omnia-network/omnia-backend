@@ -8,11 +8,28 @@ use omnia_types::{
         RegisteredGatewayResult, GatewayRegistrationInput,
         MultipleRegisteredGatewayResult, GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue, RegisteredGatewayIndex, RegisteredGatewayValue,
     },
-    virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex}, http::IpChallengeNonce,
+    virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex}, http::{IpChallengeNonce},
     errors::{GenericResult, GenericError}
 };
 
 use crate::{uuid::generate_uuid, STATE};
+
+#[update(name = "isGatewayRegistered")]
+#[candid_method(update, rename = "isGatewayRegistered")]
+async fn is_gateway_registered(gateway_principal_id: GatewayPrincipalId) -> bool {
+    STATE.with(|state| {
+        // check existance in registered gateways
+        let registered_gateway_index = RegisteredGatewayIndex {
+            principal_id: gateway_principal_id,
+        };
+
+        match state.borrow_mut().registered_gateways.read(&registered_gateway_index) {
+            Ok(_) => true,
+            Err(_) => false
+        }
+
+    })
+}
 
 #[update(name = "initGatewayByIp")]
 #[candid_method(update, rename = "initGatewayByIp")]
@@ -25,11 +42,14 @@ async fn init_gateway_by_ip(nonce: IpChallengeNonce, gateway_principal_id: Gatew
         let initialized_gateway_index = InitializedGatewayIndex {
             ip: ip_challenge_value.requester_ip,
         };
-        let initialized_gateway_value = InitializedGatewayValue {
-            principal_id: gateway_principal_id.clone()
-        };
-        state.borrow_mut().initialized_gateways.create(initialized_gateway_index, initialized_gateway_value).expect("previous entry should not exist");
 
+        if !state.borrow().initialized_gateways.is_gateway_initialized(initialized_gateway_index.clone()) {
+            let initialized_gateway_value = InitializedGatewayValue {
+                principal_id: gateway_principal_id.clone()
+            };
+            state.borrow_mut().initialized_gateways.create(initialized_gateway_index, initialized_gateway_value).expect("previous entry should not exist");
+            print(format!("Initialized gateway with prinipal ID: {:?}", gateway_principal_id));
+        }
         Ok(gateway_principal_id)
     })
 }
