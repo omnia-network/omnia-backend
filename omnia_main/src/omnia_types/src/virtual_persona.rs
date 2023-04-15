@@ -28,9 +28,4 @@ pub struct VirtualPersonaValue {
     pub manager_env_uid: Option<EnvironmentUID>
 }
 
-pub struct VirtualPersonaEntry {
-    pub index: VirtualPersonaIndex,
-    pub value: VirtualPersonaValue,
-}
-
 pub type VirtualPersonaValueResult = Result<VirtualPersonaValue, GenericError>;

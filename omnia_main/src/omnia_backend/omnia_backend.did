@@ -17,6 +17,7 @@ type HttpResponse = record {
   status_code : nat16;
 };
 type InitializedGatewayValue = record { principal_id : text };
+type PairingInfo = record { payload : text };
 type RegisteredGatewayValue = record {
   gateway_name : text;
   gateway_ip : text;
@@ -29,6 +30,12 @@ type Result_3 = variant { Ok : vec RegisteredGatewayValue; Err : text };
 type Result_4 = variant { Ok : text; Err : text };
 type Result_5 = variant { Ok : RegisteredGatewayValue; Err : text };
 type Result_6 = variant { Ok : EnvironmentInfo; Err : text };
+type UpdateValue = record {
+  info : PairingInfo;
+  command : text;
+  virtual_persona_principal_id : text;
+  virtual_persona_ip : text;
+};
 type VirtualPersonaValue = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;
@@ -37,6 +44,7 @@ type VirtualPersonaValue = record {
 };
 service : (opt text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (Result);
+  getGatewayUpdates : () -> (opt UpdateValue);
   getInitializedGateways : (text) -> (Result_1);
   getProfile : (text) -> (Result_2);
   getRegisteredGateways : (text) -> (Result_3);

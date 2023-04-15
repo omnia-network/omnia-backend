@@ -4,6 +4,7 @@ type EnvironmentInfo = record { env_uid : text };
 type GatewayRegistrationInput = record { gateway_name : text; env_uid : text };
 type InitializedGatewayValue = record { principal_id : text };
 type IpChallengeValue = record { requester_ip : text; timestamp : nat64 };
+type PairingInfo = record { payload : text };
 type RegisteredGatewayValue = record {
   gateway_name : text;
   gateway_ip : text;
@@ -16,6 +17,12 @@ type Result_3 = variant { Ok : VirtualPersonaValue; Err : text };
 type Result_4 = variant { Ok : text; Err : text };
 type Result_5 = variant { Ok : RegisteredGatewayValue; Err : text };
 type Result_6 = variant { Ok : EnvironmentInfo; Err : text };
+type UpdateValue = record {
+  info : PairingInfo;
+  command : text;
+  virtual_persona_principal_id : text;
+  virtual_persona_ip : text;
+};
 type VirtualPersonaValue = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;
@@ -25,6 +32,7 @@ type VirtualPersonaValue = record {
 service : {
   checkIfVirtualPersonaExists : (text) -> (bool) query;
   createNewEnvironment : (text, EnvironmentCreationInput) -> (Result);
+  getGatewayUpdatesByPrincipal : (text) -> (opt UpdateValue);
   getInitializedGatewaysByIp : (text) -> (Result_1);
   getRegisteredGatewaysInEnvironment : (text) -> (Result_2);
   getVirtualPersona : (text, text) -> (Result_3);

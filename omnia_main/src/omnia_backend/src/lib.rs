@@ -45,6 +45,7 @@ mod tests {
     use omnia_types::virtual_persona::*;
     use omnia_types::http::*;
     use omnia_types::errors::*;
+    use omnia_types::updates::*;
 
     #[test]
     fn save_candid() {

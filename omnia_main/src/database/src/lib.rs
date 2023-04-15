@@ -8,6 +8,7 @@ use omnia_types::errors::GenericResult;
 use omnia_types::gateway::{RegisteredGatewayValue, InitializedGatewayValue, InitializedGatewayIndex, RegisteredGatewayIndex};
 use omnia_types::http::{IpChallengeValue, IpChallengeIndex, Ip, IpChallengeNonce};
 use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValue};
+use omnia_types::updates::{UpdateIndex, UpdateValue};
 use serde::Serialize;
 
 mod environment;
@@ -23,6 +24,7 @@ struct State {
     pub registered_gateways: CrudMap<RegisteredGatewayIndex, RegisteredGatewayValue>,
     pub ip_challenges: CrudMap<IpChallengeIndex, IpChallengeValue>,
     pub initialized_gateways: CrudMap<InitializedGatewayIndex, InitializedGatewayValue>,
+    pub updates: CrudMap<UpdateIndex, UpdateValue>,
 }
 
 impl State {
@@ -34,6 +36,7 @@ impl State {
             registered_gateways: CrudMap::default(),
             ip_challenges: CrudMap::default(),
             initialized_gateways: CrudMap::default(),
+            updates: CrudMap::default(),
         }
     }
 
@@ -88,6 +91,7 @@ mod tests {
         use omnia_types::http::*;
         use omnia_types::errors::*;
         use omnia_types::virtual_persona::*;
+        use omnia_types::updates::*;
         use std::env;
         use std::fs::write;
         use std::path::PathBuf;

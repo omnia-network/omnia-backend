@@ -9,7 +9,8 @@ use omnia_types::{
         MultipleRegisteredGatewayResult, GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue, RegisteredGatewayIndex, RegisteredGatewayValue,
     },
     virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex}, http::{IpChallengeNonce},
-    errors::{GenericResult, GenericError}
+    errors::{GenericResult, GenericError},
+    updates::{UpdateIndex, UpdateValueOption}
 };
 
 use crate::{uuid::generate_uuid, STATE};
@@ -209,5 +210,21 @@ fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> Mu
         }
         print(format!("Registered gateways: {:?}", registered_gateways));
         Ok(registered_gateways)
+    })
+}
+
+#[update(name = "getGatewayUpdatesByPrincipal")]
+#[candid_method(update, rename = "getGatewayUpdatesByPrincipal")]
+fn get_gateway_updates_by_principal(gateway_principal_id: GatewayPrincipalId) -> UpdateValueOption {
+    STATE.with(|state| {
+        // get updates for gateway
+        let update_index = UpdateIndex {
+            gateway_principal_id,
+        };
+
+        match state.borrow().updates.read(&update_index) {
+            Ok(update_value) => Some(update_value.clone()),
+            Err(_) => None,
+        }
     })
 }

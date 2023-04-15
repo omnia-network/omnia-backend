@@ -6,7 +6,7 @@ use ic_cdk::{
 use ic_cdk_macros::update;
 use omnia_types::{
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::{GenericResult, GenericError}
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption}
 };
 
 use crate::utils::get_database_principal;
@@ -151,3 +151,19 @@ async fn get_registered_gateways(environment_uid: EnvironmentUID) -> MultipleReg
 
     res
 }
+
+#[update(name = "getGatewayUpdates")]
+#[candid_method(update, rename = "getGatewayUpdates")]
+async fn get_gateway_updates() -> UpdateValueOption {
+    let gateway_principal_id = caller().to_string();
+
+    call::<(GatewayPrincipalId,), (UpdateValueOption,)>(
+        get_database_principal(),
+        "getGatewayUpdatesByPrincipal",
+        (gateway_principal_id,),
+    )
+    .await
+    .unwrap()
+    .0
+}
+
