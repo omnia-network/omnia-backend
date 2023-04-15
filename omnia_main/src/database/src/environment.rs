@@ -247,24 +247,35 @@ fn pair_new_device_on_gateway(
         // validate IP challenge
         let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
 
-        // TODO: check if gateway is registered
-
-        // create updates for gateway
-        let update_index = UpdateIndex {
-            gateway_principal_id,
+        // check if gateway is already registered and in the same network
+        let registered_gateway_index = RegisteredGatewayIndex {
+            principal_id: gateway_principal_id.clone(),
         };
+        let registered_gateway_value = match state.borrow().registered_gateways.read(&registered_gateway_index) {
+            Ok(registered_gateway_value) => Ok(registered_gateway_value.clone()),
+            Err(e) => Err(format!("Cannot pair device if gateway is not registered: {:?}", e)),
+        }?;
 
-        let update_value = UpdateValue {
-            virtual_persona_principal_id: manager_principal_id,
-            virtual_persona_ip: ip_challenge_value.requester_ip,
-            command: String::from("pair"),
-            info: PairingInfo {
-                payload: String::from("pairing_code")
-            }
-        };
-
-        state.borrow_mut().updates.create(update_index, update_value.clone())?;
-
-        Ok(update_value)
+        if registered_gateway_value.gateway_ip == ip_challenge_value.requester_ip {
+            // create updates for gateway
+            let update_index = UpdateIndex {
+                gateway_principal_id: gateway_principal_id.clone(),
+            };
+    
+            let update_value = UpdateValue {
+                virtual_persona_principal_id: manager_principal_id.clone(),
+                virtual_persona_ip: ip_challenge_value.requester_ip,
+                command: String::from("pair"),
+                info: PairingInfo {
+                    payload: String::from("pairing_code")
+                }
+            };
+    
+            state.borrow_mut().updates.create(update_index, update_value.clone())?;
+    
+            print(format!("Manager {:?} paired new device to gateway {:?}", manager_principal_id, gateway_principal_id));
+            return Ok(update_value);
+        }
+        Err(String::from("Cannot commission devices from a different network of the gateway"))
     })
 }
