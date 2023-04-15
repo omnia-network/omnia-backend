@@ -15,8 +15,9 @@ type Result_1 = variant { Ok : vec InitializedGatewayValue; Err : text };
 type Result_2 = variant { Ok : vec RegisteredGatewayValue; Err : text };
 type Result_3 = variant { Ok : VirtualPersonaValue; Err : text };
 type Result_4 = variant { Ok : text; Err : text };
-type Result_5 = variant { Ok : RegisteredGatewayValue; Err : text };
-type Result_6 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_5 = variant { Ok : UpdateValue; Err : text };
+type Result_6 = variant { Ok : RegisteredGatewayValue; Err : text };
+type Result_7 = variant { Ok : EnvironmentInfo; Err : text };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;
@@ -39,9 +40,10 @@ service : {
   initGatewayByIp : (text, text) -> (Result_4);
   initNonceToIp : (text, IpChallengeValue) -> ();
   isGatewayRegistered : (text) -> (bool);
+  pairNewDeviceOnGateway : (text, text, text) -> (Result_5);
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
-      Result_5,
+      Result_6,
     );
-  resetUserFromEnvironment : (text, text) -> (Result_6);
-  setUserInEnvironment : (text, text) -> (Result_6);
+  resetUserFromEnvironment : (text, text) -> (Result_7);
+  setUserInEnvironment : (text, text) -> (Result_7);
 }

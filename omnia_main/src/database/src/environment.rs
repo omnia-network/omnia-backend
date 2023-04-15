@@ -10,7 +10,7 @@ use omnia_types::{
     },
     virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex}, http::{IpChallengeNonce},
     errors::{GenericResult, GenericError},
-    updates::{UpdateIndex, UpdateValueOption}
+    updates::{UpdateIndex, UpdateValueOption, UpdateValueResult, UpdateValue, PairingInfo}
 };
 
 use crate::{uuid::generate_uuid, STATE};
@@ -222,9 +222,49 @@ fn get_gateway_updates_by_principal(gateway_principal_id: GatewayPrincipalId) ->
             gateway_principal_id,
         };
 
-        match state.borrow().updates.read(&update_index) {
-            Ok(update_value) => Some(update_value.clone()),
-            Err(_) => None,
+        // check if there are any update
+        let is_update = match state.borrow().updates.read(&update_index) {
+            Ok(_) => true,
+            Err(_) => false,
+        };
+
+        if is_update {
+            let update_value = state.borrow_mut().updates.delete(&update_index).expect("must have update");
+            return Some(update_value);
         }
+        None
+    })
+}
+
+#[update(name = "pairNewDeviceOnGateway")]
+#[candid_method(update, rename = "pairNewDeviceOnGateway")]
+fn pair_new_device_on_gateway(
+    nonce: IpChallengeNonce,
+    manager_principal_id: VirtualPersonaPrincipalId,
+    gateway_principal_id: GatewayPrincipalId,
+) -> UpdateValueResult {
+    STATE.with(|state| {
+        // validate IP challenge
+        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
+
+        // TODO: check if gateway is registered
+
+        // create updates for gateway
+        let update_index = UpdateIndex {
+            gateway_principal_id,
+        };
+
+        let update_value = UpdateValue {
+            virtual_persona_principal_id: manager_principal_id,
+            virtual_persona_ip: ip_challenge_value.requester_ip,
+            command: String::from("pair"),
+            info: PairingInfo {
+                payload: String::from("pairing_code")
+            }
+        };
+
+        state.borrow_mut().updates.create(update_index, update_value.clone())?;
+
+        Ok(update_value)
     })
 }

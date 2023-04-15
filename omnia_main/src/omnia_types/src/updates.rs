@@ -30,7 +30,7 @@ pub struct UpdateValue {
 
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
 pub struct PairingInfo {
-    payload: String 
+    pub payload: String 
 }
 
 pub type UpdateValueResult = GenericResult<UpdateValue>;

@@ -6,7 +6,7 @@ use ic_cdk::{
 use ic_cdk_macros::update;
 use omnia_types::{
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption}
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption}, virtual_persona::VirtualPersonaPrincipalId
 };
 
 use crate::utils::get_database_principal;
@@ -161,6 +161,25 @@ async fn get_gateway_updates() -> UpdateValueOption {
         get_database_principal(),
         "getGatewayUpdatesByPrincipal",
         (gateway_principal_id,),
+    )
+    .await
+    .unwrap()
+    .0
+}
+
+#[update(name = "pairNewDevice")]
+#[candid_method(update, rename = "pairNewDevice")]
+async fn pair_new_device(nonce: IpChallengeNonce, gateway_principal_id: GatewayPrincipalId) -> UpdateValueResult {
+    let manager_principal_id = caller().to_string();
+
+    call::<(IpChallengeNonce, VirtualPersonaPrincipalId, GatewayPrincipalId,), (UpdateValueResult,)>(
+        get_database_principal(),
+        "pairNewDeviceOnGateway",
+        (
+            nonce,
+            manager_principal_id,
+            gateway_principal_id,
+        ),
     )
     .await
     .unwrap()

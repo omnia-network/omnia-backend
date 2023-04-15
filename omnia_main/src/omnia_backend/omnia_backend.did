@@ -28,8 +28,9 @@ type Result_1 = variant { Ok : vec InitializedGatewayValue; Err : text };
 type Result_2 = variant { Ok : VirtualPersonaValue; Err : text };
 type Result_3 = variant { Ok : vec RegisteredGatewayValue; Err : text };
 type Result_4 = variant { Ok : text; Err : text };
-type Result_5 = variant { Ok : RegisteredGatewayValue; Err : text };
-type Result_6 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_5 = variant { Ok : UpdateValue; Err : text };
+type Result_6 = variant { Ok : RegisteredGatewayValue; Err : text };
+type Result_7 = variant { Ok : EnvironmentInfo; Err : text };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;
@@ -51,7 +52,8 @@ service : (opt text, text) -> {
   http_request : (HttpRequest) -> (HttpResponse) query;
   http_request_update : (HttpRequest) -> (HttpResponse);
   initGateway : (text) -> (Result_4);
-  registerGateway : (text, GatewayRegistrationInput) -> (Result_5);
-  resetEnvironment : (text) -> (Result_6);
-  setEnvironment : (text) -> (Result_6);
+  pairNewDevice : (text, text) -> (Result_5);
+  registerGateway : (text, GatewayRegistrationInput) -> (Result_6);
+  resetEnvironment : (text) -> (Result_7);
+  setEnvironment : (text) -> (Result_7);
 }
