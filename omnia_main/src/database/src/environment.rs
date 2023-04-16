@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use candid::candid_method;
 use ic_cdk::print;
 use ic_cdk_macros::update;
@@ -10,7 +10,7 @@ use omnia_types::{
     },
     virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex}, http::{IpChallengeNonce},
     errors::{GenericResult, GenericError},
-    updates::{UpdateIndex, UpdateValueOption, UpdateValueResult, UpdateValue, PairingInfo, PairingPayload}, device::{RegisteredDeviceResult, RegisteredDeviceValue, RegisteredDeviceIndex}
+    updates::{UpdateIndex, UpdateValueOption, UpdateValueResult, UpdateValue, PairingInfo, PairingPayload}, device::{RegisteredDeviceResult, RegisteredDeviceValue, RegisteredDeviceIndex}, affordance::AffordanceValue
 };
 
 use crate::{uuid::generate_uuid, STATE};
@@ -277,6 +277,7 @@ fn pair_new_device_on_gateway(
 async fn register_device_on_gateway(
     nonce: IpChallengeNonce,
     gateway_principal_id: GatewayPrincipalId,
+    affordances: BTreeSet<AffordanceValue>,
 ) -> RegisteredDeviceResult {
     let device_uid = generate_uuid().await;
 
@@ -299,7 +300,8 @@ async fn register_device_on_gateway(
             let registered_device_value = RegisteredDeviceValue {
                 name: String::from("Sample devices"),
                 gateway_principal_id: gateway_principal_id.clone(),
-                environment: String::from("Sample Environment")
+                environment: String::from("Sample Environment"),
+                affordances,
             };
 
             // register device in gateway

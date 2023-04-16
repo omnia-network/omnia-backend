@@ -56,7 +56,7 @@ service : (opt text, text) -> {
   http_request_update : (HttpRequest) -> (HttpResponse);
   initGateway : (text) -> (Result_4);
   pairNewDevice : (text, text, text) -> (Result_5);
-  registerDevice : (text) -> (Result_6);
+  registerDevice : (text, vec text) -> (Result_6);
   registerGateway : (text, GatewayRegistrationInput) -> (Result_7);
   resetEnvironment : (text) -> (Result_8);
   setEnvironment : (text) -> (Result_8);

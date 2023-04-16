@@ -44,7 +44,7 @@ service : {
   initNonceToIp : (text, IpChallengeValue) -> ();
   isGatewayRegistered : (text) -> (bool);
   pairNewDeviceOnGateway : (text, text, text, text) -> (Result_5);
-  registerDeviceOnGateway : (text, text) -> (Result_6);
+  registerDeviceOnGateway : (text, text, vec text) -> (Result_6);
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
       Result_7,
     );

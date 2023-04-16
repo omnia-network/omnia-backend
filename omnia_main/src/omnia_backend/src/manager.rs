@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use candid::candid_method;
 use ic_cdk::{
     api::{call::call, caller},
@@ -6,7 +8,7 @@ use ic_cdk::{
 use ic_cdk_macros::update;
 use omnia_types::{
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption, PairingPayload}, virtual_persona::VirtualPersonaPrincipalId, device::RegisteredDeviceResult
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption, PairingPayload}, virtual_persona::VirtualPersonaPrincipalId, device::RegisteredDeviceResult, affordance::AffordanceValue
 };
 
 use crate::utils::get_database_principal;
@@ -193,15 +195,19 @@ async fn pair_new_device(
 
 #[update(name = "registerDevice")]
 #[candid_method(update, rename = "registerDevice")]
-async fn register_device(nonce: IpChallengeNonce) -> RegisteredDeviceResult {
+async fn register_device(
+    nonce: IpChallengeNonce,
+    affordances: BTreeSet<AffordanceValue>
+) -> RegisteredDeviceResult {
     let gateway_principal_id = caller().to_string();
 
-    call::<(IpChallengeNonce, GatewayPrincipalId,), (RegisteredDeviceResult,)>(
+    call::<(IpChallengeNonce, GatewayPrincipalId, BTreeSet<AffordanceValue>,), (RegisteredDeviceResult,)>(
         get_database_principal(),
         "registerDeviceOnGateway",
         (
             nonce,
             gateway_principal_id,
+            affordances,
         ),
     )
     .await

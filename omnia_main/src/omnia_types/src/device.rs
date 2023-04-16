@@ -1,9 +1,9 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::BTreeSet};
 
 use candid::{CandidType, Deserialize};
 use serde::Serialize;
 
-use crate::{errors::GenericResult, gateway::GatewayPrincipalId, environment::EnvironmentUID};
+use crate::{errors::GenericResult, gateway::GatewayPrincipalId, environment::EnvironmentUID, affordance::AffordanceValue};
 
 pub type DeviceUid = String;
 
@@ -22,7 +22,8 @@ impl Ord for RegisteredDeviceIndex {
 pub struct RegisteredDeviceValue {
     pub name: String,
     pub gateway_principal_id: GatewayPrincipalId,
-    pub environment: EnvironmentUID
+    pub environment: EnvironmentUID,
+    pub affordances: BTreeSet<AffordanceValue>
 }
 
 pub type RegisteredDeviceResult = GenericResult<RegisteredDeviceIndex>;

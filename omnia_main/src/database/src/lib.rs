@@ -93,9 +93,11 @@ mod tests {
         use omnia_types::virtual_persona::*;
         use omnia_types::updates::*;
         use omnia_types::device::*;
+        use omnia_types::affordance::*;
         use std::env;
         use std::fs::write;
         use std::path::PathBuf;
+        use std::collections::BTreeSet;
 
         let dir = PathBuf::from(env::current_dir().unwrap());
         export_service!();

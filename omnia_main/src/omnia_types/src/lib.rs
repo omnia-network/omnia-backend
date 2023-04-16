@@ -17,6 +17,7 @@ pub mod errors;
 pub mod http;
 pub mod updates;
 pub mod device;
+pub mod affordance;
 
 #[derive(Default, CandidType, Serialize, Deserialize)]
 pub struct CrudMap<I: Ord + Debug, V> {
