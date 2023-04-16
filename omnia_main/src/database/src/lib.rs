@@ -1,9 +1,11 @@
+use std::collections::BTreeSet;
 use std::{cell::RefCell, ops::Deref};
 use candid::{CandidType, Deserialize};
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{post_upgrade, pre_upgrade};
 use omnia_types::CrudMap;
-use omnia_types::device::{RegisteredDeviceIndex, RegisteredDeviceValue};
+use omnia_types::affordance::AffordanceValue;
+use omnia_types::device::{RegisteredDeviceIndex, RegisteredDeviceValue, DeviceUid};
 use omnia_types::environment::{EnvironmentIndex, EnvironmentValue, EnvironmentUidValue, EnvironmentUidIndex, EnvironmentUID};
 use omnia_types::errors::GenericResult;
 use omnia_types::gateway::{RegisteredGatewayValue, InitializedGatewayValue, InitializedGatewayIndex, RegisteredGatewayIndex};
@@ -26,7 +28,8 @@ struct State {
     pub ip_challenges: CrudMap<IpChallengeIndex, IpChallengeValue>,
     pub initialized_gateways: CrudMap<InitializedGatewayIndex, InitializedGatewayValue>,
     pub updates: CrudMap<UpdateIndex, UpdateValue>,
-    pub registered_devices: CrudMap<RegisteredDeviceIndex, RegisteredDeviceValue>
+    pub registered_devices: CrudMap<RegisteredDeviceIndex, RegisteredDeviceValue>,
+    pub affordance_devices_index: CrudMap<AffordanceValue, BTreeSet<DeviceUid>>,
 }
 
 impl State {
@@ -39,7 +42,8 @@ impl State {
             ip_challenges: CrudMap::default(),
             initialized_gateways: CrudMap::default(),
             updates: CrudMap::default(),
-            registered_devices: CrudMap::default()
+            registered_devices: CrudMap::default(),
+            affordance_devices_index: CrudMap::default(),
         }
     }
 

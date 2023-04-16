@@ -1,5 +1,6 @@
-use std::collections::BTreeMap;
-
+use std::{collections::{BTreeMap, BTreeSet}};
+use ic_cdk::print;
+use affordance::AffordanceValue;
 use candid::{CandidType, Deserialize};
 use device::DeviceUid;
 use environment::{EnvironmentValue, EnvironmentIndex, EnvironmentUID};
@@ -171,5 +172,33 @@ impl CrudMap<RegisteredGatewayIndex, RegisteredGatewayValue> {
         let mut updatable_registered_gateway_value = self.read(&registered_gateway_index)?.clone();
         updatable_registered_gateway_value.gat_registered_device_uids.insert(device_uid, ());
         self.update(registered_gateway_index, updatable_registered_gateway_value)
+    }
+}
+
+impl CrudMap<AffordanceValue, BTreeSet<DeviceUid>> {
+    pub fn insert_device_in_affordances_index(
+        &mut self,
+        affordance: AffordanceValue,
+        device_uid: DeviceUid
+    ) -> GenericResult<()>{
+        let updatable_device_uids_option = match self.read(&affordance) {
+            Ok(device_uids) => Some(device_uids.clone()),
+            Err(_) => None
+        };
+
+        match updatable_device_uids_option {
+            None => {
+                let mut device_uids = BTreeSet::new();
+                device_uids.insert(device_uid.clone());
+                self.create(affordance.clone(), device_uids)?;
+                print(format!("Created affordance {:?} in index with device {:?}", affordance, device_uid));
+            },
+            Some(mut updatable_device_uids) => {
+                updatable_device_uids.insert(device_uid.clone());
+                self.update(affordance.clone(), updatable_device_uids)?;
+                print(format!("Added device {:?} to affordance {:?}", device_uid, affordance));
+            }
+        };
+        Ok(())
     }
 }

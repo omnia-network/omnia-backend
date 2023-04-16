@@ -301,11 +301,16 @@ async fn register_device_on_gateway(
                 name: String::from("Sample devices"),
                 gateway_principal_id: gateway_principal_id.clone(),
                 environment: String::from("Sample Environment"),
-                affordances,
+                affordances: affordances.clone(),
             };
 
             // register device in gateway
             state.borrow_mut().registered_gateways.insert_device_uid_in_gateway(registered_gateway_index, device_uid.clone())?;
+
+            // register device in affordance index
+            for affordance in affordances {
+                state.borrow_mut().affordance_devices_index.insert_device_in_affordances_index(affordance, device_uid.clone())?;
+            };
 
             state.borrow_mut().registered_devices.create(registered_device_index.clone(), registered_device_value)?;
             print(format!("Gateway {:?} registered new device with UID {:?}", gateway_principal_id, device_uid));
