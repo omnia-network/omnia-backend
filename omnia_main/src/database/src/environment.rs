@@ -317,10 +317,10 @@ async fn register_device_on_gateway(
 
             // TODO: register device in gateway
 
-            state.borrow_mut().registered_devices.create(registered_device_index, registered_device_value.clone())?;
+            state.borrow_mut().registered_devices.create(registered_device_index.clone(), registered_device_value)?;
             print(format!("Gateway {:?} registered new device with UID {:?}", gateway_principal_id, device_uid));
 
-            return Ok(registered_device_value);
+            return Ok(registered_device_index);
         }
         Err(String::from("Cannot register device from a different network of the gateway"))
     })

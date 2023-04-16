@@ -25,6 +25,6 @@ pub struct RegisteredDeviceValue {
     pub environment: EnvironmentUID
 }
 
-pub type RegisteredDeviceResult = GenericResult<RegisteredDeviceValue>;
+pub type RegisteredDeviceResult = GenericResult<RegisteredDeviceIndex>;
 
 pub type RegisteredDeviceOption = Option<RegisteredDeviceValue>;
