@@ -13,14 +13,15 @@ type RegisteredGatewayValue = record {
   gat_registered_device_uids : vec record { text; null };
 };
 type Result = variant { Ok : EnvironmentCreationResult; Err : text };
-type Result_1 = variant { Ok : vec InitializedGatewayValue; Err : text };
-type Result_2 = variant { Ok : vec RegisteredGatewayValue; Err : text };
-type Result_3 = variant { Ok : VirtualPersonaValue; Err : text };
-type Result_4 = variant { Ok : text; Err : text };
-type Result_5 = variant { Ok : UpdateValue; Err : text };
-type Result_6 = variant { Ok : RegisteredDeviceIndex; Err : text };
-type Result_7 = variant { Ok : RegisteredGatewayValue; Err : text };
-type Result_8 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_1 = variant { Ok : vec text; Err : text };
+type Result_2 = variant { Ok : vec InitializedGatewayValue; Err : text };
+type Result_3 = variant { Ok : vec RegisteredGatewayValue; Err : text };
+type Result_4 = variant { Ok : VirtualPersonaValue; Err : text };
+type Result_5 = variant { Ok : text; Err : text };
+type Result_6 = variant { Ok : UpdateValue; Err : text };
+type Result_7 = variant { Ok : RegisteredDeviceIndex; Err : text };
+type Result_8 = variant { Ok : RegisteredGatewayValue; Err : text };
+type Result_9 = variant { Ok : EnvironmentInfo; Err : text };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;
@@ -36,18 +37,19 @@ type VirtualPersonaValue = record {
 service : {
   checkIfVirtualPersonaExists : (text) -> (bool) query;
   createNewEnvironment : (text, EnvironmentCreationInput) -> (Result);
+  getDevicesInEnvironmentByAffordance : (text, text) -> (Result_1);
   getGatewayUpdatesByPrincipal : (text) -> (opt UpdateValue);
-  getInitializedGatewaysByIp : (text) -> (Result_1);
-  getRegisteredGatewaysInEnvironment : (text) -> (Result_2);
-  getVirtualPersona : (text, text) -> (Result_3);
-  initGatewayByIp : (text, text) -> (Result_4);
+  getInitializedGatewaysByIp : (text) -> (Result_2);
+  getRegisteredGatewaysInEnvironment : (text) -> (Result_3);
+  getVirtualPersona : (text, text) -> (Result_4);
+  initGatewayByIp : (text, text) -> (Result_5);
   initNonceToIp : (text, IpChallengeValue) -> ();
   isGatewayRegistered : (text) -> (bool);
-  pairNewDeviceOnGateway : (text, text, text, text) -> (Result_5);
-  registerDeviceOnGateway : (text, text, vec text) -> (Result_6);
+  pairNewDeviceOnGateway : (text, text, text, text) -> (Result_6);
+  registerDeviceOnGateway : (text, text, vec text) -> (Result_7);
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
-      Result_7,
+      Result_8,
     );
-  resetUserFromEnvironment : (text, text) -> (Result_8);
-  setUserInEnvironment : (text, text) -> (Result_8);
+  resetUserFromEnvironment : (text, text) -> (Result_9);
+  setUserInEnvironment : (text, text) -> (Result_9);
 }

@@ -10,7 +10,7 @@ use omnia_types::{
     },
     virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex}, http::{IpChallengeNonce},
     errors::{GenericResult, GenericError},
-    updates::{UpdateIndex, UpdateValueOption, UpdateValueResult, UpdateValue, PairingInfo, PairingPayload}, device::{RegisteredDeviceResult, RegisteredDeviceValue, RegisteredDeviceIndex}, affordance::AffordanceValue
+    updates::{UpdateIndex, UpdateValueOption, UpdateValueResult, UpdateValue, PairingInfo, PairingPayload}, device::{RegisteredDeviceResult, RegisteredDeviceValue, RegisteredDeviceIndex, DeviceUid}, affordance::AffordanceValue
 };
 
 use crate::{uuid::generate_uuid, STATE};
@@ -318,5 +318,38 @@ async fn register_device_on_gateway(
             return Ok(registered_device_index);
         }
         Err(String::from("Cannot register device from a different network of the gateway"))
+    })
+}
+
+
+#[update(name = "getDevicesInEnvironmentByAffordancegetDevicesInEnvironmentByAffordance")]
+#[candid_method(update, rename = "getDevicesInEnvironmentByAffordance")]
+async fn get_devices_in_environment_by_affordance(
+    environment_uid: EnvironmentUID,
+    affordance: AffordanceValue,
+) -> GenericResult<BTreeSet<DeviceUid>> {
+    STATE.with(|state| {
+        let device_uids_with_affordance = match state.borrow().affordance_devices_index.read(&affordance) {
+            Ok(device_uids) => device_uids.clone(),
+            Err(_) => BTreeSet::<DeviceUid>::new(),
+        };
+        print(format!("Device UIDS with affordance '{:?}':  {:?}", affordance, device_uids_with_affordance));
+
+        let environment_index = EnvironmentIndex {
+            environment_uid,
+        };
+        let gateways_in_environment = state.borrow().environments.read(&environment_index)?.clone().env_gateways_principals_ids;
+        let mut device_uids_in_environment = BTreeSet::<DeviceUid>::new();
+        for gateway_principal_id in gateways_in_environment.keys() {
+            let registered_gateway_index = RegisteredGatewayIndex {
+                principal_id: gateway_principal_id.clone(),
+            };
+            let device_uids_in_gateway: BTreeSet<DeviceUid> = state.borrow().registered_gateways.read(&registered_gateway_index)?.gat_registered_device_uids.keys().into_iter().map(|device_uid| device_uid.clone()).collect();
+            device_uids_in_environment.extend(device_uids_in_gateway);
+        }
+        print(format!("Device UIDS in environment with UID {:?}:  {:?}", affordance, device_uids_with_affordance));
+
+        let device_uids = device_uids_with_affordance.intersection(&device_uids_in_environment).map(|device_uid| device_uid.clone()).collect();
+        Ok(device_uids)
     })
 }

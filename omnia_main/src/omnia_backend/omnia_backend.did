@@ -26,14 +26,15 @@ type RegisteredGatewayValue = record {
   gat_registered_device_uids : vec record { text; null };
 };
 type Result = variant { Ok : EnvironmentCreationResult; Err : text };
-type Result_1 = variant { Ok : vec InitializedGatewayValue; Err : text };
-type Result_2 = variant { Ok : VirtualPersonaValue; Err : text };
-type Result_3 = variant { Ok : vec RegisteredGatewayValue; Err : text };
-type Result_4 = variant { Ok : text; Err : text };
-type Result_5 = variant { Ok : UpdateValue; Err : text };
-type Result_6 = variant { Ok : RegisteredDeviceIndex; Err : text };
-type Result_7 = variant { Ok : RegisteredGatewayValue; Err : text };
-type Result_8 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_1 = variant { Ok : vec text; Err : text };
+type Result_2 = variant { Ok : vec InitializedGatewayValue; Err : text };
+type Result_3 = variant { Ok : VirtualPersonaValue; Err : text };
+type Result_4 = variant { Ok : vec RegisteredGatewayValue; Err : text };
+type Result_5 = variant { Ok : text; Err : text };
+type Result_6 = variant { Ok : UpdateValue; Err : text };
+type Result_7 = variant { Ok : RegisteredDeviceIndex; Err : text };
+type Result_8 = variant { Ok : RegisteredGatewayValue; Err : text };
+type Result_9 = variant { Ok : EnvironmentInfo; Err : text };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;
@@ -48,16 +49,17 @@ type VirtualPersonaValue = record {
 };
 service : (opt text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (Result);
+  getDevicesInEnvironmentByAffordance : (text, text) -> (Result_1);
   getGatewayUpdates : () -> (opt UpdateValue);
-  getInitializedGateways : (text) -> (Result_1);
-  getProfile : (text) -> (Result_2);
-  getRegisteredGateways : (text) -> (Result_3);
+  getInitializedGateways : (text) -> (Result_2);
+  getProfile : (text) -> (Result_3);
+  getRegisteredGateways : (text) -> (Result_4);
   http_request : (HttpRequest) -> (HttpResponse) query;
   http_request_update : (HttpRequest) -> (HttpResponse);
-  initGateway : (text) -> (Result_4);
-  pairNewDevice : (text, text, text) -> (Result_5);
-  registerDevice : (text, vec text) -> (Result_6);
-  registerGateway : (text, GatewayRegistrationInput) -> (Result_7);
-  resetEnvironment : (text) -> (Result_8);
-  setEnvironment : (text) -> (Result_8);
+  initGateway : (text) -> (Result_5);
+  pairNewDevice : (text, text, text) -> (Result_6);
+  registerDevice : (text, vec text) -> (Result_7);
+  registerGateway : (text, GatewayRegistrationInput) -> (Result_8);
+  resetEnvironment : (text) -> (Result_9);
+  setEnvironment : (text) -> (Result_9);
 }

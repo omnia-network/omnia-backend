@@ -8,7 +8,7 @@ use ic_cdk::{
 use ic_cdk_macros::update;
 use omnia_types::{
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption, PairingPayload}, virtual_persona::VirtualPersonaPrincipalId, device::RegisteredDeviceResult, affordance::AffordanceValue
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption, PairingPayload}, virtual_persona::VirtualPersonaPrincipalId, device::{RegisteredDeviceResult, DeviceUid}, affordance::AffordanceValue
 };
 
 use crate::utils::get_database_principal;
@@ -208,6 +208,25 @@ async fn register_device(
             nonce,
             gateway_principal_id,
             affordances,
+        ),
+    )
+    .await
+    .unwrap()
+    .0
+}
+
+#[update(name = "getDevicesInEnvironmentByAffordance")]
+#[candid_method(update, rename = "getDevicesInEnvironmentByAffordance")]
+async fn get_devices_in_environment_by_affordance(
+    environment_uid: EnvironmentUID,
+    affordance: AffordanceValue
+) -> GenericResult<BTreeSet<DeviceUid>> {
+    call::<(EnvironmentUID, AffordanceValue,), (GenericResult<BTreeSet<DeviceUid>>,)>(
+        get_database_principal(),
+        "getDevicesInEnvironmentByAffordance",
+        (
+            environment_uid,
+            affordance,
         ),
     )
     .await
