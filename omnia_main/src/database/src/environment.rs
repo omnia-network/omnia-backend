@@ -160,6 +160,7 @@ fn register_gateway_in_environment(
             gateway_name: gateway_registration_input.gateway_name,
             gateway_ip: ip_challenge_value.requester_ip,
             env_uid: gateway_registration_input.env_uid.clone(),
+            gat_registered_device_uids: BTreeMap::default(),
         };
         state.borrow_mut().registered_gateways.create(registered_gateway_index.clone(), registered_gateway_value.clone())?;
 
@@ -167,7 +168,7 @@ fn register_gateway_in_environment(
         let environment_index = EnvironmentIndex {
             environment_uid: gateway_registration_input.env_uid,
         };
-        state.borrow_mut().environments.insert_gateway_principal_id_in_env(environment_index,registered_gateway_index.principal_id)?;
+        state.borrow_mut().environments.insert_gateway_principal_id_in_env(environment_index, registered_gateway_index.principal_id)?;
 
         Ok(registered_gateway_value)
     })
@@ -181,12 +182,7 @@ fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> Mu
         let environment_index = EnvironmentIndex {
             environment_uid,
         };
-        let environment_value = match state.borrow().environments.read(&environment_index) {
-            Ok(environment_value) => {
-                Ok(environment_value.clone())
-            },
-            Err(e) => Err(e)
-        }?;
+        let environment_value = state.borrow().environments.read(&environment_index)?.clone();
         let gateway_principal_ids: Vec<GatewayPrincipalId> = environment_value
             .env_gateways_principals_ids
             .iter()
@@ -202,10 +198,7 @@ fn get_registered_gateways_in_environment(environment_uid: EnvironmentUID) -> Mu
             let registered_gateway_index = RegisteredGatewayIndex {
                 principal_id: gateway_principal_id,
             };
-            let registered_gateway_value = match state.borrow().registered_gateways.read(&registered_gateway_index) {
-                Ok(registered_gateway_value) => Ok(registered_gateway_value.clone()),
-                Err(e) => Err(e),
-            }?;
+            let registered_gateway_value = state.borrow().registered_gateways.read(&registered_gateway_index)?.clone();
             registered_gateways.push(registered_gateway_value.clone());
         }
         print(format!("Registered gateways: {:?}", registered_gateways));
@@ -252,10 +245,7 @@ fn pair_new_device_on_gateway(
         let registered_gateway_index = RegisteredGatewayIndex {
             principal_id: gateway_principal_id.clone(),
         };
-        let registered_gateway_value = match state.borrow().registered_gateways.read(&registered_gateway_index) {
-            Ok(registered_gateway_value) => Ok(registered_gateway_value.clone()),
-            Err(e) => Err(format!("Cannot pair device if gateway is not registered: {:?}", e)),
-        }?;
+        let registered_gateway_value = state.borrow().registered_gateways.read(&registered_gateway_index)?.clone();
 
         // check if pairing request is coming from the same network of the gateway
         if registered_gateway_value.gateway_ip == ip_challenge_value.requester_ip {
@@ -298,10 +288,7 @@ async fn register_device_on_gateway(
         let registered_gateway_index = RegisteredGatewayIndex {
             principal_id: gateway_principal_id.clone(),
         };
-        let registered_gateway_value = match state.borrow().registered_gateways.read(&registered_gateway_index) {
-            Ok(registered_gateway_value) => Ok(registered_gateway_value.clone()),
-            Err(e) => Err(format!("Cannot pair device if gateway is not registered: {:?}", e)),
-        }?;
+        let registered_gateway_value = state.borrow().registered_gateways.read(&registered_gateway_index)?.clone();
 
         // check if pairing request is coming from the same network of the gateway
         if registered_gateway_value.gateway_ip == ip_challenge_value.requester_ip {
@@ -315,7 +302,8 @@ async fn register_device_on_gateway(
                 environment: String::from("Sample Environment")
             };
 
-            // TODO: register device in gateway
+            // register device in gateway
+            state.borrow_mut().registered_gateways.insert_device_uid_in_gateway(registered_gateway_index, device_uid.clone())?;
 
             state.borrow_mut().registered_devices.create(registered_device_index.clone(), registered_device_value)?;
             print(format!("Gateway {:?} registered new device with UID {:?}", gateway_principal_id, device_uid));

@@ -23,6 +23,7 @@ type RegisteredGatewayValue = record {
   gateway_name : text;
   gateway_ip : text;
   env_uid : text;
+  gat_registered_device_uids : vec record { text; null };
 };
 type Result = variant { Ok : EnvironmentCreationResult; Err : text };
 type Result_1 = variant { Ok : vec InitializedGatewayValue; Err : text };

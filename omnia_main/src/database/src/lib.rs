@@ -47,10 +47,7 @@ impl State {
         let environment_uid_index = EnvironmentUidIndex {
             ip,
         };
-        let environment_uid_value = match self.environment_uids.read(&environment_uid_index) {
-            Ok(environment_uid_value) => Ok(environment_uid_value.clone()),
-            Err(e) => Err(e),
-        }?;
+        let environment_uid_value = self.environment_uids.read(&environment_uid_index)?.clone();
         Ok(environment_uid_value.env_uid)
     }
 

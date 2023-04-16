@@ -1,8 +1,8 @@
 use candid::{CandidType, Deserialize};
 use serde::Serialize;
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::BTreeMap};
 
-use crate::{environment::EnvironmentUID, http::Ip, errors::GenericError};
+use crate::{environment::EnvironmentUID, http::Ip, errors::GenericError, device::DeviceUid};
 
 pub type GatewayUID = String;
 pub type GatewayPrincipald = String;
@@ -47,7 +47,7 @@ pub struct RegisteredGatewayValue {
     pub gateway_name: String,
     pub gateway_ip: Ip,
     pub env_uid: EnvironmentUID,
-
+    pub gat_registered_device_uids: BTreeMap<DeviceUid, ()>,    // TODO: DeviceInfo
 }
 
 pub type RegisteredGatewayResult = Result<RegisteredGatewayValue, GenericError>;

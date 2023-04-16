@@ -1,9 +1,10 @@
 use std::collections::BTreeMap;
 
 use candid::{CandidType, Deserialize};
+use device::DeviceUid;
 use environment::{EnvironmentValue, EnvironmentIndex, EnvironmentUID};
 use errors::GenericResult;
-use gateway::{GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue};
+use gateway::{GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue, RegisteredGatewayIndex, RegisteredGatewayValue};
 use http::{IpChallengeIndex, IpChallengeValue, IpChallengeValueResult};
 use serde::Serialize;
 use virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex, VirtualPersonaValue};
@@ -111,8 +112,7 @@ impl CrudMap<InitializedGatewayIndex, InitializedGatewayValue> {
 
 impl CrudMap<EnvironmentIndex, EnvironmentValue> {
     pub fn insert_gateway_principal_id_in_env(&mut self, environment_index: EnvironmentIndex, gateway_principal_id: GatewayPrincipalId) -> GenericResult<EnvironmentValue> {
-        let environment_value = self.read(&environment_index)?;
-        let mut updatable_environment_value = environment_value.clone();
+        let mut updatable_environment_value = self.read(&environment_index)?.clone();
         updatable_environment_value.env_gateways_principals_ids.insert(gateway_principal_id, ());
         self.update(environment_index, updatable_environment_value)
     }
@@ -134,10 +134,7 @@ impl CrudMap<EnvironmentIndex, EnvironmentValue> {
 
 impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
     pub fn insert_env_in_virtual_persona_as_user(&mut self, virtual_persona_index: VirtualPersonaIndex, environment_uid: EnvironmentUID) -> GenericResult<VirtualPersonaValue> {
-        let virtual_persona_value = match self.read(&virtual_persona_index) {
-            Ok(virtual_persona_value) => Ok(virtual_persona_value.clone()),
-            Err(e) => Err(e),
-        }?;
+        let virtual_persona_value = self.read(&virtual_persona_index)?.clone();
         let updated_virtual_persona = VirtualPersonaValue {
             user_env_uid: Some(environment_uid),
             ..virtual_persona_value.to_owned()
@@ -146,10 +143,7 @@ impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
     }
 
     pub fn remove_env_in_virtual_persona_as_user(&mut self, virtual_persona_index: VirtualPersonaIndex) -> GenericResult<VirtualPersonaValue> {
-        let virtual_persona_value = match self.read(&virtual_persona_index) {
-            Ok(virtual_persona_value) => Ok(virtual_persona_value.clone()),
-            Err(e) => Err(e),
-        }?;
+        let virtual_persona_value = self.read(&virtual_persona_index)?.clone();
         let updated_virtual_persona = VirtualPersonaValue {
             user_env_uid: None,
             ..virtual_persona_value.to_owned()
@@ -158,14 +152,23 @@ impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
     }
 
     pub fn insert_env_in_virtual_persona_as_manager(&mut self, virtual_persona_index: VirtualPersonaIndex, environment_uid: EnvironmentUID) -> GenericResult<VirtualPersonaValue> {
-        let virtual_persona_value = match self.read(&virtual_persona_index) {
-            Ok(virtual_persona_value) => Ok(virtual_persona_value.clone()),
-            Err(e) => Err(e),
-        }?;
+        let virtual_persona_value = self.read(&virtual_persona_index)?.clone();
         let updated_virtual_persona = VirtualPersonaValue {
             manager_env_uid: Some(environment_uid),
             ..virtual_persona_value.to_owned()
         };
         self.update(virtual_persona_index, updated_virtual_persona)
+    }
+}
+
+impl CrudMap<RegisteredGatewayIndex, RegisteredGatewayValue> {
+    pub fn insert_device_uid_in_gateway(
+        &mut self,
+        registered_gateway_index: RegisteredGatewayIndex,
+        device_uid: DeviceUid
+    ) -> GenericResult<RegisteredGatewayValue> {
+        let mut updatable_registered_gateway_value = self.read(&registered_gateway_index)?.clone();
+        updatable_registered_gateway_value.gat_registered_device_uids.insert(device_uid, ());
+        self.update(registered_gateway_index, updatable_registered_gateway_value)
     }
 }
