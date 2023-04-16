@@ -6,7 +6,7 @@ use ic_cdk::{
 use ic_cdk_macros::update;
 use omnia_types::{
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption}, virtual_persona::VirtualPersonaPrincipalId
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::IpChallengeNonce, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption, PairingPayload}, virtual_persona::VirtualPersonaPrincipalId, device::RegisteredDeviceResult
 };
 
 use crate::utils::get_database_principal;
@@ -169,15 +169,38 @@ async fn get_gateway_updates() -> UpdateValueOption {
 
 #[update(name = "pairNewDevice")]
 #[candid_method(update, rename = "pairNewDevice")]
-async fn pair_new_device(nonce: IpChallengeNonce, gateway_principal_id: GatewayPrincipalId) -> UpdateValueResult {
+async fn pair_new_device(
+    nonce: IpChallengeNonce,
+    gateway_principal_id: GatewayPrincipalId,
+    pairing_payload: PairingPayload
+) -> UpdateValueResult {
     let manager_principal_id = caller().to_string();
 
-    call::<(IpChallengeNonce, VirtualPersonaPrincipalId, GatewayPrincipalId,), (UpdateValueResult,)>(
+    call::<(IpChallengeNonce, VirtualPersonaPrincipalId, GatewayPrincipalId, PairingPayload), (UpdateValueResult,)>(
         get_database_principal(),
         "pairNewDeviceOnGateway",
         (
             nonce,
             manager_principal_id,
+            gateway_principal_id,
+            pairing_payload,
+        ),
+    )
+    .await
+    .unwrap()
+    .0
+}
+
+#[update(name = "registerDevice")]
+#[candid_method(update, rename = "registerDevice")]
+async fn register_device(nonce: IpChallengeNonce) -> RegisteredDeviceResult {
+    let gateway_principal_id = caller().to_string();
+
+    call::<(IpChallengeNonce, GatewayPrincipalId,), (RegisteredDeviceResult,)>(
+        get_database_principal(),
+        "registerDeviceOnGateway",
+        (
+            nonce,
             gateway_principal_id,
         ),
     )

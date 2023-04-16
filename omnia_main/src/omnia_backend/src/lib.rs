@@ -46,6 +46,7 @@ mod tests {
     use omnia_types::http::*;
     use omnia_types::errors::*;
     use omnia_types::updates::*;
+    use omnia_types::device::*;
 
     #[test]
     fn save_candid() {

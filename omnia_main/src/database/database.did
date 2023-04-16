@@ -5,6 +5,11 @@ type GatewayRegistrationInput = record { gateway_name : text; env_uid : text };
 type InitializedGatewayValue = record { principal_id : text };
 type IpChallengeValue = record { requester_ip : text; timestamp : nat64 };
 type PairingInfo = record { payload : text };
+type RegisteredDeviceValue = record {
+  name : text;
+  environment : text;
+  gateway_principal_id : text;
+};
 type RegisteredGatewayValue = record {
   gateway_name : text;
   gateway_ip : text;
@@ -16,8 +21,9 @@ type Result_2 = variant { Ok : vec RegisteredGatewayValue; Err : text };
 type Result_3 = variant { Ok : VirtualPersonaValue; Err : text };
 type Result_4 = variant { Ok : text; Err : text };
 type Result_5 = variant { Ok : UpdateValue; Err : text };
-type Result_6 = variant { Ok : RegisteredGatewayValue; Err : text };
-type Result_7 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_6 = variant { Ok : RegisteredDeviceValue; Err : text };
+type Result_7 = variant { Ok : RegisteredGatewayValue; Err : text };
+type Result_8 = variant { Ok : EnvironmentInfo; Err : text };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;
@@ -40,10 +46,11 @@ service : {
   initGatewayByIp : (text, text) -> (Result_4);
   initNonceToIp : (text, IpChallengeValue) -> ();
   isGatewayRegistered : (text) -> (bool);
-  pairNewDeviceOnGateway : (text, text, text) -> (Result_5);
+  pairNewDeviceOnGateway : (text, text, text, text) -> (Result_5);
+  registerDeviceOnGateway : (text, text) -> (Result_6);
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
-      Result_6,
+      Result_7,
     );
-  resetUserFromEnvironment : (text, text) -> (Result_7);
-  setUserInEnvironment : (text, text) -> (Result_7);
+  resetUserFromEnvironment : (text, text) -> (Result_8);
+  setUserInEnvironment : (text, text) -> (Result_8);
 }

@@ -3,6 +3,7 @@ use candid::{CandidType, Deserialize};
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{post_upgrade, pre_upgrade};
 use omnia_types::CrudMap;
+use omnia_types::device::{RegisteredDeviceIndex, RegisteredDeviceValue};
 use omnia_types::environment::{EnvironmentIndex, EnvironmentValue, EnvironmentUidValue, EnvironmentUidIndex, EnvironmentUID};
 use omnia_types::errors::GenericResult;
 use omnia_types::gateway::{RegisteredGatewayValue, InitializedGatewayValue, InitializedGatewayIndex, RegisteredGatewayIndex};
@@ -25,6 +26,7 @@ struct State {
     pub ip_challenges: CrudMap<IpChallengeIndex, IpChallengeValue>,
     pub initialized_gateways: CrudMap<InitializedGatewayIndex, InitializedGatewayValue>,
     pub updates: CrudMap<UpdateIndex, UpdateValue>,
+    pub registered_devices: CrudMap<RegisteredDeviceIndex, RegisteredDeviceValue>
 }
 
 impl State {
@@ -37,6 +39,7 @@ impl State {
             ip_challenges: CrudMap::default(),
             initialized_gateways: CrudMap::default(),
             updates: CrudMap::default(),
+            registered_devices: CrudMap::default()
         }
     }
 
@@ -92,6 +95,7 @@ mod tests {
         use omnia_types::errors::*;
         use omnia_types::virtual_persona::*;
         use omnia_types::updates::*;
+        use omnia_types::device::*;
         use std::env;
         use std::fs::write;
         use std::path::PathBuf;

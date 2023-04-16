@@ -9,6 +9,8 @@ use crate::{
     virtual_persona::{VirtualPersonaIp, VirtualPersonaPrincipalId}
 };
 
+pub type PairingPayload = String;
+
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
 pub struct UpdateIndex {
     pub gateway_principal_id: GatewayPrincipalId,
@@ -30,7 +32,7 @@ pub struct UpdateValue {
 
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
 pub struct PairingInfo {
-    pub payload: String 
+    pub payload: PairingPayload, 
 }
 
 pub type UpdateValueResult = GenericResult<UpdateValue>;

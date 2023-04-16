@@ -10,7 +10,7 @@ use omnia_types::{
     },
     virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex}, http::{IpChallengeNonce},
     errors::{GenericResult, GenericError},
-    updates::{UpdateIndex, UpdateValueOption, UpdateValueResult, UpdateValue, PairingInfo}
+    updates::{UpdateIndex, UpdateValueOption, UpdateValueResult, UpdateValue, PairingInfo, PairingPayload}, device::{RegisteredDeviceResult, RegisteredDeviceValue, RegisteredDeviceIndex}
 };
 
 use crate::{uuid::generate_uuid, STATE};
@@ -242,12 +242,13 @@ fn pair_new_device_on_gateway(
     nonce: IpChallengeNonce,
     manager_principal_id: VirtualPersonaPrincipalId,
     gateway_principal_id: GatewayPrincipalId,
+    pairing_payload: PairingPayload,
 ) -> UpdateValueResult {
     STATE.with(|state| {
         // validate IP challenge
         let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
 
-        // check if gateway is already registered and in the same network
+        // check if gateway is already registered
         let registered_gateway_index = RegisteredGatewayIndex {
             principal_id: gateway_principal_id.clone(),
         };
@@ -256,6 +257,7 @@ fn pair_new_device_on_gateway(
             Err(e) => Err(format!("Cannot pair device if gateway is not registered: {:?}", e)),
         }?;
 
+        // check if pairing request is coming from the same network of the gateway
         if registered_gateway_value.gateway_ip == ip_challenge_value.requester_ip {
             // create updates for gateway
             let update_index = UpdateIndex {
@@ -267,7 +269,7 @@ fn pair_new_device_on_gateway(
                 virtual_persona_ip: ip_challenge_value.requester_ip,
                 command: String::from("pair"),
                 info: PairingInfo {
-                    payload: String::from("pairing_code")
+                    payload: pairing_payload,
                 }
             };
     
@@ -277,5 +279,49 @@ fn pair_new_device_on_gateway(
             return Ok(update_value);
         }
         Err(String::from("Cannot commission devices from a different network of the gateway"))
+    })
+}
+
+#[update(name = "registerDeviceOnGateway")]
+#[candid_method(update, rename = "registerDeviceOnGateway")]
+async fn register_device_on_gateway(
+    nonce: IpChallengeNonce,
+    gateway_principal_id: GatewayPrincipalId,
+) -> RegisteredDeviceResult {
+    let device_uid = generate_uuid().await;
+
+    STATE.with(|state| {
+        // validate IP challenge
+        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
+
+        // check if gateway is already registered
+        let registered_gateway_index = RegisteredGatewayIndex {
+            principal_id: gateway_principal_id.clone(),
+        };
+        let registered_gateway_value = match state.borrow().registered_gateways.read(&registered_gateway_index) {
+            Ok(registered_gateway_value) => Ok(registered_gateway_value.clone()),
+            Err(e) => Err(format!("Cannot pair device if gateway is not registered: {:?}", e)),
+        }?;
+
+        // check if pairing request is coming from the same network of the gateway
+        if registered_gateway_value.gateway_ip == ip_challenge_value.requester_ip {
+            let registered_device_index = RegisteredDeviceIndex {
+                device_uid: device_uid.clone(),
+            };
+
+            let registered_device_value = RegisteredDeviceValue {
+                name: String::from("Sample devices"),
+                gateway_principal_id: gateway_principal_id.clone(),
+                environment: String::from("Sample Environment")
+            };
+
+            // TODO: register device in gateway
+
+            state.borrow_mut().registered_devices.create(registered_device_index, registered_device_value.clone())?;
+            print(format!("Gateway {:?} registered new device with UID {:?}", gateway_principal_id, device_uid));
+
+            return Ok(registered_device_value);
+        }
+        Err(String::from("Cannot register device from a different network of the gateway"))
     })
 }
