@@ -1,7 +1,6 @@
 type DevicesAccessInfo = record {
-  devices_uid : vec text;
-  gateway_url : text;
-  proxied_gateway_uid : opt text;
+  devices_urls : vec text;
+  required_headers : vec record { text; text };
 };
 type EnvironmentCreationInput = record { env_name : text };
 type EnvironmentCreationResult = record { env_uid : text; env_name : text };

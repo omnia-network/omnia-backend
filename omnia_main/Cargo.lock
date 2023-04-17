@@ -595,6 +595,7 @@ dependencies = [
  "ic-cdk",
  "ic-cdk-macros",
  "omnia_types",
+ "omnia_utils",
  "serde",
  "serde_json",
 ]

@@ -6,7 +6,7 @@ use crate::STATE;
 
 #[update(name = "initNonceToIp")]
 #[candid_method(update, rename = "initNonceToIp")]
-async fn init_nonce_to_ip(nonce: IpChallengeNonce, ip_challenge_value: IpChallengeValue) -> () {
+async fn init_nonce_to_ip(nonce: IpChallengeNonce, ip_challenge_value: IpChallengeValue) {
 
     print(format!("Initialized requester info: {:?} for nonce: {:?} ", ip_challenge_value, nonce));
 

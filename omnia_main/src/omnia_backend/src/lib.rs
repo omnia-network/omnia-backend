@@ -27,13 +27,13 @@ thread_local! {
 #[init]
 #[candid_method(init)]
 fn init(_: Option<String>, arg2: String) {
-    print(format!("Init canister..."));
+    print("Init canister...");
     update_database_principal(arg2);
 }
 
 #[post_upgrade]
 fn post_upgrade(_: Option<String>, arg2: String) {
-    print(format!("Post upgrade canister..."));
+    print("Post upgrade canister...");
     update_database_principal(arg2);
 }
 
@@ -53,10 +53,9 @@ mod tests {
     fn save_candid() {
         use std::env;
         use std::fs::write;
-        use std::path::PathBuf;
         use std::collections::BTreeSet;
 
-        let dir = PathBuf::from(env::current_dir().unwrap());
+        let dir = env::current_dir().unwrap();
         export_service!();
         write(dir.join("omnia_backend.did"), __export_service()).expect("Write failed.");
     }

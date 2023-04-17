@@ -26,12 +26,6 @@ pub struct CrudMap<I: Ord + Debug, V> {
 }
 
 impl<I: Ord + Debug, V> CrudMap<I, V> {
-    pub fn default() -> Self {
-        Self {
-            map: BTreeMap::<I, V>::default()
-        }
-    }
-
     pub fn create(&mut self, index: I, value: V) -> GenericResult<()>{
         match self.map.contains_key(&index) {
             false => {
@@ -109,10 +103,7 @@ impl CrudMap<IpChallengeIndex, IpChallengeValue> {
 impl CrudMap<InitializedGatewayIndex, InitializedGatewayValue> {
     pub fn is_gateway_initialized(&self, initialized_gateway_index: InitializedGatewayIndex) -> bool {
         // check existance in initialized gateways
-        match self.read(&initialized_gateway_index) {
-            Ok(_) => true,
-            Err(_) => false
-        }
+        self.read(&initialized_gateway_index).is_ok()
     }
 }
 
@@ -150,7 +141,7 @@ impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
         let virtual_persona_value = self.read(&virtual_persona_index)?.clone();
         let updated_virtual_persona = VirtualPersonaValue {
             user_env_uid: Some(environment_uid),
-            ..virtual_persona_value.to_owned()
+            ..virtual_persona_value
         };
         self.update(virtual_persona_index, updated_virtual_persona)
     }
@@ -159,7 +150,7 @@ impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
         let virtual_persona_value = self.read(&virtual_persona_index)?.clone();
         let updated_virtual_persona = VirtualPersonaValue {
             user_env_uid: None,
-            ..virtual_persona_value.to_owned()
+            ..virtual_persona_value
         };
         self.update(virtual_persona_index, updated_virtual_persona)
     }
@@ -168,7 +159,7 @@ impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
         let virtual_persona_value = self.read(&virtual_persona_index)?.clone();
         let updated_virtual_persona = VirtualPersonaValue {
             manager_env_uid: Some(environment_uid),
-            ..virtual_persona_value.to_owned()
+            ..virtual_persona_value
         };
         self.update(virtual_persona_index, updated_virtual_persona)
     }

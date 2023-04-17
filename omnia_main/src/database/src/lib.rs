@@ -83,10 +83,9 @@ mod tests {
         use omnia_types::affordance::*;
         use std::env;
         use std::fs::write;
-        use std::path::PathBuf;
         use std::collections::BTreeSet;
 
-        let dir = PathBuf::from(env::current_dir().unwrap());
+        let dir = env::current_dir().unwrap();
         export_service!();
         write(dir.join("database.did"), __export_service()).expect("Write failed.");
     }
