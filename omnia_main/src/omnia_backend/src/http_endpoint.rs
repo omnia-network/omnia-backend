@@ -12,7 +12,7 @@ use omnia_types::http::{
 };
 use crate::utils::get_database_principal;
 
-use ic_cdk::api::{call::call, time};
+use ic_cdk::{api::{call::call, time}};
 use ic_cdk_macros::{update, query};
 use serde_json::from_slice;
 
@@ -57,10 +57,13 @@ async fn http_request_update(req: HttpRequest) -> HttpResponse {
     });
 
     let parsed_body: ParsedHttpRequestBody = from_slice(&req.body.unwrap()).unwrap();
-
+    
+    let x_forwarded_for: Vec<String> = headers.get(&String::from("x-forwarded-for")).unwrap().to_owned().split(", ").map(|ip| ip.to_owned()).collect();
+    // TODO: check whether challenge is coming from VP or gateway and if from gateway, check if it is proxied
     let requester_info = IpChallengeValue {
-        requester_ip: headers.get(&String::from("x-real-ip")).unwrap().to_owned(),
-        proxied_gateway_uid: headers.get(&String::from("x-peer-id")).unwrap().to_owned(),
+        requester_ip: x_forwarded_for.get(x_forwarded_for.len() - 2).expect("must have at least two IPs").clone(),
+        proxy_ip: Some(x_forwarded_for.get(x_forwarded_for.len() - 1).expect("must have proxy IP").clone()),
+        proxied_gateway_uid: Some(headers.get(&String::from("x-peer-id")).unwrap().to_owned()),
         timestamp: time(),
     };
 

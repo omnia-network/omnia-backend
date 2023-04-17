@@ -2,11 +2,12 @@ use candid::{CandidType, Deserialize};
 use serde::Serialize;
 use std::{cmp::Ordering, collections::BTreeMap};
 
-use crate::{environment::EnvironmentUID, http::Ip, errors::GenericError, device::DeviceUid};
+use crate::{environment::EnvironmentUID, http::{Ip, ProxiedGatewayUID}, errors::GenericError, device::DeviceUid};
 
 pub type GatewayUID = String;
 pub type GatewayPrincipald = String;
 pub type GatewayPrincipalId = String;
+pub type GatewayURL = String;
 
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
 pub struct InitializedGatewayIndex {
@@ -45,7 +46,11 @@ impl Ord for RegisteredGatewayIndex {
 #[derive(Debug, Clone, CandidType, Default, Deserialize, Serialize)]
 pub struct RegisteredGatewayValue {
     pub gateway_name: String,
+    /// public IP of the gateway
     pub gateway_ip: Ip,
+    /// URL of the proxy
+    pub gateway_url: GatewayURL,
+    pub proxied_gateway_uid: Option<ProxiedGatewayUID>,
     pub env_uid: EnvironmentUID,
     pub gat_registered_device_uids: BTreeMap<DeviceUid, ()>,    // TODO: DeviceInfo
 }

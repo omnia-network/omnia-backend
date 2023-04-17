@@ -1,12 +1,18 @@
+type DevicesAccessInfo = record {
+  devices_uid : vec text;
+  gateway_url : text;
+  proxied_gateway_uid : opt text;
+};
 type EnvironmentCreationInput = record { env_name : text };
 type EnvironmentCreationResult = record { env_uid : text; env_name : text };
 type EnvironmentInfo = record { env_uid : text };
 type GatewayRegistrationInput = record { gateway_name : text; env_uid : text };
 type InitializedGatewayValue = record { principal_id : text };
 type IpChallengeValue = record {
+  proxy_ip : opt text;
   requester_ip : text;
   timestamp : nat64;
-  proxied_gateway_uid : text;
+  proxied_gateway_uid : opt text;
 };
 type PairingInfo = record { payload : text };
 type RegisteredDeviceIndex = record { device_uid : text };
@@ -15,9 +21,11 @@ type RegisteredGatewayValue = record {
   gateway_ip : text;
   env_uid : text;
   gat_registered_device_uids : vec record { text; null };
+  gateway_url : text;
+  proxied_gateway_uid : opt text;
 };
 type Result = variant { Ok : EnvironmentCreationResult; Err : text };
-type Result_1 = variant { Ok : vec text; Err : text };
+type Result_1 = variant { Ok : vec DevicesAccessInfo; Err : text };
 type Result_2 = variant { Ok : vec InitializedGatewayValue; Err : text };
 type Result_3 = variant { Ok : vec RegisteredGatewayValue; Err : text };
 type Result_4 = variant { Ok : VirtualPersonaValue; Err : text };

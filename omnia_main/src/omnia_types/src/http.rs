@@ -42,7 +42,8 @@ pub struct HttpResponse {
 #[derive(Clone, Default, CandidType, Serialize, Deserialize, Debug)]
 pub struct IpChallengeValue {
     pub requester_ip: Ip,
-    pub proxied_gateway_uid: ProxiedGatewayUID,
+    pub proxy_ip: Option<Ip>,
+    pub proxied_gateway_uid: Option<ProxiedGatewayUID>,
     pub timestamp: u64,
 }
 
