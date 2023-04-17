@@ -3,10 +3,10 @@ use ic_cdk::print;
 use affordance::AffordanceValue;
 use candid::{CandidType, Deserialize};
 use device::DeviceUid;
-use environment::{EnvironmentValue, EnvironmentIndex, EnvironmentUID};
+use environment::{EnvironmentValue, EnvironmentIndex, EnvironmentUID, EnvironmentUidIndex, EnvironmentUidValue};
 use errors::GenericResult;
 use gateway::{GatewayPrincipalId, InitializedGatewayIndex, InitializedGatewayValue, RegisteredGatewayIndex, RegisteredGatewayValue};
-use http::{IpChallengeIndex, IpChallengeValue, IpChallengeValueResult};
+use http::{IpChallengeIndex, IpChallengeValue, IpChallengeNonce};
 use serde::Serialize;
 use virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaIndex, VirtualPersonaValue};
 use std::fmt::Debug;
@@ -97,8 +97,12 @@ impl<I: Ord + Debug, V> CrudMap<I, V> {
 }
 
 impl CrudMap<IpChallengeIndex, IpChallengeValue> {
-    pub fn validate_ip_challenge(&mut self, nonce: &IpChallengeIndex) -> IpChallengeValueResult {
-        Ok(self.delete(nonce)?)
+    pub fn validate_ip_challenge_by_nonce(&mut self, nonce: IpChallengeNonce) -> GenericResult<IpChallengeValue> {
+        let ip_challenge_index = IpChallengeIndex {
+            nonce,
+        };
+        let ip_challenge_value = self.delete(&ip_challenge_index)?;
+        Ok(ip_challenge_value)
     }
 }
 
@@ -109,6 +113,13 @@ impl CrudMap<InitializedGatewayIndex, InitializedGatewayValue> {
             Ok(_) => true,
             Err(_) => false
         }
+    }
+}
+
+impl CrudMap<EnvironmentUidIndex, EnvironmentUidValue> {
+    pub fn get_environment_uid_by_ip(&self, environment_uid_index: EnvironmentUidIndex) -> GenericResult<EnvironmentUID> {
+        let environment_uid_value = self.read(&environment_uid_index)?.clone();
+        Ok(environment_uid_value.env_uid)
     }
 }
 

@@ -14,6 +14,7 @@ pub const CONNECTION_HEADER_KEY: &str = "Connection";
 pub type HttpHeader = (String, String);
 pub type IpChallengeNonce = String;
 pub type Ip = String;
+pub type ProxiedGatewayUID = String;
 
 #[derive(CandidType, Deserialize, Debug, PartialEq, Clone)]
 pub struct HttpRequest {
@@ -41,6 +42,7 @@ pub struct HttpResponse {
 #[derive(Clone, Default, CandidType, Serialize, Deserialize, Debug)]
 pub struct IpChallengeValue {
     pub requester_ip: Ip,
+    pub proxied_gateway_uid: ProxiedGatewayUID,
     pub timestamp: u64,
 }
 

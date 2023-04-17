@@ -37,7 +37,7 @@ async fn is_gateway_registered(gateway_principal_id: GatewayPrincipalId) -> bool
 async fn init_gateway_by_ip(nonce: IpChallengeNonce, gateway_principal_id: GatewayPrincipalId) -> GenericResult<GatewayPrincipalId> {
     STATE.with(|state| {
         // validate IP challenge
-        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge_by_nonce(nonce)?;
 
         // create initialized gateway
         let initialized_gateway_index = InitializedGatewayIndex {
@@ -60,7 +60,7 @@ async fn init_gateway_by_ip(nonce: IpChallengeNonce, gateway_principal_id: Gatew
 async fn get_initialized_gateways_by_ip(nonce: IpChallengeNonce) -> GenericResult<Vec<InitializedGatewayValue>> {
     STATE.with(|state| {
         // validate IP challenge
-        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge_by_nonce(nonce)?;
 
         // get initialized gateways by IP
         let initialized_gateway_index = InitializedGatewayIndex {
@@ -131,7 +131,7 @@ fn register_gateway_in_environment(
 ) -> RegisteredGatewayResult {
     STATE.with(|state| {
         // validate IP challenge
-        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge_by_nonce(nonce)?;
 
         // remove initialized gateways
         let initialized_gateway_index = InitializedGatewayIndex {
@@ -239,7 +239,7 @@ fn pair_new_device_on_gateway(
 ) -> UpdateValueResult {
     STATE.with(|state| {
         // validate IP challenge
-        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge_by_nonce(nonce)?;
 
         // check if gateway is already registered
         let registered_gateway_index = RegisteredGatewayIndex {
@@ -283,7 +283,7 @@ async fn register_device_on_gateway(
 
     STATE.with(|state| {
         // validate IP challenge
-        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge_by_nonce(nonce)?;
 
         // check if gateway is already registered
         let registered_gateway_index = RegisteredGatewayIndex {

@@ -1,7 +1,7 @@
 use candid::candid_method;
 use ic_cdk::print;
 use ic_cdk_macros::{update, query};
-use omnia_types::environment::{EnvironmentInfoResult, EnvironmentIndex};
+use omnia_types::environment::{EnvironmentInfoResult, EnvironmentIndex, EnvironmentUidIndex};
 use omnia_types::http::IpChallengeNonce;
 use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValueResult};
 use omnia_types::{
@@ -19,10 +19,13 @@ fn set_user_in_environment(
 ) -> EnvironmentInfoResult {
     STATE.with(|state| {
         // validate IP challenge
-        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge_by_nonce(nonce)?;
 
         // update users in environment
-        let environment_uid = state.borrow().get_environment_uid_by_ip( ip_challenge_value.requester_ip)?;
+        let environment_uid_index = EnvironmentUidIndex {
+            ip: ip_challenge_value.requester_ip,
+        };
+        let environment_uid = state.borrow().environment_uids.get_environment_uid_by_ip(environment_uid_index)?;
         let environment_index = EnvironmentIndex {
             environment_uid: environment_uid.clone(),
         };
@@ -50,10 +53,13 @@ fn set_user_in_environment(
 fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrincipalId, nonce: IpChallengeNonce) -> EnvironmentInfoResult {
     STATE.with(|state| {
         // validate IP challenge
-        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge_by_nonce(nonce)?;
 
         // update users in environment
-        let environment_uid = state.borrow().get_environment_uid_by_ip( ip_challenge_value.requester_ip)?;
+        let environment_uid_index = EnvironmentUidIndex {
+            ip: ip_challenge_value.requester_ip,
+        };
+        let environment_uid = state.borrow().environment_uids.get_environment_uid_by_ip(environment_uid_index)?;
         let environment_index = EnvironmentIndex {
             environment_uid: environment_uid.clone(),
         };
@@ -81,7 +87,7 @@ fn reset_user_from_environment(virtual_persona_principal_id: VirtualPersonaPrinc
 fn get_virtual_persona(nonce: IpChallengeNonce, virtual_persona_principal_id: VirtualPersonaPrincipalId) -> VirtualPersonaValueResult {
     STATE.with(|state| {
         // validate IP challenge
-        let ip_challenge_value = state.borrow_mut().validate_ip_challenge_by_nonce(nonce)?;
+        let ip_challenge_value = state.borrow_mut().ip_challenges.validate_ip_challenge_by_nonce(nonce)?;
 
         // if virtual persona exists, return it
         let virtual_persona_index = VirtualPersonaIndex {

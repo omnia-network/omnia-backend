@@ -3,7 +3,11 @@ type EnvironmentCreationResult = record { env_uid : text; env_name : text };
 type EnvironmentInfo = record { env_uid : text };
 type GatewayRegistrationInput = record { gateway_name : text; env_uid : text };
 type InitializedGatewayValue = record { principal_id : text };
-type IpChallengeValue = record { requester_ip : text; timestamp : nat64 };
+type IpChallengeValue = record {
+  requester_ip : text;
+  timestamp : nat64;
+  proxied_gateway_uid : text;
+};
 type PairingInfo = record { payload : text };
 type RegisteredDeviceIndex = record { device_uid : text };
 type RegisteredGatewayValue = record {

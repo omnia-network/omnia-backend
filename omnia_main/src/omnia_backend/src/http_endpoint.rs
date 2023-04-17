@@ -60,6 +60,7 @@ async fn http_request_update(req: HttpRequest) -> HttpResponse {
 
     let requester_info = IpChallengeValue {
         requester_ip: headers.get(&String::from("x-real-ip")).unwrap().to_owned(),
+        proxied_gateway_uid: headers.get(&String::from("x-peer-id")).unwrap().to_owned(),
         timestamp: time(),
     };
 
