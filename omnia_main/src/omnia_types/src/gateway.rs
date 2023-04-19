@@ -34,6 +34,7 @@ impl PartialOrd for InitializedGatewayIndex {
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
 pub struct InitializedGatewayValue {
     pub principal_id: GatewayPrincipalId,
+    pub proxied_gateway_uid: Option<String>,
 }
 
 #[derive(Debug, CandidType, Deserialize)]

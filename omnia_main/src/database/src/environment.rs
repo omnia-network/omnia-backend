@@ -58,7 +58,7 @@ async fn init_gateway_by_ip(
             .ip_challenges
             .validate_ip_challenge_by_nonce(nonce)?;
 
-        // create initialized gateway
+        // create initialized gateway, if not already initialized
         let initialized_gateway_index = InitializedGatewayIndex {
             ip: ip_challenge_value.requester_ip,
         };
@@ -69,7 +69,11 @@ async fn init_gateway_by_ip(
             .is_gateway_initialized(initialized_gateway_index.clone())
         {
             let initialized_gateway_value = InitializedGatewayValue {
+                /// gateway principal ID
                 principal_id: gateway_principal_id.clone(),
+                /// UID of the proxied gateway (if any)
+                // needed because when registering the gateway in environment, the request comes from the manager which is never proxied
+                proxied_gateway_uid: ip_challenge_value.proxied_gateway_uid
             };
             state
                 .borrow_mut()
@@ -182,8 +186,9 @@ fn register_gateway_in_environment(
             .validate_ip_challenge_by_nonce(nonce)?;
 
         // remove initialized gateways
+        // we only get the initialized gateway value if the registration request (from the managaer) comes from the same network of the initialized gateway  
         let initialized_gateway_index = InitializedGatewayIndex {
-            ip: ip_challenge_value.requester_ip.clone(),
+            ip: ip_challenge_value.requester_ip.clone(),    // manager's IP
         };
         let initialized_gateway_value = state
             .borrow_mut()
@@ -215,9 +220,9 @@ fn register_gateway_in_environment(
             gateway_ip: ip_challenge_value.requester_ip.clone(),
             gateway_url: get_gateway_url(
                 ip_challenge_value.requester_ip,
-                ip_challenge_value.is_proxied,
+                initialized_gateway_value.proxied_gateway_uid.is_some() // true if gateway is proxied (determined during intialization)
             ),
-            proxied_gateway_uid: ip_challenge_value.proxied_gateway_uid,
+            proxied_gateway_uid: initialized_gateway_value.proxied_gateway_uid,
             env_uid: gateway_registration_input.env_uid.clone(),
             gat_registered_device_uids: BTreeMap::default(),
         };
