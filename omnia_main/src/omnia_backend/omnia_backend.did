@@ -1,54 +1,60 @@
-//// Types ////
-
-//// Environment
-// EnvironmentUID is the unique identifier of an environment, in the form of a UUIDv4
-type EnvironmentUID = text;
-
-type EnvironmentInfo = record {
-  env_manager_principal_id : PrincipalId;
-  env_uid : EnvironmentUID;
-  env_name : text;
-};
-
-//// Gateway
-// GatewayUID is the unique identifier of a gateway, in the form of a UUIDv4
-type GatewayUID = text;
-type GatewayInfo = record { gateway_name : text; gateway_uid : GatewayUID };
-
-//// Device
-// DeviceUID is the unique identifier of a device, in the form of a UUIDv4
-type DeviceUID = text;
-type DeviceInfo = record {
-  device_name : text;
-  device_uid : DeviceUID;
-  gateway_uid : GatewayUID;
-};
-
-//// User
-// PrincipalId is the id of the Principal of a user
-type PrincipalId = text;
-type UserProfile = record {
-  user_principal_id : PrincipalId;
-  environment_uid : opt EnvironmentUID;
+type DevicesAccessInfo = record {
+  devices_urls : vec text;
+  required_headers : vec record { text; text };
 };
 
 //// Inputs ////
 
 type EnvironmentCreationInput = record { env_name : text };
-
-type GetDevicesInput = EnvironmentUID;
-type GetGatewaysInput = EnvironmentUID;
-
-type GatewayRegistrationInput = record {
-  gateway_name : text;
-  env_uid : EnvironmentUID;
-  gateway_uid : GatewayUID;
+type EnvironmentCreationResult = record { env_uid : text; env_name : text };
+type EnvironmentInfo = record { env_uid : text };
+type GatewayRegistrationInput = record { gateway_name : text; env_uid : text };
+type HttpRequest = record {
+  url : text;
+  method : text;
+  body : opt vec nat8;
+  headers : vec record { text; text };
+  upgrade : opt bool;
 };
-
-type DeviceRegistrationInput = record {
-  device_name : text;
-  env_uid : EnvironmentUID;
-  gateway_uid : GatewayUID;
+type HttpResponse = record {
+  body : vec nat8;
+  headers : vec record { text; text };
+  upgrade : opt bool;
+  streaming_strategy : opt text;
+  status_code : nat16;
+};
+type InitializedGatewayValue = record { principal_id : text };
+type PairingInfo = record { payload : text };
+type RegisteredDeviceIndex = record { device_uid : text };
+type RegisteredGatewayValue = record {
+  gateway_name : text;
+  gateway_ip : text;
+  env_uid : text;
+  gat_registered_device_uids : vec record { text; null };
+  gateway_url : text;
+  proxied_gateway_uid : opt text;
+};
+type Result = variant { Ok : EnvironmentCreationResult; Err : text };
+type Result_1 = variant { Ok : DevicesAccessInfo; Err : text };
+type Result_2 = variant { Ok : vec InitializedGatewayValue; Err : text };
+type Result_3 = variant { Ok : VirtualPersonaValue; Err : text };
+type Result_4 = variant { Ok : vec RegisteredGatewayValue; Err : text };
+type Result_5 = variant { Ok : text; Err : text };
+type Result_6 = variant { Ok : UpdateValue; Err : text };
+type Result_7 = variant { Ok : RegisteredDeviceIndex; Err : text };
+type Result_8 = variant { Ok : RegisteredGatewayValue; Err : text };
+type Result_9 = variant { Ok : EnvironmentInfo; Err : text };
+type UpdateValue = record {
+  info : PairingInfo;
+  command : text;
+  virtual_persona_principal_id : text;
+  virtual_persona_ip : text;
+};
+type VirtualPersonaValue = record {
+  manager_env_uid : opt text;
+  user_env_uid : opt text;
+  virtual_persona_principal_id : text;
+  virtual_persona_ip : text;
 };
 
 type SetEnvironmentInput = EnvironmentUID;
@@ -71,31 +77,18 @@ type GetProfileResult = UserProfile;
 // - text: database canister id
 // the first argument is needed to be able to deploy the internet_identity canister locally, but it's ignored when by this canister
 service : (opt text, text) -> {
-
-  // create a new environment
-  createEnvironment : (EnvironmentCreationInput) -> (EnvironmentCreationResult);
-
-  // get devices in environment
-  getDevices : (GetDevicesInput) -> (MultipleDeviceInfoResult);
-
-  // get gateways in environment
-  getGateways : (GetGatewaysInput) -> (MultipleGatewayInfoResult);
-
-  // get the current user profile (if it doesn't exist, it will be created)
-  getProfile : () -> (GetProfileResult);
-
-  // generate a new gateway id, to be registered in the environment
-  initGateway : () -> (InitGatewayResult);
-
-  // register a device in the environment
-  registerDevice : (DeviceRegistrationInput) -> (DeviceInfoResult);
-
-  // register a gateway in the environment
-  registerGateway : (GatewayRegistrationInput) -> (GatewayInfoResult);
-
-  // exit the current environment
-  resetEnvironment : () -> (EnvironmentInfoResult);
-
-  // set current user in the environment
-  setEnvironment : (SetEnvironmentInput) -> (EnvironmentInfoResult);
+  createEnvironment : (EnvironmentCreationInput) -> (Result);
+  getDevicesInEnvironmentByAffordance : (text, text) -> (Result_1);
+  getGatewayUpdates : () -> (opt UpdateValue);
+  getInitializedGateways : (text) -> (Result_2);
+  getProfile : (text) -> (Result_3);
+  getRegisteredGateways : (text) -> (Result_4);
+  http_request : (HttpRequest) -> (HttpResponse) query;
+  http_request_update : (HttpRequest) -> (HttpResponse);
+  initGateway : (text) -> (Result_5);
+  pairNewDevice : (text, text, text) -> (Result_6);
+  registerDevice : (text, vec text) -> (Result_7);
+  registerGateway : (text, GatewayRegistrationInput) -> (Result_8);
+  resetEnvironment : (text) -> (Result_9);
+  setEnvironment : (text) -> (Result_9);
 }

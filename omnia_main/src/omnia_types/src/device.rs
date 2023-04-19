@@ -1,24 +1,49 @@
+use std::{
+    cmp::Ordering,
+    collections::{BTreeMap, BTreeSet},
+};
+
 use candid::{CandidType, Deserialize};
+use serde::Serialize;
 
-use crate::environment::EnvironmentUID;
-use crate::errors::GenericError;
-use crate::gateway::GatewayUID;
+use crate::{
+    affordance::AffordanceValue, environment::EnvironmentUID, errors::GenericResult,
+    gateway::GatewayPrincipalId,
+};
 
-pub type DeviceUID = String;
+pub type DeviceUid = String;
 
-#[derive(Debug, CandidType, Deserialize)]
-pub struct DeviceRegistrationInput {
-    pub env_uid: EnvironmentUID,
-    pub gateway_uid: GatewayUID,
-    pub device_name: String,
+#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RegisteredDeviceIndex {
+    pub device_uid: DeviceUid,
 }
 
-#[derive(Debug, CandidType, Deserialize)]
-pub struct DeviceInfo {
-    pub device_name: String,
-    pub device_uid: DeviceUID,
-    pub gateway_uid: GatewayUID,
+impl Ord for RegisteredDeviceIndex {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.device_uid.cmp(&other.device_uid)
+    }
 }
 
-pub type DeviceInfoResult = Result<DeviceInfo, GenericError>;
-pub type MultipleDeviceInfoResult = Result<Vec<DeviceInfo>, GenericError>;
+impl PartialOrd for RegisteredDeviceIndex {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
+pub struct RegisteredDeviceValue {
+    pub name: String,
+    pub gateway_principal_id: GatewayPrincipalId,
+    pub environment: EnvironmentUID,
+    pub affordances: BTreeSet<AffordanceValue>,
+}
+
+#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
+pub struct DevicesAccessInfo {
+    pub devices_urls: Vec<String>,
+    pub required_headers: BTreeMap<String, String>,
+}
+
+pub type RegisteredDeviceResult = GenericResult<RegisteredDeviceIndex>;
+
+pub type RegisteredDeviceOption = Option<RegisteredDeviceValue>;

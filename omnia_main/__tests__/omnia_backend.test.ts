@@ -21,7 +21,7 @@ describe("Profile", () => {
   it("getProfile: anyone can get profile data", async () => {
     const profile = await omniaApi.getProfile();
 
-    expect(profile).toHaveProperty("user_principal_id");
+    expect(profile).toHaveProperty("virtual_persona_principal_id");
     expect(profile.environment_uid.length).toEqual(0);
 
     console.log("getProile:", profile);

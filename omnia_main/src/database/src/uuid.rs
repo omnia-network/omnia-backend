@@ -1,5 +1,4 @@
 use candid::Principal;
-use hex;
 use ic_cdk::{call, trap};
 use rand::Rng;
 use rand_chacha::{

@@ -1,6 +1,7 @@
 mod manager;
 mod user;
 mod utils;
+mod http_endpoint;
 
 use candid::{candid_method, CandidType, Deserialize, Principal};
 use ic_cdk::print;
@@ -27,11 +28,13 @@ thread_local! {
 #[candid_method(init)]
 fn init(_: Option<String>, arg2: String) {
     print("Init canister...");
+    print("Init canister...");
     update_database_principal(arg2);
 }
 
 #[post_upgrade]
 fn post_upgrade(_: Option<String>, arg2: String) {
+    print("Post upgrade canister...");
     print("Post upgrade canister...");
     update_database_principal(arg2);
 }
@@ -47,7 +50,12 @@ mod tests {
     use omnia_types::device::*;
     use omnia_types::environment::*;
     use omnia_types::gateway::*;
-    use omnia_types::user::*;
+    use omnia_types::virtual_persona::*;
+    use omnia_types::http::*;
+    use omnia_types::errors::*;
+    use omnia_types::updates::*;
+    use omnia_types::device::*;
+    use omnia_types::affordance::*;
 
     #[test]
     fn check_candid_interface() {

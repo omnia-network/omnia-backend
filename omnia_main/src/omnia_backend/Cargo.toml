@@ -13,4 +13,6 @@ candid = "0.7.14"
 ic-cdk = "0.5.2"
 ic-cdk-macros = "0.5.2"
 serde = "1.0.111"
+serde_json = "1.0.93"
 omnia_types = { path = "../omnia_types"}
+omnia_utils ={ path = "../omnia_utils"}

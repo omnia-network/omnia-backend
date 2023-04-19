@@ -1,101 +1,69 @@
-//// Types ////
-
-//// Environment
-// EnvironmentUID is the unique identifier of an environment, in the form of a UUIDv4
-type EnvironmentUID = text;
-
-type EnvironmentInfo = record {
-  env_manager_principal_id : PrincipalId;
-  env_uid : EnvironmentUID;
-  env_name : text;
-};
-
-
-//// Gateway
-// GatewayUID is the unique identifier of a gateway, in the form of a UUIDv4
-type GatewayUID = text;
-
-type GatewayInfo = record { gateway_name : text; gateway_uid : GatewayUID };
-
-//// Device
-// DeviceUID is the unique identifier of a device, in the form of a UUIDv4
-type DeviceUID = text;
-
-type DeviceInfo = record {
-  device_name : text;
-  device_uid : DeviceUID;
-  gateway_uid : text;
-};
-
-type DeviceRegistrationInput = record {
-  device_name : text;
-  env_uid : EnvironmentUID;
-  gateway_uid : GatewayUID;
-};
-
-
-//// User
-// PrincipalId is the id of the Principal of a user
-type PrincipalId = text;
-type StoredUserProfile = record {
-  user_principal_id : PrincipalId;
-  environment_uid : opt EnvironmentUID;
+type DevicesAccessInfo = record {
+  devices_urls : vec text;
+  required_headers : vec record { text; text };
 };
 
 //// Inputs ////
 
 type EnvironmentCreationInput = record { env_name : text };
-type GatewayRegistrationInput = record {
-  gateway_name : text;
-  env_uid : EnvironmentUID;
-  gateway_uid : GatewayUID;
+type EnvironmentCreationResult = record { env_uid : text; env_name : text };
+type EnvironmentInfo = record { env_uid : text };
+type GatewayRegistrationInput = record { gateway_name : text; env_uid : text };
+type InitializedGatewayValue = record { principal_id : text };
+type IpChallengeValue = record {
+  requester_ip : text;
+  timestamp : nat64;
+  is_proxied : bool;
+  proxied_gateway_uid : opt text;
 };
-type GetGatewaysInEnvironmentInput = EnvironmentUID;
-type GetDevicesInEnvironmentInput = EnvironmentUID;
-type GetUserProfileInput = PrincipalId;
-
-//// Results ////
-
-type EnvironmentCreationResult = record { env_uid : EnvironmentUID; env_name : text };
-type MultipleDeviceInfoResult = variant { Ok : vec DeviceInfo; Err : text };
-type MultipleGatewayInfoResult = variant { Ok : vec GatewayInfo; Err : text };
-type DeviceInfoResult = variant { Ok : DeviceInfo; Err : text };
-type GatewayInfoResult = variant { Ok : GatewayInfo; Err : text };
-type EnvironmentInfoResult = variant { Ok : EnvironmentInfo; Err : text };
-type InitGatewayResult = GatewayUID;
-
-//// Service ////
-
+type PairingInfo = record { payload : text };
+type RegisteredDeviceIndex = record { device_uid : text };
+type RegisteredGatewayValue = record {
+  gateway_name : text;
+  gateway_ip : text;
+  env_uid : text;
+  gat_registered_device_uids : vec record { text; null };
+  gateway_url : text;
+  proxied_gateway_uid : opt text;
+};
+type Result = variant { Ok : EnvironmentCreationResult; Err : text };
+type Result_1 = variant { Ok : DevicesAccessInfo; Err : text };
+type Result_2 = variant { Ok : vec InitializedGatewayValue; Err : text };
+type Result_3 = variant { Ok : vec RegisteredGatewayValue; Err : text };
+type Result_4 = variant { Ok : VirtualPersonaValue; Err : text };
+type Result_5 = variant { Ok : text; Err : text };
+type Result_6 = variant { Ok : UpdateValue; Err : text };
+type Result_7 = variant { Ok : RegisteredDeviceIndex; Err : text };
+type Result_8 = variant { Ok : RegisteredGatewayValue; Err : text };
+type Result_9 = variant { Ok : EnvironmentInfo; Err : text };
+type UpdateValue = record {
+  info : PairingInfo;
+  command : text;
+  virtual_persona_principal_id : text;
+  virtual_persona_ip : text;
+};
+type VirtualPersonaValue = record {
+  manager_env_uid : opt text;
+  user_env_uid : opt text;
+  virtual_persona_principal_id : text;
+  virtual_persona_ip : text;
+};
 service : {
-  // create a new environment
-  // - PrincipalId: the principal id of the manager creating the environment
-  createNewEnvironment : (PrincipalId, EnvironmentCreationInput) -> (
-      EnvironmentCreationResult,
+  checkIfVirtualPersonaExists : (text) -> (bool) query;
+  createNewEnvironment : (text, EnvironmentCreationInput) -> (Result);
+  getDevicesInEnvironmentByAffordance : (text, text) -> (Result_1);
+  getGatewayUpdatesByPrincipal : (text) -> (opt UpdateValue);
+  getInitializedGatewaysByIp : (text) -> (Result_2);
+  getRegisteredGatewaysInEnvironment : (text) -> (Result_3);
+  getVirtualPersona : (text, text) -> (Result_4);
+  initGatewayByIp : (text, text) -> (Result_5);
+  initNonceToIp : (text, IpChallengeValue) -> ();
+  isGatewayRegistered : (text) -> (bool);
+  pairNewDeviceOnGateway : (text, text, text, text) -> (Result_6);
+  registerDeviceOnGateway : (text, text, vec text) -> (Result_7);
+  registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
+      Result_8,
     );
-
-  // get the gateways registerd in the environment with the given uid
-  getGatewaysInEnvironment : (GetGatewaysInEnvironmentInput) -> (MultipleGatewayInfoResult);
-
-  // get the devices registered in the environment with the given uid
-  getDevicesInEnvironment : (GetDevicesInEnvironmentInput) -> (MultipleDeviceInfoResult);
-
-  // get the the profile of the user with the given principal id (if it doesn't exist, it will be created)
-  getUserProfile : (GetUserProfileInput) -> (StoredUserProfile);
-
-  // generate a new gateway uid, that can be used to register the gateway in the environment
-  initGateway : () -> (InitGatewayResult);
-
-  // register a device in the environment
-  // - PrincipalId: the principal id of the manager registering the device
-  registerDeviceInEnvironment : (PrincipalId, DeviceRegistrationInput) -> (DeviceInfoResult);
-
-  // register a gateway in the environment
-  // - PrincipalId: the principal id of the manager registering the gateway
-  registerGatewayInEnvironment : (PrincipalId, GatewayRegistrationInput) -> (GatewayInfoResult);
-
-  // remove the user from the environment
-  resetUserFromEnvironment : (PrincipalId) -> (EnvironmentInfoResult);
-
-  // set the user in the environment with the given uid
-  setUserInEnvironment : (PrincipalId, EnvironmentUID) -> (EnvironmentInfoResult);
+  resetUserFromEnvironment : (text, text) -> (Result_9);
+  setUserInEnvironment : (text, text) -> (Result_9);
 }
