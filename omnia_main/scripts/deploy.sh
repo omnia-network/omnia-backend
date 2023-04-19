@@ -19,9 +19,9 @@ if [ "$1" = "--backend" ]; then
 
   echo "Deploying only BACKEND canisters..."
 
-  dfx deploy omnia_backend --argument "(null, \"$2\")"
+  dfx deploy omnia_backend --no-wallet --argument "(null, \"$2\")"
 else
   echo "Deploying ALL canisters..."
 
-  dfx deploy --argument "(null, \"$1\")"
+  dfx deploy --no-wallet --argument "(null, \"$1\")"
 fi
