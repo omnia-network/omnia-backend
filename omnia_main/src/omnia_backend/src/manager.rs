@@ -220,8 +220,8 @@ async fn register_device(
 async fn get_devices_in_environment_by_affordance(
     environment_uid: EnvironmentUID,
     affordance: AffordanceValue
-) -> GenericResult<Vec<DevicesAccessInfo>> {
-    call::<(EnvironmentUID, AffordanceValue,), (GenericResult<Vec<DevicesAccessInfo>>,)>(
+) -> GenericResult<DevicesAccessInfo> {
+    call::<(EnvironmentUID, AffordanceValue,), (GenericResult<DevicesAccessInfo>,)>(
         get_database_principal(),
         "getDevicesInEnvironmentByAffordance",
         (

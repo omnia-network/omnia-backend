@@ -59,7 +59,7 @@ async fn http_request_update(req: HttpRequest) -> HttpResponse {
     // - "x-forwarded-for" (mandatory): it contains the list of IP addresses of the proxies that the HTTP message went through.
     //   The list has this format: "client, proxy1, proxy2, ..., proxyN"
     //   Last IP of the list must either be:
-    //      - IP address of the Omnia Proxy server, of the request is coming from a Gateway connected to Omnia Proxy server
+    //      - IP address of the Omnia Proxy server, if the request is coming from a Gateway connected to Omnia Proxy server
     //      - IP address of the client (Gateway, User frontend, Manager frontend, etc.), if the request is coming directly from a client not connected to Omnia Proxy
     // - "x-proxied-for" (mandatory if the request is coming from Omnia Proxy): it contains the IP address of the client that sent the request to Omnia Proxy
     // - "x-peer-id" (mandatory if the request is coming from Omnia Proxy): it contains the ID that Omnia Proxy assigned to the Gateway that sent the request (this is needed to send an HTTP request to the proxied Gateway)
@@ -151,7 +151,7 @@ async fn http_request_update(req: HttpRequest) -> HttpResponse {
                     Some(headers.get("x-peer-id").unwrap().to_owned()),
                 )
             } else {
-                // if the last IP is not the IP of the Omnia Proxy server, then we can return the IP address of the client
+                // if the last IP is not the IP of the Omnia Proxy server, then it must be the IP of the client and thus we can return it
                 (ip.to_owned(), None)
             }
         }
