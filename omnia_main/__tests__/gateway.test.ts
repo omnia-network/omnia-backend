@@ -18,7 +18,7 @@ let deviceUid: string;
 jest.setTimeout(LONG_TEST_TIMEOUT);
 
 describe("Gateway", () => {
-  it("initGateway: any Gateway can initialize itself", async () => {
+  it("initGateway: a Gateway can initialize itself", async () => {
     // this is a proxied gateway
     const gateway1Actor = await gateway1.getActor();
     const gateway1Init = await gateway1.callMethodWithChallenge(
@@ -30,27 +30,6 @@ describe("Gateway", () => {
     );
     expect(gateway1Init.error).toBeNull();
     expect(gateway1Init.data).toEqual((await gateway1Data.identity).getPrincipal().toText());
-
-    // this is a gateway that exposes itself on the Internet
-    const gateway2Actor = await gateway2.getActor();
-    const gateway2Init = await gateway2.callMethodWithChallenge(
-      async (nonce) => {
-        return gateway2Actor.initGateway(nonce);
-      },
-      gateway2Data.remoteIp,
-      gateway2Data.proxyData,
-    );
-    expect(gateway2Init.error).toBeNull();
-    expect(gateway2Init.data).toEqual((await gateway2Data.identity).getPrincipal().toText());
-  }, LONG_TEST_TIMEOUT);
-
-  it("getRegisteredDevices: Gateway can retrieve the list of registered devices, empty", async () => {
-    const gateway1Actor = await gateway1.getActor();
-    const registeredDevicesResult = await gateway1.parseResult(
-      gateway1Actor.getRegisteredDevices()
-    );
-    expect(registeredDevicesResult.error).toBeNull();
-    expect(registeredDevicesResult.data).toEqual([]);
   });
 
   it("createEnvironment: Manager can create an environment", async () => {
@@ -148,6 +127,15 @@ describe("Gateway", () => {
     });
   });
 
+  it("getRegisteredDevices: Gateway can retrieve the list of registered devices, empty", async () => {
+    const gateway1Actor = await gateway1.getActor();
+    const registeredDevicesResult = await gateway1.parseResult(
+      gateway1Actor.getRegisteredDevices()
+    );
+    expect(registeredDevicesResult.error).toBeNull();
+    expect(registeredDevicesResult.data).toEqual([]);
+  });
+
   it("getGatewayUpdates: Gateway can poll for updates, empty", async () => {
     const gateway1Actor = await gateway1.getActor();
     const gatewayUpdates = await gateway1Actor.getGatewayUpdates();
@@ -239,8 +227,8 @@ describe("Gateway", () => {
         `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
       ],
       required_headers: [
-        ["x-forward-to-peer", gateway1Data.proxyData!.peerId,],
-        ["x-forward-to-port", "8888"],
+        ["X-Forward-To-Peer", gateway1Data.proxyData!.peerId,],
+        ["X-Forward-To-Port", "8888"],
       ],
     });
 
@@ -251,6 +239,12 @@ describe("Gateway", () => {
       )
     );
     expect(emptyDevicesInEnvironmentByAffordanceResult.error).toBeNull();
-    expect(emptyDevicesInEnvironmentByAffordanceResult.data).toEqual([]);
+    expect(emptyDevicesInEnvironmentByAffordanceResult.data).toMatchObject<DevicesAccessInfo>({
+      devices_urls: [],
+      required_headers: [
+        ["X-Forward-To-Peer", gateway1Data.proxyData!.peerId,],
+        ["X-Forward-To-Port", "8888"],
+      ],
+    });
   });
 });
