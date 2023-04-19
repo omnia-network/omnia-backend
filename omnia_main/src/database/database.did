@@ -2,9 +2,6 @@ type DevicesAccessInfo = record {
   devices_urls : vec text;
   required_headers : vec record { text; text };
 };
-
-//// Inputs ////
-
 type EnvironmentCreationInput = record { env_name : text };
 type EnvironmentCreationResult = record { env_uid : text; env_name : text };
 type EnvironmentInfo = record { env_uid : text };

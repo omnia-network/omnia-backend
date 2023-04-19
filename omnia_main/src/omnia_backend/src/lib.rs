@@ -47,7 +47,6 @@ mod tests {
     };
     use std::env;
 
-    use omnia_types::device::*;
     use omnia_types::environment::*;
     use omnia_types::gateway::*;
     use omnia_types::virtual_persona::*;
@@ -56,6 +55,7 @@ mod tests {
     use omnia_types::updates::*;
     use omnia_types::device::*;
     use omnia_types::affordance::*;
+    use std::collections::BTreeSet;
 
     #[test]
     fn check_candid_interface() {

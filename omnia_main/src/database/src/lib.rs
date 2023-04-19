@@ -76,10 +76,13 @@ mod tests {
     use std::env;
 
     use super::*;
-    use omnia_types::device::*;
     use omnia_types::environment::*;
     use omnia_types::gateway::*;
-    use omnia_types::user::*;
+    use omnia_types::http::*;
+    use omnia_types::errors::*;
+    use omnia_types::virtual_persona::*;
+    use omnia_types::updates::*;
+    use omnia_types::device::*;
 
     #[test]
     fn check_candid_interface() {
