@@ -2,6 +2,9 @@ type DevicesAccessInfo = record {
   devices_urls : vec text;
   required_headers : vec record { text; text };
 };
+
+//// Inputs ////
+
 type EnvironmentCreationInput = record { env_name : text };
 type EnvironmentCreationResult = record { env_uid : text; env_name : text };
 type EnvironmentInfo = record { env_uid : text };
@@ -53,6 +56,26 @@ type VirtualPersonaValue = record {
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
+
+type SetEnvironmentInput = EnvironmentUID;
+
+//// Results ////
+
+type MultipleDeviceInfoResult = variant { Ok : vec DeviceInfo; Err : text };
+type MultipleGatewayInfoResult = variant { Ok : vec GatewayInfo; Err : text };
+type DeviceInfoResult = variant { Ok : DeviceInfo; Err : text };
+type GatewayInfoResult = variant { Ok : GatewayInfo; Err : text };
+type EnvironmentInfoResult = variant { Ok : EnvironmentInfo; Err : text };
+type EnvironmentCreationResult = record { env_uid : EnvironmentUID; env_name : text };
+type InitGatewayResult = GatewayUID;
+type GetProfileResult = UserProfile;
+
+//// Service ////
+
+// service arguments:
+// - opt text: principal uid needed by internet_identity canister (usually set to null locally)
+// - text: database canister id
+// the first argument is needed to be able to deploy the internet_identity canister locally, but it's ignored when by this canister
 service : (opt text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (Result);
   getDevicesInEnvironmentByAffordance : (text, text) -> (Result_1);

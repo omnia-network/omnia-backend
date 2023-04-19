@@ -48,7 +48,7 @@ impl State {
 }
 
 thread_local! {
-    static STATE: RefCell<State>  = RefCell::new(State::default());
+    /* stable */ static STATE: RefCell<State>  = RefCell::new(State::default());
 }
 
 #[pre_upgrade]
@@ -69,24 +69,31 @@ fn post_upgrade() {
 
 #[cfg(test)]
 mod tests {
-    use candid::export_service;
+    use candid::{
+        export_service,
+        utils::{service_compatible, CandidSource},
+    };
+    use std::env;
+
+    use super::*;
+    use omnia_types::device::*;
+    use omnia_types::environment::*;
+    use omnia_types::gateway::*;
+    use omnia_types::user::*;
 
     #[test]
-    fn save_candid() {
-        use omnia_types::environment::*;
-        use omnia_types::gateway::*;
-        use omnia_types::http::*;
-        use omnia_types::errors::*;
-        use omnia_types::virtual_persona::*;
-        use omnia_types::updates::*;
-        use omnia_types::device::*;
-        use omnia_types::affordance::*;
-        use std::env;
-        use std::fs::write;
-        use std::collections::BTreeSet;
-
+    fn check_candid_interface() {
         let dir = env::current_dir().unwrap();
+        let did_name = "database.did";
+        let did_path = dir.join(did_name);
+
         export_service!();
-        write(dir.join("database.did"), __export_service()).expect("Write failed.");
+        let new_interface = __export_service();
+
+        service_compatible(
+            CandidSource::Text(&new_interface),
+            CandidSource::File(&did_path),
+        )
+        .unwrap();
     }
 }

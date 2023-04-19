@@ -23,6 +23,8 @@ describe("Profile", () => {
 
     expect(profile).toHaveProperty("virtual_persona_principal_id");
     expect(profile.environment_uid.length).toEqual(0);
+
+    console.log("getProile:", profile);
   });
 });
 
@@ -36,18 +38,24 @@ describe("Environment", () => {
 
     expect(newEnvironment).toHaveProperty("env_name", ENVIRONMENT_NAME);
     expect(validate(newEnvironment.env_uid)).toBeTruthy();
+
+    console.log("createEnvironment:", newEnvironment);
   }, LONG_TEST_TIMEOUT);
 
   it("setEnvironment: anyone can enter an environment", async () => {
     const setEnvRes = await omniaApi.setEnvironment(newEnvironment.env_uid);
 
     expect(setEnvRes).toHaveProperty("Ok");
+
+    console.log("setEnvironment:", setEnvRes);
   }, LONG_TEST_TIMEOUT);
 
   it("resetEnvironment: anyone can leave an environment", async () => {
     const resetEnvRes = await omniaApi.resetEnvironment();
 
     expect(resetEnvRes).toHaveProperty("Ok");
+
+    console.log("resetEnvironment:", resetEnvRes);
   }, LONG_TEST_TIMEOUT);
 });
 
@@ -62,6 +70,8 @@ describe("Gateway", () => {
     expect(initGatewayRes).toBeTruthy();
     gatewayUid1 = initGatewayRes;
 
+    console.log("initGateway (1):", initGatewayRes);
+
     // init another gateway
     const initGatewayRes2 = await omniaApi.initGateway();
     expect(initGatewayRes2).toBeTruthy();
@@ -69,23 +79,26 @@ describe("Gateway", () => {
 
     // gateway uids should be different
     expect(gatewayUid1).not.toEqual(gatewayUid2);
+
+    console.log("initGateway (2):", initGatewayRes2);
   }, LONG_TEST_TIMEOUT);
 
   it("registerGateway: manager can register multiple gateways", async () => {
     // register first gateway
-    const gateway = await omniaApi.registerGateway({
+    const gateway1 = await omniaApi.registerGateway({
       env_uid: newEnvironment.env_uid,
       gateway_uid: gatewayUid1,
       gateway_name: GATEWAY1_NAME,
     });
 
-    expect(gateway).toHaveProperty("Ok");
+    expect(gateway1).toHaveProperty("Ok");
 
     // if statement just to avoid TS error
-    if ('Ok' in gateway) {
-      expect(gateway.Ok.length).toEqual(1);
-      expect(gateway.Ok[0]).toHaveProperty("gateway_uid", gatewayUid1);
-      expect(gateway.Ok[0]).toHaveProperty("gateway_name", GATEWAY1_NAME);
+    if ('Ok' in gateway1) {
+      expect(gateway1.Ok).toHaveProperty("gateway_uid", gatewayUid1);
+      expect(gateway1.Ok).toHaveProperty("gateway_name", GATEWAY1_NAME);
+
+      console.log("registerGateway (1):", gateway1);
     }
 
     // register another gateway
@@ -99,25 +112,28 @@ describe("Gateway", () => {
 
     // if statement just to avoid TS error
     if ('Ok' in gateway2) {
-      expect(gateway2.Ok.length).toEqual(1);
-      expect(gateway2.Ok[0]).toHaveProperty("gateway_uid", gatewayUid2);
-      expect(gateway2.Ok[0]).toHaveProperty("gateway_name", GATEWAY2_NAME);
+      expect(gateway2.Ok).toHaveProperty("gateway_uid", gatewayUid2);
+      expect(gateway2.Ok).toHaveProperty("gateway_name", GATEWAY2_NAME);
+
+      console.log("registerGateway (2):", gateway2);
     }
   }, LONG_TEST_TIMEOUT);
 
   it("registerDevice: manager can register multiple devices in multiple gateways", async () => {
-    const device = await omniaApi.registerDevice({
+    const device1 = await omniaApi.registerDevice({
       env_uid: newEnvironment.env_uid,
       gateway_uid: gatewayUid1,
       device_name: DEVICE1_NAME,
     });
 
-    expect(device).toHaveProperty("Ok");
+    expect(device1).toHaveProperty("Ok");
 
     // if statement just to avoid TS error
-    if ("Ok" in device) {
-      expect(device.Ok).toHaveProperty("device_name", DEVICE1_NAME);
-      expect(device.Ok).toHaveProperty("gateway_uid", gatewayUid1);
+    if ("Ok" in device1) {
+      expect(device1.Ok).toHaveProperty("device_name", DEVICE1_NAME);
+      expect(device1.Ok).toHaveProperty("gateway_uid", gatewayUid1);
+
+      console.log("registerDevice (1):", device1);
     }
 
     // register another device
@@ -133,6 +149,8 @@ describe("Gateway", () => {
     if ("Ok" in device2) {
       expect(device2.Ok).toHaveProperty("device_name", DEVICE2_NAME);
       expect(device2.Ok).toHaveProperty("gateway_uid", gatewayUid2);
+
+      console.log("registerDevice (2):", device2);
     }
   }, LONG_TEST_TIMEOUT);
 
@@ -150,6 +168,8 @@ describe("Gateway", () => {
       expect(gateways.Ok.findIndex((g) => {
         return g.gateway_uid === gatewayUid2 && g.gateway_name === GATEWAY2_NAME;
       })).not.toEqual(-1);
+
+      console.log("getGateways:", gateways);
     }
   }, LONG_TEST_TIMEOUT);
 
@@ -167,6 +187,8 @@ describe("Gateway", () => {
       expect(devices.Ok.findIndex((d) => {
         return d.device_name === DEVICE2_NAME && d.gateway_uid === gatewayUid2;
       })).not.toEqual(-1);
+
+      console.log("getDevices:", devices);
     }
   }, LONG_TEST_TIMEOUT);
 });

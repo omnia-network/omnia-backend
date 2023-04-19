@@ -18,7 +18,7 @@ struct State {
 }
 
 thread_local! {
-    static STATE: RefCell<State>  = RefCell::new(State::default());
+    /* flexible */ static STATE: RefCell<State>  = RefCell::new(State::default());
 }
 
 // to deploy this canister with the database principal id as init argument, use
@@ -28,18 +28,26 @@ thread_local! {
 #[candid_method(init)]
 fn init(_: Option<String>, arg2: String) {
     print("Init canister...");
+    print("Init canister...");
     update_database_principal(arg2);
 }
 
 #[post_upgrade]
 fn post_upgrade(_: Option<String>, arg2: String) {
     print("Post upgrade canister...");
+    print("Post upgrade canister...");
     update_database_principal(arg2);
 }
 
 #[cfg(test)]
 mod tests {
-    use candid::export_service;
+    use candid::{
+        export_service,
+        utils::{service_compatible, CandidSource},
+    };
+    use std::env;
+
+    use omnia_types::device::*;
     use omnia_types::environment::*;
     use omnia_types::gateway::*;
     use omnia_types::virtual_persona::*;
@@ -50,13 +58,18 @@ mod tests {
     use omnia_types::affordance::*;
 
     #[test]
-    fn save_candid() {
-        use std::env;
-        use std::fs::write;
-        use std::collections::BTreeSet;
-
+    fn check_candid_interface() {
         let dir = env::current_dir().unwrap();
+        let did_name = "omnia_backend.did";
+        let did_path = dir.join(did_name);
+
         export_service!();
-        write(dir.join("omnia_backend.did"), __export_service()).expect("Write failed.");
+        let new_interface = __export_service();
+
+        service_compatible(
+            CandidSource::Text(&new_interface),
+            CandidSource::File(&did_path),
+        )
+        .unwrap();
     }
 }
