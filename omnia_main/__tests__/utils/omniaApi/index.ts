@@ -1,1 +1,1 @@
-export { omniaApi } from "./omniaApi";
+export { OmniaApi } from "./omniaApi";

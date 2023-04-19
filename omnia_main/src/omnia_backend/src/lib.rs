@@ -28,13 +28,11 @@ thread_local! {
 #[candid_method(init)]
 fn init(_: Option<String>, arg2: String) {
     print("Init canister...");
-    print("Init canister...");
     update_database_principal(arg2);
 }
 
 #[post_upgrade]
 fn post_upgrade(_: Option<String>, arg2: String) {
-    print("Post upgrade canister...");
     print("Post upgrade canister...");
     update_database_principal(arg2);
 }

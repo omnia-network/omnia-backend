@@ -452,7 +452,7 @@ async fn get_registered_devices_on_gateway(
             .clone();
 
         // return registered devices
-        Ok(registered_gateway_value.gat_registered_device_uids.keys().map(|k| k.clone()).collect())
+        Ok(registered_gateway_value.gat_registered_device_uids.keys().cloned().collect())
     })
 }
 
@@ -520,7 +520,7 @@ fn get_devices_in_environment_by_affordance(
                 // TODO: move this to a function that can be used in other parts of the codebase
                 format!(
                     "{}/{}",
-                    registered_gateway.gateway_ip,
+                    registered_gateway.gateway_url,
                     device_uid,
                 )
             }).collect();

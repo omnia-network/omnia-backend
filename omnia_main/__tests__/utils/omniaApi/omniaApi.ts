@@ -5,6 +5,7 @@ import { idlFactory } from "../../../src/declarations/omnia_backend/omnia_backen
 import { _SERVICE } from "../../../src/declarations/omnia_backend/omnia_backend.did";
 import { canisterEnv } from "./canisterEnv";
 import { httpNonceChallenge } from "./http";
+import { GenericResult, resultParser } from "./resultParser";
 
 // we need to recreate the agent because the environment variables are not available at the time of import
 const createActor = async (identity: Promise<Identity>) => {
@@ -29,11 +30,30 @@ const createActor = async (identity: Promise<Identity>) => {
   }) as ActorSubclass<_SERVICE>;
 };
 
-export const omniaApi = createActor;
+export class OmniaApi {
+  private _identity: Promise<Identity>;
+  private _actor: ActorSubclass<_SERVICE> | undefined;
 
-// TODO: move this into a package, since it's needed by Gateways, frontends, etc.
-export const callMethodWithChallenge = async (actor: ActorSubclass<_SERVICE>, method: Exclude<keyof _SERVICE, 'http_request' | 'http_request_update'>, remoteIp: string, ...args: any[]) => {
-  const nonce = await httpNonceChallenge(remoteIp);
-  // @ts-ignore
-  return actor[method].apply(null, [nonce, ...args]);
+  constructor(identity: Promise<Identity>) {
+    this._identity = identity;
+  }
+
+  async getActor() {
+    return this._actor || await createActor(this._identity);
+  }
+
+  async callMethodWithChallenge<T>(
+    callback: (nonce: string) => Promise<GenericResult<T>>,
+    remoteIp: string,
+    proxyData?: { peerId: string },
+  ) {
+    const nonce = await httpNonceChallenge(remoteIp, proxyData);
+    return resultParser<T>(await callback(nonce));
+  }
+
+  async parseResult<T>(
+    result: Promise<GenericResult<T>>,
+  ) {
+    return resultParser<T>(await result);
+  }
 };
