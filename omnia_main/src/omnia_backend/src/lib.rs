@@ -1,7 +1,7 @@
+mod http_endpoint;
 mod manager;
 mod user;
 mod utils;
-mod http_endpoint;
 
 use candid::{candid_method, CandidType, Deserialize, Principal};
 use ic_cdk::print;
@@ -18,7 +18,7 @@ struct State {
 }
 
 thread_local! {
-    static STATE: RefCell<State>  = RefCell::new(State::default());
+    /* flexible */ static STATE: RefCell<State>  = RefCell::new(State::default());
 }
 
 // to deploy this canister with the database principal id as init argument, use
@@ -27,32 +27,41 @@ thread_local! {
 #[init]
 #[candid_method(init)]
 fn init(_: Option<String>, arg2: String) {
-    print(format!("Init canister..."));
+    print("Init canister...");
+    print("Init canister...");
     update_database_principal(arg2);
 }
 
 #[post_upgrade]
 fn post_upgrade(_: Option<String>, arg2: String) {
-    print(format!("Post upgrade canister..."));
+    print("Post upgrade canister...");
+    print("Post upgrade canister...");
     update_database_principal(arg2);
 }
 
 #[cfg(test)]
 mod tests {
     use candid::export_service;
+    use std::env;
+
+    use omnia_types::affordance::*;
+    use omnia_types::device::*;
     use omnia_types::environment::*;
+    use omnia_types::errors::*;
     use omnia_types::gateway::*;
-    use omnia_types::virtual_persona::*;
     use omnia_types::http::*;
+    use omnia_types::updates::*;
+    use omnia_types::virtual_persona::*;
+    use std::collections::BTreeSet;
 
     #[test]
-    fn save_candid() {
-        use std::env;
+    fn generate_candid_interface() {
         use std::fs::write;
-        use std::path::PathBuf;
+        let dir = env::current_dir().unwrap();
+        let did_name = "omnia_backend.did";
+        let did_path = dir.join(did_name);
 
-        let dir = PathBuf::from(env::current_dir().unwrap());
         export_service!();
-        write(dir.join("omnia_backend.did"), __export_service()).expect("Write failed.");
+        write(did_path, __export_service()).expect("Write failed.");
     }
 }

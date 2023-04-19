@@ -1,5 +1,45 @@
-type IpChallengeValue = record { requester_ip : text; timestamp : nat64 };
-type Result = variant { Ok : VirtualPersonaValue; Err : text };
+type DevicesAccessInfo = record {
+  devices_urls : vec text;
+  required_headers : vec record { text; text };
+};
+type EnvironmentCreationInput = record { env_name : text };
+type EnvironmentCreationResult = record { env_uid : text; env_name : text };
+type EnvironmentInfo = record { env_uid : text };
+type GatewayRegistrationInput = record { gateway_name : text; env_uid : text };
+type InitializedGatewayValue = record { principal_id : text };
+type IpChallengeValue = record {
+  requester_ip : text;
+  timestamp : nat64;
+  is_proxied : bool;
+  proxied_gateway_uid : opt text;
+};
+type PairingInfo = record { payload : text };
+type RegisteredDeviceIndex = record { device_uid : text };
+type RegisteredGatewayValue = record {
+  gateway_name : text;
+  gateway_ip : text;
+  env_uid : text;
+  gat_registered_device_uids : vec record { text; null };
+  gateway_url : text;
+  proxied_gateway_uid : opt text;
+};
+type Result = variant { Ok : EnvironmentCreationResult; Err : text };
+type Result_1 = variant { Ok : DevicesAccessInfo; Err : text };
+type Result_10 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_2 = variant { Ok : vec InitializedGatewayValue; Err : text };
+type Result_3 = variant { Ok : vec text; Err : text };
+type Result_4 = variant { Ok : vec RegisteredGatewayValue; Err : text };
+type Result_5 = variant { Ok : VirtualPersonaValue; Err : text };
+type Result_6 = variant { Ok : text; Err : text };
+type Result_7 = variant { Ok : UpdateValue; Err : text };
+type Result_8 = variant { Ok : RegisteredDeviceIndex; Err : text };
+type Result_9 = variant { Ok : RegisteredGatewayValue; Err : text };
+type UpdateValue = record {
+  info : PairingInfo;
+  command : text;
+  virtual_persona_principal_id : text;
+  virtual_persona_ip : text;
+};
 type VirtualPersonaValue = record {
   manager_env_uid : opt text;
   user_env_uid : opt text;
@@ -7,6 +47,22 @@ type VirtualPersonaValue = record {
   virtual_persona_ip : text;
 };
 service : {
-  getVirtualPersona : (text, text) -> (Result);
+  checkIfVirtualPersonaExists : (text) -> (bool) query;
+  createNewEnvironment : (text, EnvironmentCreationInput) -> (Result);
+  getDevicesInEnvironmentByAffordance : (text, text) -> (Result_1);
+  getGatewayUpdatesByPrincipal : (text) -> (opt UpdateValue);
+  getInitializedGatewaysByIp : (text) -> (Result_2);
+  getRegisteredDevicesOnGateway : (text) -> (Result_3);
+  getRegisteredGatewaysInEnvironment : (text) -> (Result_4);
+  getVirtualPersona : (text, text) -> (Result_5);
+  initGatewayByIp : (text, text) -> (Result_6);
   initNonceToIp : (text, IpChallengeValue) -> ();
+  isGatewayRegistered : (text) -> (bool);
+  pairNewDeviceOnGateway : (text, text, text, text) -> (Result_7);
+  registerDeviceOnGateway : (text, text, vec text) -> (Result_8);
+  registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
+      Result_9,
+    );
+  resetUserFromEnvironment : (text, text) -> (Result_10);
+  setUserInEnvironment : (text, text) -> (Result_10);
 }
