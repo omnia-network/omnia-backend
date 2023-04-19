@@ -8,7 +8,7 @@ use ic_cdk::{
 use ic_cdk_macros::update;
 use omnia_types::{
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::{IpChallengeNonce}, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption, PairingPayload}, virtual_persona::VirtualPersonaPrincipalId, device::{RegisteredDeviceResult, DevicesAccessInfo}, affordance::AffordanceValue
+    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::{IpChallengeNonce}, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption, PairingPayload}, virtual_persona::VirtualPersonaPrincipalId, device::{RegisteredDeviceResult, DevicesAccessInfo, RegisteredDevicesUidsResult}, affordance::AffordanceValue
 };
 
 use crate::utils::get_database_principal;
@@ -208,6 +208,24 @@ async fn register_device(
             nonce,
             gateway_principal_id,
             affordances,
+        ),
+    )
+    .await
+    .unwrap()
+    .0
+}
+
+#[update(name = "getRegisteredDevices")]
+#[candid_method(update, rename = "getRegisteredDevices")]
+async fn get_registered_devices(
+) -> RegisteredDevicesUidsResult {
+    let gateway_principal_id = caller().to_string();
+
+    call::<(GatewayPrincipalId, ), (RegisteredDevicesUidsResult,)>(
+        get_database_principal(),
+        "getRegisteredDevicesOnGateway",
+        (
+            gateway_principal_id,
         ),
     )
     .await

@@ -13,6 +13,8 @@ use crate::{
 
 pub type DeviceUid = String;
 
+pub type RegisteredDevicesUids = Vec<DeviceUid>;
+
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RegisteredDeviceIndex {
     pub device_uid: DeviceUid,
@@ -47,3 +49,5 @@ pub struct DevicesAccessInfo {
 pub type RegisteredDeviceResult = GenericResult<RegisteredDeviceIndex>;
 
 pub type RegisteredDeviceOption = Option<RegisteredDeviceValue>;
+
+pub type RegisteredDevicesUidsResult = GenericResult<RegisteredDevicesUids>;

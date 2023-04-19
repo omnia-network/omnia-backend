@@ -5,7 +5,7 @@ use omnia_types::{
     affordance::AffordanceValue,
     device::{
         DeviceUid, DevicesAccessInfo, RegisteredDeviceIndex, RegisteredDeviceResult,
-        RegisteredDeviceValue,
+        RegisteredDeviceValue, RegisteredDevicesUidsResult
     },
     environment::{
         EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentIndex, EnvironmentUID,
@@ -431,6 +431,28 @@ async fn register_device_on_gateway(
         Err(String::from(
             "Cannot register device from a different network of the gateway",
         ))
+    })
+}
+
+#[update(name = "getRegisteredDevicesOnGateway")]
+#[candid_method(update, rename = "getRegisteredDevicesOnGateway")]
+async fn get_registered_devices_on_gateway(
+    gateway_principal_id: GatewayPrincipalId,
+) -> RegisteredDevicesUidsResult {
+
+    STATE.with(|state| {
+        // check if gateway is already registered
+        let registered_gateway_index = RegisteredGatewayIndex {
+            principal_id: gateway_principal_id.clone(),
+        };
+        let registered_gateway_value = state
+            .borrow()
+            .registered_gateways
+            .read(&registered_gateway_index)?
+            .clone();
+
+        // return registered devices
+        Ok(registered_gateway_value.gat_registered_device_uids.keys().map(|k| k.clone()).collect())
     })
 }
 
