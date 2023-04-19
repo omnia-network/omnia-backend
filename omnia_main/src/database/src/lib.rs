@@ -1,22 +1,27 @@
-use std::collections::BTreeSet;
-use std::{cell::RefCell, ops::Deref};
 use candid::{CandidType, Deserialize};
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{post_upgrade, pre_upgrade};
-use omnia_types::CrudMap;
 use omnia_types::affordance::AffordanceValue;
-use omnia_types::device::{RegisteredDeviceIndex, RegisteredDeviceValue, DeviceUid};
-use omnia_types::environment::{EnvironmentIndex, EnvironmentValue, EnvironmentUidValue, EnvironmentUidIndex};
-use omnia_types::gateway::{RegisteredGatewayValue, InitializedGatewayValue, InitializedGatewayIndex, RegisteredGatewayIndex};
-use omnia_types::http::{IpChallengeValue, IpChallengeIndex};
-use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValue};
+use omnia_types::device::{DeviceUid, RegisteredDeviceIndex, RegisteredDeviceValue};
+use omnia_types::environment::{
+    EnvironmentIndex, EnvironmentUidIndex, EnvironmentUidValue, EnvironmentValue,
+};
+use omnia_types::gateway::{
+    InitializedGatewayIndex, InitializedGatewayValue, RegisteredGatewayIndex,
+    RegisteredGatewayValue,
+};
+use omnia_types::http::{IpChallengeIndex, IpChallengeValue};
 use omnia_types::updates::{UpdateIndex, UpdateValue};
+use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValue};
+use omnia_types::CrudMap;
 use serde::Serialize;
+use std::collections::BTreeSet;
+use std::{cell::RefCell, ops::Deref};
 
-mod environment;
-mod virtual_persona;
-mod uuid;
 mod auth;
+mod environment;
+mod uuid;
+mod virtual_persona;
 
 #[derive(Default, CandidType, Serialize, Deserialize)]
 struct State {
@@ -69,34 +74,26 @@ fn post_upgrade() {
 
 #[cfg(test)]
 mod tests {
-    use candid::{
-        export_service,
-        utils::{service_compatible, CandidSource},
-    };
+    use candid::export_service;
     use std::env;
 
     use super::*;
+    use omnia_types::device::*;
     use omnia_types::environment::*;
+    use omnia_types::errors::*;
     use omnia_types::gateway::*;
     use omnia_types::http::*;
-    use omnia_types::errors::*;
-    use omnia_types::virtual_persona::*;
     use omnia_types::updates::*;
-    use omnia_types::device::*;
+    use omnia_types::virtual_persona::*;
 
     #[test]
-    fn check_candid_interface() {
+    fn generate_candid_interface() {
+        use std::fs::write;
         let dir = env::current_dir().unwrap();
         let did_name = "database.did";
         let did_path = dir.join(did_name);
 
         export_service!();
-        let new_interface = __export_service();
-
-        service_compatible(
-            CandidSource::Text(&new_interface),
-            CandidSource::File(&did_path),
-        )
-        .unwrap();
+        write(did_path, __export_service()).expect("Write failed.");
     }
 }

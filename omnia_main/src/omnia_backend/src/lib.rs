@@ -1,7 +1,7 @@
+mod http_endpoint;
 mod manager;
 mod user;
 mod utils;
-mod http_endpoint;
 
 use candid::{candid_method, CandidType, Deserialize, Principal};
 use ic_cdk::print;
@@ -41,35 +41,27 @@ fn post_upgrade(_: Option<String>, arg2: String) {
 
 #[cfg(test)]
 mod tests {
-    use candid::{
-        export_service,
-        utils::{service_compatible, CandidSource},
-    };
+    use candid::export_service;
     use std::env;
 
-    use omnia_types::environment::*;
-    use omnia_types::gateway::*;
-    use omnia_types::virtual_persona::*;
-    use omnia_types::http::*;
-    use omnia_types::errors::*;
-    use omnia_types::updates::*;
-    use omnia_types::device::*;
     use omnia_types::affordance::*;
+    use omnia_types::device::*;
+    use omnia_types::environment::*;
+    use omnia_types::errors::*;
+    use omnia_types::gateway::*;
+    use omnia_types::http::*;
+    use omnia_types::updates::*;
+    use omnia_types::virtual_persona::*;
     use std::collections::BTreeSet;
 
     #[test]
-    fn check_candid_interface() {
+    fn generate_candid_interface() {
+        use std::fs::write;
         let dir = env::current_dir().unwrap();
         let did_name = "omnia_backend.did";
         let did_path = dir.join(did_name);
 
         export_service!();
-        let new_interface = __export_service();
-
-        service_compatible(
-            CandidSource::Text(&new_interface),
-            CandidSource::File(&did_path),
-        )
-        .unwrap();
+        write(did_path, __export_service()).expect("Write failed.");
     }
 }

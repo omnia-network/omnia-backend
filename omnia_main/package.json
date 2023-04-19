@@ -15,7 +15,7 @@
     "prebuild": "npm run generate:types",
     "prestart": "npm run generate:types",
     "generate:types": "dfx generate",
-    "check:dids": "./scripts/check-dids.sh",
+    "generate:dids": "./scripts/generate-dids.sh",
     "deploy": "./scripts/deploy.sh",
     "deploy:backend": "./scripts/deploy.sh --backend",
     "test": "jest"

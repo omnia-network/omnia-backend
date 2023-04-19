@@ -13,13 +13,13 @@ Here are some references on the SDKs and libraries we use in the codebase:
 ## Development
 
 ### Write DIDs
-
-DIDs describe methods that canisters expose. According to the amazing [Effective Rust Canisters](https://mmapped.blog/posts/01-effective-rust-canisters.html#canister-interfaces) guide, DIDs should be the single source of truth and should be written manually. DIDs should also include documentation (comments) to make it easier to understand what each method does. Hence, **whenever a new method is added to a canister, or an existing method is changed, the corresponding DID should be updated as well**.
-
-To check if the DIDs are correct and in sync with the canister implementation, run:
+To automatically generate DIDs run:
 ```bash
-npm run check:dids
+npm run generate:dids
 ```
+
+**TODO**:
+> DIDs describe methods that canisters expose. According to the amazing [Effective Rust Canisters](https://mmapped.blog/posts/01-effective-rust-canisters.html#canister-interfaces) guide, DIDs should be the single source of truth and should be written manually. DIDs should also include documentation (comments) to make it easier to understand what each method does. Hence, **whenever a new method is added to a canister, or an existing method is changed, the corresponding DID should be updated as well**.
 
 ### Generate Typescript types
 
