@@ -12,8 +12,8 @@ Here are some references on the SDKs and libraries we use in the codebase:
 
 ## Development
 
-### Write DIDs
-To automatically generate DIDs run:
+### Generate DIDs
+`dfx` utility still doesn't support automatic did interfaces generation. There's a workaround, which uses Rust tests and Rust DFINITY CDK under the hood: for each canister, there's a `generate_candid_interface` _test_ function that saves the candid interface in the canister's `.did` file. To run the did generation, run:
 ```bash
 npm run generate:dids
 ```
@@ -64,15 +64,17 @@ So, follow these steps to deploy everything correctly:
     where the last `rrkah-fqaaa-aaaaa-aaaaq-cai` is the database canister id you need in the next steps
 2. deploy all backend canisters with (replace `<database-canister-id>` with the actual database canister you obtained above):
     ```bash
-    npm run deploy:backend -- <database-canister-id>
+    npm run generate-dids-and-deploy:backend -- <database-canister-id>
     ```
-    this command builds and deploys all backend canisters
+    this command first generates did interfaces accordingly and then builds and deploys all backend canisters
 
 ### Deployment
 
 You have some commands available (you need to replace `<database-canister-id>` with the actual database canister id, see above):
 - `npm run deploy -- <database-canister-id>`: deploys **all** canisters
 - `npm run deploy:backend -- <database-canister-id>`: deploys **backend** canisters only
+- `npm run generate-dids-and-deploy -- <database-canister-id>`: first generates dids and then deploys **all** canisters
+- `npm run generate-dids-and-deploy:backend -- <database-canister-id>`: first generates dids and then deploys **backend** canisters only
 
 ## Tests
 
