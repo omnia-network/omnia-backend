@@ -52,7 +52,7 @@ So, follow these steps to deploy everything correctly:
 
 1. deploy **database** canister:
     ```bash
-    dfx deploy database
+    dfx deploy database --no-wallet
     ```
     It'll give you an output similar to
     ```bash
@@ -62,19 +62,22 @@ So, follow these steps to deploy everything correctly:
         database: http://127.0.0.1:4943/?canisterId=ryjl3-tyaaa-aaaaa-aaaba-cai&id=rrkah-fqaaa-aaaaa-aaaaq-cai
     ```
     where the last `rrkah-fqaaa-aaaaa-aaaaq-cai` is the database canister id you need in the next steps
-2. deploy all backend canisters with (replace `<database-canister-id>` with the actual database canister you obtained above):
+2. copy the `.env.example` file to `.env`, filling in the database canister id you obtained above along with other parameters
+3. we suggest running [omnia-rdf-proxy](https://github.com/omnia-network/omnia-rdf-proxy) in development mode to spin up a local proxied RDF database
+3. generate dids and deploy all backend canisters by running:
     ```bash
-    npm run generate-dids-and-deploy:backend -- <database-canister-id>
+    npm run generate-dids-and-deploy:backend
     ```
-    this command first generates did interfaces accordingly and then builds and deploys all backend canisters
 
 ### Deployment
 
-You have some commands available (you need to replace `<database-canister-id>` with the actual database canister id, see above):
-- `npm run deploy -- <database-canister-id>`: deploys **all** canisters
-- `npm run deploy:backend -- <database-canister-id>`: deploys **backend** canisters only
-- `npm run generate-dids-and-deploy -- <database-canister-id>`: first generates dids and then deploys **all** canisters
-- `npm run generate-dids-and-deploy:backend -- <database-canister-id>`: first generates dids and then deploys **backend** canisters only
+Before executing any of the following commands, make sure you create a `.env` file by copying the `.env.example` file and filling in the parameters. See above for more details.
+
+Available commands:
+- `npm run deploy`: deploys **all** canisters
+- `npm run deploy:backend`: deploys **backend** canisters only
+- `npm run generate-dids-and-deploy`: first generates dids and then deploys **all** canisters
+- `npm run generate-dids-and-deploy:backend`: first generates dids and then deploys **backend** canisters only
 
 ## Tests
 
@@ -82,7 +85,7 @@ We use [Jest](https://jestjs.io/) to run integration tests. All tests are in the
 
 To run tests, first deploy all canisters (see above):
 ```bash
-npm run deploy -- <database-canister-id>
+npm run deploy
 ```
 
 and then run:

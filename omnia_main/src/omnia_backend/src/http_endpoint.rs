@@ -6,7 +6,7 @@ use omnia_types::http::{
     HttpRequest, HttpResponse, IpChallengeValue, ParsedHttpRequestBody,
     ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_KEY, CONNECTION_HEADER_KEY, CONTENT_TYPE_HEADER_KEY,
 };
-use omnia_utils::is_proxy_ip;
+use omnia_utils::net::is_proxy_ip;
 
 use ic_cdk::api::{call::call, time};
 use ic_cdk_macros::{query, update};

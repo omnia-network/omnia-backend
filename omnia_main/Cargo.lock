@@ -242,14 +242,10 @@ version = "0.1.0"
 dependencies = [
  "candid",
  "ciborium",
- "getrandom",
- "hex",
  "ic-cdk",
  "ic-cdk-macros",
  "omnia_types",
  "omnia_utils",
- "rand",
- "rand_chacha",
  "serde",
 ]
 
@@ -614,7 +610,11 @@ name = "omnia_utils"
 version = "0.1.0"
 dependencies = [
  "candid",
+ "getrandom",
+ "hex",
  "ic-cdk",
+ "rand",
+ "rand_chacha",
 ]
 
 [[package]]

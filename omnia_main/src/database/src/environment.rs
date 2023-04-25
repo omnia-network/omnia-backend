@@ -23,10 +23,10 @@ use omnia_types::{
     },
     virtual_persona::{VirtualPersonaIndex, VirtualPersonaPrincipalId},
 };
-use omnia_utils::get_gateway_url;
+use omnia_utils::{net::get_gateway_url, uuid::generate_uuid};
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::{uuid::generate_uuid, STATE};
+use crate::STATE;
 
 #[update(name = "isGatewayRegistered")]
 #[candid_method(update, rename = "isGatewayRegistered")]

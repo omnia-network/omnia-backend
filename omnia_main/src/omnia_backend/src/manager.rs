@@ -11,7 +11,7 @@ use omnia_types::{
     gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::{IpChallengeNonce}, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption, PairingPayload}, virtual_persona::VirtualPersonaPrincipalId, device::{RegisteredDeviceResult, DevicesAccessInfo, RegisteredDevicesUidsResult}, affordance::AffordanceValue
 };
 
-use crate::utils::get_database_principal;
+use crate::{utils::get_database_principal, rdf::insert};
 
 #[update(name = "createEnvironment")]
 #[candid_method(update, rename = "createEnvironment")]
@@ -42,8 +42,16 @@ async fn create_environment(
                 "Created new environment: {:?}",
                 environment_creation_result
             ));
+
+            // register the environment in the RDF database
+            match environment_creation_result {
+                Ok(result) => {
+                    insert(vec![(result.env_uid.clone(), "rdf:type".to_string(), "bla".to_string())]).await?;
         
-            environment_creation_result
+                    Ok(result)
+                },
+                Err(err) => Err(err)
+            }
         },
         false => {
             let err = format!(

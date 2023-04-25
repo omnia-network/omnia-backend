@@ -20,7 +20,6 @@ use std::{cell::RefCell, ops::Deref};
 
 mod auth;
 mod environment;
-mod uuid;
 mod virtual_persona;
 
 #[derive(Default, CandidType, Serialize, Deserialize)]

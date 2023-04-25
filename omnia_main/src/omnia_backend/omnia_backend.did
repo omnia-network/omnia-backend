@@ -20,7 +20,10 @@ type HttpResponse = record {
   streaming_strategy : opt text;
   status_code : nat16;
 };
-type InitializedGatewayValue = record { principal_id : text };
+type InitializedGatewayValue = record {
+  principal_id : text;
+  proxied_gateway_uid : opt text;
+};
 type PairingInfo = record { payload : text };
 type RegisteredDeviceIndex = record { device_uid : text };
 type RegisteredGatewayValue = record {
@@ -54,7 +57,7 @@ type VirtualPersonaValue = record {
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
-service : (opt text, text) -> {
+service : (opt text, text, text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (Result);
   getDevicesInEnvironmentByAffordance : (text, text) -> (Result_1);
   getGatewayUpdates : () -> (opt UpdateValue);

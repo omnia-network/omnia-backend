@@ -11,3 +11,7 @@ crate-type = ["lib"]
 [dependencies]
 candid = "0.7.14"
 ic-cdk = "0.5.2"
+getrandom = { version = "0.2", features = ["custom"] }
+rand = "0.8.5"
+hex = "0.4.3"
+rand_chacha = { version = "*", default-features = false }

@@ -20,3 +20,6 @@ target/
 node_modules/
 dist/
 build/
+
+# environment variables
+.env
