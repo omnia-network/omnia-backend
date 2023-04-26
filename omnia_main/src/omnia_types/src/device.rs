@@ -1,7 +1,4 @@
-use std::{
-    cmp::Ordering,
-    collections::{BTreeMap, BTreeSet},
-};
+use std::{cmp::Ordering, collections::BTreeSet};
 
 use candid::{CandidType, Deserialize};
 use serde::Serialize;
@@ -12,6 +9,8 @@ use crate::{
 };
 
 pub type DeviceUid = String;
+// TODO: change it to a URL type, so that we can validate it properly
+pub type DeviceUrl = String;
 
 pub type RegisteredDevicesUids = Vec<DeviceUid>;
 
@@ -34,19 +33,14 @@ impl PartialOrd for RegisteredDeviceIndex {
 
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
 pub struct RegisteredDeviceValue {
-    pub name: String,
     pub gateway_principal_id: GatewayPrincipalId,
-    pub environment: EnvironmentUID,
+    pub env_uid: EnvironmentUID,
     pub affordances: BTreeSet<AffordanceValue>,
+    /// The publicly accessible URL of the device, use [get_device_url](omnia::utils::net::get_device_url) to generate it
+    pub device_url: DeviceUrl,
 }
 
-#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
-pub struct DevicesAccessInfo {
-    pub devices_urls: Vec<String>,
-    pub required_headers: BTreeMap<String, String>,
-}
-
-pub type RegisteredDeviceResult = GenericResult<RegisteredDeviceIndex>;
+pub type RegisteredDeviceResult = GenericResult<(RegisteredDeviceIndex, RegisteredDeviceValue)>;
 
 pub type RegisteredDeviceOption = Option<RegisteredDeviceValue>;
 

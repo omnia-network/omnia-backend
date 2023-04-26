@@ -4,8 +4,8 @@ use ic_cdk_macros::update;
 use omnia_types::{
     affordance::AffordanceValue,
     device::{
-        DeviceUid, DevicesAccessInfo, RegisteredDeviceIndex, RegisteredDeviceResult,
-        RegisteredDeviceValue, RegisteredDevicesUidsResult
+        RegisteredDeviceIndex, RegisteredDeviceResult, RegisteredDeviceValue,
+        RegisteredDevicesUidsResult,
     },
     environment::{
         EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentIndex, EnvironmentUID,
@@ -23,7 +23,10 @@ use omnia_types::{
     },
     virtual_persona::{VirtualPersonaIndex, VirtualPersonaPrincipalId},
 };
-use omnia_utils::{net::get_gateway_url, uuid::generate_uuid};
+use omnia_utils::{
+    net::{get_device_url, get_gateway_url},
+    uuid::generate_uuid,
+};
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::STATE;
@@ -186,9 +189,9 @@ fn register_gateway_in_environment(
             .validate_ip_challenge_by_nonce(nonce)?;
 
         // remove initialized gateways
-        // we only get the initialized gateway value if the registration request (from the managaer) comes from the same network of the initialized gateway  
+        // we only get the initialized gateway value if the registration request (from the managaer) comes from the same network of the initialized gateway
         let initialized_gateway_index = InitializedGatewayIndex {
-            ip: ip_challenge_value.requester_ip.clone(),    // manager's IP
+            ip: ip_challenge_value.requester_ip.clone(), // manager's IP
         };
         let initialized_gateway_value = state
             .borrow_mut()
@@ -220,7 +223,7 @@ fn register_gateway_in_environment(
             gateway_ip: ip_challenge_value.requester_ip.clone(),
             gateway_url: get_gateway_url(
                 ip_challenge_value.requester_ip,
-                initialized_gateway_value.proxied_gateway_uid.is_some() // true if gateway is proxied (determined during intialization)
+                initialized_gateway_value.proxied_gateway_uid.is_some(), // true if gateway is proxied (determined during intialization)
             ),
             proxied_gateway_uid: initialized_gateway_value.proxied_gateway_uid,
             env_uid: gateway_registration_input.env_uid.clone(),
@@ -402,10 +405,13 @@ async fn register_device_on_gateway(
             };
 
             let registered_device_value = RegisteredDeviceValue {
-                name: String::from("Sample devices"),
                 gateway_principal_id: gateway_principal_id.clone(),
-                environment: String::from("Sample Environment"),
+                env_uid: registered_gateway_value.env_uid.clone(),
                 affordances: affordances.clone(),
+                device_url: get_device_url(
+                    registered_gateway_value.gateway_url,
+                    device_uid.clone(),
+                ),
             };
 
             // register device in gateway
@@ -422,16 +428,16 @@ async fn register_device_on_gateway(
                     .insert_device_in_affordances_index(affordance, device_uid.clone())?;
             }
 
-            state
-                .borrow_mut()
-                .registered_devices
-                .create(registered_device_index.clone(), registered_device_value)?;
+            state.borrow_mut().registered_devices.create(
+                registered_device_index.clone(),
+                registered_device_value.clone(),
+            )?;
             print(format!(
                 "Gateway {:?} registered new device with UID {:?}",
                 gateway_principal_id, device_uid
             ));
 
-            return Ok(registered_device_index);
+            return Ok((registered_device_index, registered_device_value));
         }
         Err(String::from(
             "Cannot register device from a different network of the gateway",
@@ -444,7 +450,6 @@ async fn register_device_on_gateway(
 async fn get_registered_devices_on_gateway(
     gateway_principal_id: GatewayPrincipalId,
 ) -> RegisteredDevicesUidsResult {
-
     STATE.with(|state| {
         // check if gateway is already registered
         let registered_gateway_index = RegisteredGatewayIndex {
@@ -457,83 +462,10 @@ async fn get_registered_devices_on_gateway(
             .clone();
 
         // return registered devices
-        Ok(registered_gateway_value.gat_registered_device_uids.keys().cloned().collect())
-    })
-}
-
-#[update(name = "getDevicesInEnvironmentByAffordance")]
-#[candid_method(update, rename = "getDevicesInEnvironmentByAffordance")]
-fn get_devices_in_environment_by_affordance(
-    environment_uid: EnvironmentUID,
-    affordance: AffordanceValue,
-) -> GenericResult<DevicesAccessInfo> {
-    STATE.with(|state| {
-        let device_uids_with_affordance =
-            match state.borrow().affordance_devices_index.read(&affordance) {
-                Ok(device_uids) => device_uids.clone(),
-                Err(_) => BTreeSet::<DeviceUid>::new(),
-            };
-        print(format!(
-            "Device UIDS with affordance '{:?}':  {:?}",
-            affordance, device_uids_with_affordance
-        ));
-
-        let environment_index = EnvironmentIndex { environment_uid };
-        let gateways_in_environment = state
-            .borrow()
-            .environments
-            .read(&environment_index)?
-            .clone()
-            .env_gateways_principals_ids;
-        let mut devices_access_info = DevicesAccessInfo {
-            devices_urls: vec![],
-            required_headers: BTreeMap::from([
-                // This is the default port for the web server exposed by the Gateway
-                // TODO: store this value in the Gateway state
-                (String::from("X-Forward-To-Port"), String::from("8888")),
-            ]),
-        };
-
-        for gateway_principal_id in gateways_in_environment.keys() {
-            let registered_gateway_index = RegisteredGatewayIndex {
-                principal_id: gateway_principal_id.clone(),
-            };
-            let registered_gateway = state
-                .borrow()
-                .registered_gateways
-                .read(&registered_gateway_index)?
-                .clone();
-
-            if let Some(proxied_gateway_uid) = registered_gateway.proxied_gateway_uid {
-                devices_access_info.required_headers.insert(
-                    String::from("X-Forward-To-Peer"),
-                    proxied_gateway_uid,
-                );
-            };
-
-            let device_uids_in_gateway: BTreeSet<DeviceUid> = registered_gateway
-                .gat_registered_device_uids
-                .keys()
-                .cloned()
-                .collect();
-            let matching_device_uids: Vec<String> = device_uids_with_affordance
-                .intersection(&device_uids_in_gateway)
-                .cloned()
-                .collect();
-            devices_access_info.devices_urls = matching_device_uids.iter().map(|device_uid| {
-                // TODO: move this to a function that can be used in other parts of the codebase
-                format!(
-                    "{}/{}",
-                    registered_gateway.gateway_url,
-                    device_uid,
-                )
-            }).collect();
-        }
-        print(format!(
-            "Device UIDS in environment with UID {:?}:  {:?}",
-            affordance, device_uids_with_affordance
-        ));
-
-        Ok(devices_access_info)
+        Ok(registered_gateway_value
+            .gat_registered_device_uids
+            .keys()
+            .cloned()
+            .collect())
     })
 }

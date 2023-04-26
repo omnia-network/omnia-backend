@@ -12,7 +12,8 @@ use crate::{
 pub type GatewayUID = String;
 pub type GatewayPrincipald = String;
 pub type GatewayPrincipalId = String;
-pub type GatewayURL = String;
+// TODO: change it to a URL type, so that we can validate it properly
+pub type GatewayUrl = String;
 
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq)]
 pub struct InitializedGatewayIndex {
@@ -67,7 +68,7 @@ pub struct RegisteredGatewayValue {
     pub gateway_ip: Ip,
     /// URL of the proxy
     /// TODO: avoid storing it, becuase it can be derived from the gateway_ip
-    pub gateway_url: GatewayURL,
+    pub gateway_url: GatewayUrl,
     pub proxied_gateway_uid: Option<ProxiedGatewayUID>,
     pub env_uid: EnvironmentUID,
     pub gat_registered_device_uids: BTreeMap<DeviceUid, ()>, // TODO: DeviceInfo

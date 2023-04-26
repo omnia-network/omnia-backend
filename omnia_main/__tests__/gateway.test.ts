@@ -1,4 +1,4 @@
-import { DevicesAccessInfo, EnvironmentCreationResult, RegisteredDeviceIndex, RegisteredGatewayValue, UpdateValue } from "../src/declarations/omnia_backend/omnia_backend.did";
+import { EnvironmentCreationResult, InitializedGatewayValue, RegisteredDeviceIndex, RegisteredDeviceValue, RegisteredGatewayValue, UpdateValue } from "../src/declarations/omnia_backend/omnia_backend.did";
 import {
   gateway1,
   gateway1Data,
@@ -66,8 +66,11 @@ describe("Gateway", () => {
       manager1Data.remoteIp,
     );
     expect(initializedGatewaysResult.error).toBeNull();
-    expect(initializedGatewaysResult.data).toEqual([{
+    expect(initializedGatewaysResult.data).toMatchObject<InitializedGatewayValue[]>([{
       principal_id: (await gateway1Data.identity).getPrincipal().toText(),
+      proxied_gateway_uid: [
+        gateway1Data.proxyData!.peerId,
+      ],
     }]);
   });
 
@@ -195,11 +198,20 @@ describe("Gateway", () => {
       gateway1Data.proxyData,
     );
     expect(registerDeviceResult.error).toBeNull();
-    expect(registerDeviceResult.data).toMatchObject<RegisteredDeviceIndex>({
+    expect(registerDeviceResult.data![0]).toMatchObject<RegisteredDeviceIndex>({
       device_uid: expect.any(String),
     });
 
-    deviceUid = registerDeviceResult.data!.device_uid;
+    deviceUid = registerDeviceResult.data![0].device_uid;
+    
+    expect(registerDeviceResult.data![1]).toMatchObject<RegisteredDeviceValue>({
+      affordances: [
+        DEVICE_AFFORDANCE_VALUE,
+      ],
+      device_url: `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
+      env_uid: environmentUid,
+      gateway_principal_id: (await gateway1Data.identity).getPrincipal().toText(),
+    });
   });
 
   it("getRegisteredDevices: Gateway can retrieve the list of registered devices, device present", async () => {
@@ -213,38 +225,8 @@ describe("Gateway", () => {
     ]);
   });
 
-  it("getDevicesInEnvironmentByAffordance: Manager (should be an Application) can retrieve the devices by affordances", async () => {
-    const manager1Actor = await manager1.getActor();
-    const devicesInEnvironmentByAffordanceResult = await manager1.parseResult(
-      manager1Actor.getDevicesInEnvironmentByAffordance(
-        environmentUid,
-        DEVICE_AFFORDANCE_VALUE,
-      )
-    );
-    expect(devicesInEnvironmentByAffordanceResult.error).toBeNull();
-    expect(devicesInEnvironmentByAffordanceResult.data).toMatchObject<DevicesAccessInfo>({
-      devices_urls: [
-        `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
-      ],
-      required_headers: [
-        ["X-Forward-To-Peer", gateway1Data.proxyData!.peerId,],
-        ["X-Forward-To-Port", "8888"],
-      ],
-    });
-
-    const emptyDevicesInEnvironmentByAffordanceResult = await manager1.parseResult(
-      manager1Actor.getDevicesInEnvironmentByAffordance(
-        environmentUid,
-        "non-existent-affordance",
-      )
-    );
-    expect(emptyDevicesInEnvironmentByAffordanceResult.error).toBeNull();
-    expect(emptyDevicesInEnvironmentByAffordanceResult.data).toMatchObject<DevicesAccessInfo>({
-      devices_urls: [],
-      required_headers: [
-        ["X-Forward-To-Peer", gateway1Data.proxyData!.peerId,],
-        ["X-Forward-To-Port", "8888"],
-      ],
-    });
+  it("getDevicesInEnvironmentByAffordance: Application can retrieve the devices by affordances", async () => {
+    // TODO: the Application should be able to query the database directly
+    expect(true).toBeTruthy();
   });
 });

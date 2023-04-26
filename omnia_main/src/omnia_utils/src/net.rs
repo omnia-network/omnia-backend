@@ -13,3 +13,8 @@ pub fn get_gateway_url(ip: String, is_proxied: bool) -> String {
     };
     format!("https://{address}")
 }
+
+/// TODO: ideally the device URL is created by reading the Gateway WoT servient index page, so we shouldn't need this function
+pub fn get_device_url(gateway_url: String, device_uid: String) -> String {
+    format!("{}/{}", gateway_url, device_uid)
+}

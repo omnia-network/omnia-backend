@@ -8,7 +8,7 @@ use ic_cdk::{
 use ic_cdk_macros::update;
 use omnia_types::{
     affordance::AffordanceValue,
-    device::{DevicesAccessInfo, RegisteredDeviceResult, RegisteredDevicesUidsResult},
+    device::{RegisteredDeviceResult, RegisteredDevicesUidsResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
     errors::{GenericError, GenericResult},
     gateway::{
@@ -20,7 +20,10 @@ use omnia_types::{
     virtual_persona::VirtualPersonaPrincipalId,
 };
 
-use crate::{rdf::insert, utils::get_database_principal};
+use crate::{
+    rdf::{insert, Triple},
+    utils::get_database_principal,
+};
 
 #[update(name = "createEnvironment")]
 #[candid_method(update, rename = "createEnvironment")]
@@ -230,13 +233,14 @@ async fn pair_new_device(
 
 #[update(name = "registerDevice")]
 #[candid_method(update, rename = "registerDevice")]
+/// we expect the affordances to be a subset of [saref:Function](https://saref.etsi.org/core/v3.1.1/#saref:Function)
 async fn register_device(
     nonce: IpChallengeNonce,
     affordances: BTreeSet<AffordanceValue>,
 ) -> RegisteredDeviceResult {
     let gateway_principal_id = caller().to_string();
 
-    call::<
+    let registered_device = call::<
         (
             IpChallengeNonce,
             GatewayPrincipalId,
@@ -246,11 +250,67 @@ async fn register_device(
     >(
         get_database_principal(),
         "registerDeviceOnGateway",
-        (nonce, gateway_principal_id, affordances),
+        (nonce, gateway_principal_id, affordances.clone()),
     )
     .await
     .unwrap()
-    .0
+    .0?;
+
+    let device_url = format!("<{}>", registered_device.clone().1.device_url);
+
+    let mut triples: Vec<Triple> = vec![
+        // device declaration
+        (
+            device_url.clone(),
+            "rdf:type".to_string(),
+            "saref:Device".to_string(),
+        ),
+        // device - environment relation
+        (
+            format!("urn:uuid:{}", registered_device.clone().1.env_uid),
+            "bot:hasElement".to_string(),
+            device_url.clone(),
+        ),
+        // device required HTTP headers
+        // TODO: define a better name for this HTTP header
+        (
+            "omnia:HTTPHeader".to_string(),
+            "rdf:type".to_string(),
+            "http:RequestHeader".to_string(),
+        ),
+        (
+            "omnia:HTTPHeader".to_string(),
+            "http:fieldName".to_string(),
+            "\"X-Forward-To-Port\"".to_string(),
+        ),
+        (
+            "omnia:HTTPHeader".to_string(),
+            "http:fieldValue".to_string(),
+            // This is the default port for the web server exposed by the Gateway
+            // TODO: store this value in the Gateway state
+            "\"8888\"".to_string(),
+        ),
+        (
+            device_url.clone(),
+            // TODO: use a verb from an ontology instead of a custom one
+            "omnia:requiresHeader".to_string(),
+            "omnia:HTTPHeader".to_string(),
+        ),
+    ];
+
+    // device affordances are mapped to saref Functions for now
+    // we expect the affordances to be a subset of saref Functions (https://saref.etsi.org/core/v3.1.1/#saref:Function)
+    triples.extend(affordances.iter().map(|affordance| {
+        (
+            device_url.clone(),
+            "saref:hasFunction".to_string(),
+            affordance.to_string(),
+        )
+    }));
+
+    insert(triples).await?;
+
+    Ok(registered_device)
 }
 
 #[update(name = "getRegisteredDevices")]
@@ -262,22 +322,6 @@ async fn get_registered_devices() -> RegisteredDevicesUidsResult {
         get_database_principal(),
         "getRegisteredDevicesOnGateway",
         (gateway_principal_id,),
-    )
-    .await
-    .unwrap()
-    .0
-}
-
-#[update(name = "getDevicesInEnvironmentByAffordance")]
-#[candid_method(update, rename = "getDevicesInEnvironmentByAffordance")]
-async fn get_devices_in_environment_by_affordance(
-    environment_uid: EnvironmentUID,
-    affordance: AffordanceValue,
-) -> GenericResult<DevicesAccessInfo> {
-    call::<(EnvironmentUID, AffordanceValue), (GenericResult<DevicesAccessInfo>,)>(
-        get_database_principal(),
-        "getDevicesInEnvironmentByAffordance",
-        (environment_uid, affordance),
     )
     .await
     .unwrap()

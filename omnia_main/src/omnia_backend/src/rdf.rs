@@ -15,18 +15,20 @@ pub type Triple = (String, String, String);
 const OMNIA_GRAPH: &str = "omnia:";
 
 /// RDF database graph prefixes:
-/// - **omnia**: <http://rdf.omnia-iot.com>
+/// - **omnia**: <http://rdf.omnia-iot.com#>
 /// - **rdf**: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 /// - **saref**: <https://saref.etsi.org/core/>
 /// - **bot**: <https://w3id.org/bot#>
+/// - **http**: <https://www.w3.org/2011/http#>
 /// - **urn**: `<urn:>`
 const PREFIXES: &str = r#"
 # Omnia
-PREFIX omnia: <http://rdf.omnia-iot.com>
+PREFIX omnia: <http://rdf.omnia-iot.com#>
 # Third parties
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX saref: <https://saref.etsi.org/core/>
 PREFIX bot: <https://w3id.org/bot#>
+PREFIX http: <https://www.w3.org/2011/http#>
 # Definitions
 PREFIX urn: <urn:>
 "#;
@@ -103,8 +105,9 @@ async fn send_query(q: String) -> Result<(), GenericError> {
     }
 }
 
-/// Insert data in the RDF database.
-/// Available prefixes: [PREFIXES]
+/// Insert data in the RDF database.<br>
+/// Available prefixes: [PREFIXES]<br>
+/// TODO: implement nested insert and where conditions
 pub async fn insert(triples: Vec<Triple>) -> Result<(), GenericError> {
     let mut query = format!("INSERT DATA {{ GRAPH {OMNIA_GRAPH} {{\n");
     for (s, p, o) in triples {
@@ -117,7 +120,7 @@ pub async fn insert(triples: Vec<Triple>) -> Result<(), GenericError> {
     send_query(query).await
 }
 
-/// Delete data from the RDF database.
+/// Delete data from the RDF database.<br>
 /// Available prefixes: [PREFIXES]
 pub async fn delete(triples: Vec<Triple>) -> Result<(), GenericError> {
     let mut query = format!("DELETE DATA {{ GRAPH {OMNIA_GRAPH} {{\n");
