@@ -8,8 +8,10 @@ source .env
 # TODO: read database canister id from .dfx/canister_ids.json automatically (maybe use a node script for that)
 
 if [ "$DATABASE_CANISTER_PRINCIPAL_ID" = "" ]; then
-  echo "Please provide a database canister principal id"
-  exit 1
+  echo "Database canister principal ID not provided, extracting it from `dfx canister create database` command..."
+  # it's weird that the dfx command outputs to stderr...
+  export DATABASE_CANISTER_PRINCIPAL_ID=$(dfx canister create database --no-wallet 2>&1 | sed -n '2s/^.*id: //p')
+  echo "Database canister principal ID: $DATABASE_CANISTER_PRINCIPAL_ID"
 fi
 
 if [ "$RDF_DATABASE_BASE_URL" = "" ]; then

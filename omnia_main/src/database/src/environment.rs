@@ -514,7 +514,6 @@ fn get_devices_in_environment_by_affordance(
             let device_uids_in_gateway: BTreeSet<DeviceUid> = registered_gateway
                 .gat_registered_device_uids
                 .keys()
-                .into_iter()
                 .cloned()
                 .collect();
             let matching_device_uids: Vec<String> = device_uids_with_affordance

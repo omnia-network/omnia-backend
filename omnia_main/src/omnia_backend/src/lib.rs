@@ -1,5 +1,6 @@
 mod http_endpoint;
 mod manager;
+mod outcalls;
 mod rdf;
 mod user;
 mod utils;

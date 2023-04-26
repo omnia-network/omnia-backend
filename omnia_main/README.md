@@ -50,20 +50,8 @@ As you can guess, **omnia_backend** depends on **database** and needs to know th
 
 So, follow these steps to deploy everything correctly:
 
-1. deploy **database** canister:
-    ```bash
-    dfx deploy database --no-wallet
-    ```
-    It'll give you an output similar to
-    ```bash
-    Deployed canisters.
-    URLs:
-      Backend canister via Candid interface:
-        database: http://127.0.0.1:4943/?canisterId=ryjl3-tyaaa-aaaaa-aaaba-cai&id=rrkah-fqaaa-aaaaa-aaaaq-cai
-    ```
-    where the last `rrkah-fqaaa-aaaaa-aaaaq-cai` is the database canister id you need in the next steps
-2. copy the `.env.example` file to `.env`, filling in the database canister id you obtained above along with other parameters
-3. we suggest running [omnia-rdf-proxy](https://github.com/omnia-network/omnia-rdf-proxy) in development mode to spin up a local proxied RDF database
+1. copy the `.env.example` file to `.env`, filling in the parameters properly
+2. we suggest running [omnia-rdf-proxy](https://github.com/omnia-network/omnia-rdf-proxy) in development mode to spin up a local proxied RDF database, and since the IC HTTPS outcalls always expect an HTTPS endpoint, we suggest putting the RDF proxy it behind an [ngrok](https://ngrok.com) proxy to have the HTTPS certificate
 3. generate dids and deploy all backend canisters by running:
     ```bash
     npm run generate-dids-and-deploy:backend
@@ -71,7 +59,7 @@ So, follow these steps to deploy everything correctly:
 
 ### Deployment
 
-Before executing any of the following commands, make sure you create a `.env` file by copying the `.env.example` file and filling in the parameters. See above for more details.
+Before executing any of the following commands, make sure you create a `.env` file by copying the `.env.example` file and filling in the parameters.
 
 Available commands:
 - `npm run deploy`: deploys **all** canisters
@@ -79,13 +67,13 @@ Available commands:
 - `npm run generate-dids-and-deploy`: first generates dids and then deploys **all** canisters
 - `npm run generate-dids-and-deploy:backend`: first generates dids and then deploys **backend** canisters only
 
-## Tests
+## Tests (Backend only)
 
 We use [Jest](https://jestjs.io/) to run integration tests. All tests are in the [`__tests__`](./__tests__/) folder.
 
-To run tests, first deploy all canisters (see above):
+To run tests, first deploy **backend** canisters (see above):
 ```bash
-npm run deploy
+npm run deploy:backend
 ```
 
 and then run:

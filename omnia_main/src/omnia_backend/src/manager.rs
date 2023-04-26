@@ -7,11 +7,20 @@ use ic_cdk::{
 };
 use ic_cdk_macros::update;
 use omnia_types::{
+    affordance::AffordanceValue,
+    device::{DevicesAccessInfo, RegisteredDeviceResult, RegisteredDevicesUidsResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    gateway::{RegisteredGatewayResult, GatewayRegistrationInput, MultipleRegisteredGatewayResult, InitializedGatewayValue, GatewayPrincipalId}, http::{IpChallengeNonce}, errors::{GenericResult, GenericError}, updates::{UpdateValueResult, UpdateValueOption, PairingPayload}, virtual_persona::VirtualPersonaPrincipalId, device::{RegisteredDeviceResult, DevicesAccessInfo, RegisteredDevicesUidsResult}, affordance::AffordanceValue
+    errors::{GenericError, GenericResult},
+    gateway::{
+        GatewayPrincipalId, GatewayRegistrationInput, InitializedGatewayValue,
+        MultipleRegisteredGatewayResult, RegisteredGatewayResult,
+    },
+    http::IpChallengeNonce,
+    updates::{PairingPayload, UpdateValueOption, UpdateValueResult},
+    virtual_persona::VirtualPersonaPrincipalId,
 };
 
-use crate::{utils::get_database_principal, rdf::insert};
+use crate::{rdf::insert, utils::get_database_principal};
 
 #[update(name = "createEnvironment")]
 #[candid_method(update, rename = "createEnvironment")]
@@ -20,24 +29,27 @@ async fn create_environment(
 ) -> GenericResult<EnvironmentCreationResult> {
     let environment_manager_principal_id = caller().to_string();
 
-    let (virtual_persona_exists, ): (bool, ) = call(
+    let (virtual_persona_exists,): (bool,) = call(
         get_database_principal(),
         "checkIfVirtualPersonaExists",
         (environment_manager_principal_id.clone(),),
-    ).await.unwrap();
+    )
+    .await
+    .unwrap();
     match virtual_persona_exists {
         true => {
-            let (environment_creation_result,): (Result<EnvironmentCreationResult, GenericError>,) = call(
-                get_database_principal(),
-                "createNewEnvironment",
-                (
-                    environment_manager_principal_id,
-                    Box::new(environment_creation_input),
-                ),
-            )
-            .await
-            .unwrap();
-        
+            let (environment_creation_result,): (Result<EnvironmentCreationResult, GenericError>,) =
+                call(
+                    get_database_principal(),
+                    "createNewEnvironment",
+                    (
+                        environment_manager_principal_id,
+                        Box::new(environment_creation_input),
+                    ),
+                )
+                .await
+                .unwrap();
+
             print(format!(
                 "Created new environment: {:?}",
                 environment_creation_result
@@ -46,13 +58,18 @@ async fn create_environment(
             // register the environment in the RDF database
             match environment_creation_result {
                 Ok(result) => {
-                    insert(vec![(result.env_uid.clone(), "rdf:type".to_string(), "bla".to_string())]).await?;
-        
+                    insert(vec![(
+                        format!("urn:uuid:{}", result.env_uid),
+                        "rdf:type".to_string(),
+                        "bot:Zone".to_string(),
+                    )])
+                    .await?;
+
                     Ok(result)
-                },
-                Err(err) => Err(err)
+                }
+                Err(err) => Err(err),
             }
-        },
+        }
         false => {
             let err = format!(
                 "Virtual persona with principal id: {:?} does not exist",
@@ -70,34 +87,25 @@ async fn create_environment(
 async fn init_gateway(nonce: IpChallengeNonce) -> GenericResult<GatewayPrincipalId> {
     let gateway_principal_id = caller().to_string();
 
-    let is_registered = 
-        call::<
-            (GatewayPrincipalId, ),
-            (bool, )
-        >(
-            get_database_principal(),
-            "isGatewayRegistered",
-            (
-                gateway_principal_id.clone(),
-            )
-        )
-        .await
-        .unwrap()
-        .0;
+    let is_registered = call::<(GatewayPrincipalId,), (bool,)>(
+        get_database_principal(),
+        "isGatewayRegistered",
+        (gateway_principal_id.clone(),),
+    )
+    .await
+    .unwrap()
+    .0;
 
     if !is_registered {
-        print(format!("Gateway with principal ID: {:?} is not yet registered", gateway_principal_id));
+        print(format!(
+            "Gateway with principal ID: {:?} is not yet registered",
+            gateway_principal_id
+        ));
         let principal_id =
-            call::<
-                (IpChallengeNonce, GatewayPrincipalId),
-                (GenericResult<GatewayPrincipalId>,)
-            >(
+            call::<(IpChallengeNonce, GatewayPrincipalId), (GenericResult<GatewayPrincipalId>,)>(
                 get_database_principal(),
-                "initGatewayByIp", 
-                (
-                    nonce,
-                    gateway_principal_id,
-                )
+                "initGatewayByIp",
+                (nonce, gateway_principal_id),
             )
             .await
             .unwrap()
@@ -110,18 +118,27 @@ async fn init_gateway(nonce: IpChallengeNonce) -> GenericResult<GatewayPrincipal
 
 #[update(name = "getInitializedGateways")]
 #[candid_method(update, rename = "getInitializedGateways")]
-async fn get_initialized_gateways(nonce: IpChallengeNonce) -> GenericResult<Vec<InitializedGatewayValue>> {
-    
-    let initialized_gateway_principals_result: GenericResult<Vec<InitializedGatewayValue>> = match call(get_database_principal(), "getInitializedGatewaysByIp", (nonce, ))
+async fn get_initialized_gateways(
+    nonce: IpChallengeNonce,
+) -> GenericResult<Vec<InitializedGatewayValue>> {
+    let initialized_gateway_principals_result: GenericResult<Vec<InitializedGatewayValue>> =
+        match call(
+            get_database_principal(),
+            "getInitializedGatewaysByIp",
+            (nonce,),
+        )
         .await
         .unwrap()
-    {
-        (Ok(initialized_gateway_principals),) => {
-            print(format!("Initialized gateways in the local network have principals {:?}", initialized_gateway_principals));
-            Ok(initialized_gateway_principals)
-        },
-        (Err(e),) => Err(e)
-    };
+        {
+            (Ok(initialized_gateway_principals),) => {
+                print(format!(
+                    "Initialized gateways in the local network have principals {:?}",
+                    initialized_gateway_principals
+                ));
+                Ok(initialized_gateway_principals)
+            }
+            (Err(e),) => Err(e),
+        };
     initialized_gateway_principals_result
 }
 
@@ -150,7 +167,9 @@ async fn register_gateway(
 
 #[update(name = "getRegisteredGateways")]
 #[candid_method(update, rename = "getRegisteredGateways")]
-async fn get_registered_gateways(environment_uid: EnvironmentUID) -> MultipleRegisteredGatewayResult {
+async fn get_registered_gateways(
+    environment_uid: EnvironmentUID,
+) -> MultipleRegisteredGatewayResult {
     let (res,): (MultipleRegisteredGatewayResult,) = call(
         get_database_principal(),
         "getRegisteredGatewaysInEnvironment",
@@ -182,11 +201,19 @@ async fn get_gateway_updates() -> UpdateValueOption {
 async fn pair_new_device(
     nonce: IpChallengeNonce,
     gateway_principal_id: GatewayPrincipalId,
-    pairing_payload: PairingPayload
+    pairing_payload: PairingPayload,
 ) -> UpdateValueResult {
     let manager_principal_id = caller().to_string();
 
-    call::<(IpChallengeNonce, VirtualPersonaPrincipalId, GatewayPrincipalId, PairingPayload), (UpdateValueResult,)>(
+    call::<
+        (
+            IpChallengeNonce,
+            VirtualPersonaPrincipalId,
+            GatewayPrincipalId,
+            PairingPayload,
+        ),
+        (UpdateValueResult,),
+    >(
         get_database_principal(),
         "pairNewDeviceOnGateway",
         (
@@ -205,18 +232,21 @@ async fn pair_new_device(
 #[candid_method(update, rename = "registerDevice")]
 async fn register_device(
     nonce: IpChallengeNonce,
-    affordances: BTreeSet<AffordanceValue>
+    affordances: BTreeSet<AffordanceValue>,
 ) -> RegisteredDeviceResult {
     let gateway_principal_id = caller().to_string();
 
-    call::<(IpChallengeNonce, GatewayPrincipalId, BTreeSet<AffordanceValue>,), (RegisteredDeviceResult,)>(
+    call::<
+        (
+            IpChallengeNonce,
+            GatewayPrincipalId,
+            BTreeSet<AffordanceValue>,
+        ),
+        (RegisteredDeviceResult,),
+    >(
         get_database_principal(),
         "registerDeviceOnGateway",
-        (
-            nonce,
-            gateway_principal_id,
-            affordances,
-        ),
+        (nonce, gateway_principal_id, affordances),
     )
     .await
     .unwrap()
@@ -225,16 +255,13 @@ async fn register_device(
 
 #[update(name = "getRegisteredDevices")]
 #[candid_method(update, rename = "getRegisteredDevices")]
-async fn get_registered_devices(
-) -> RegisteredDevicesUidsResult {
+async fn get_registered_devices() -> RegisteredDevicesUidsResult {
     let gateway_principal_id = caller().to_string();
 
-    call::<(GatewayPrincipalId, ), (RegisteredDevicesUidsResult,)>(
+    call::<(GatewayPrincipalId,), (RegisteredDevicesUidsResult,)>(
         get_database_principal(),
         "getRegisteredDevicesOnGateway",
-        (
-            gateway_principal_id,
-        ),
+        (gateway_principal_id,),
     )
     .await
     .unwrap()
@@ -245,18 +272,14 @@ async fn get_registered_devices(
 #[candid_method(update, rename = "getDevicesInEnvironmentByAffordance")]
 async fn get_devices_in_environment_by_affordance(
     environment_uid: EnvironmentUID,
-    affordance: AffordanceValue
+    affordance: AffordanceValue,
 ) -> GenericResult<DevicesAccessInfo> {
-    call::<(EnvironmentUID, AffordanceValue,), (GenericResult<DevicesAccessInfo>,)>(
+    call::<(EnvironmentUID, AffordanceValue), (GenericResult<DevicesAccessInfo>,)>(
         get_database_principal(),
         "getDevicesInEnvironmentByAffordance",
-        (
-            environment_uid,
-            affordance,
-        ),
+        (environment_uid, affordance),
     )
     .await
     .unwrap()
     .0
 }
-

@@ -1,3 +1,4 @@
+use candid::Nat;
 use ic_cdk::api::{
     management_canister::http_request::{
         http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod,
@@ -13,10 +14,21 @@ pub type Triple = (String, String, String);
 
 const OMNIA_GRAPH: &str = "omnia:";
 
+/// RDF database graph prefixes:
+/// - **omnia**: <http://rdf.omnia-iot.com>
+/// - **rdf**: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+/// - **saref**: <https://saref.etsi.org/core/>
+/// - **bot**: <https://w3id.org/bot#>
+/// - **urn**: `<urn:>`
 const PREFIXES: &str = r#"
+# Omnia
 PREFIX omnia: <http://rdf.omnia-iot.com>
+# Third parties
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX saref: <https://saref.etsi.org/core/>
+PREFIX bot: <https://w3id.org/bot#>
+# Definitions
+PREFIX urn: <urn:>
 "#;
 
 const MAX_RESPONSE_BYTES: u64 = 1024; // 1KB
@@ -34,10 +46,7 @@ async fn send_query(q: String) -> Result<(), GenericError> {
         HttpHeader {
             name: "Host".to_string(),
             // get only the host:port part of the URL
-            value: rdf_base_url
-                .split("://")
-                .collect::<Vec<&str>>()[1]
-                .to_string(),
+            value: rdf_base_url.split("://").collect::<Vec<&str>>()[1].to_string(),
         },
         HttpHeader {
             name: "User-Agent".to_string(),
@@ -54,10 +63,7 @@ async fn send_query(q: String) -> Result<(), GenericError> {
         },
         HttpHeader {
             name: "Authorization".to_string(),
-            value: format!(
-                "apikey {}",
-                get_rdf_database_connection().api_key
-            ),
+            value: format!("apikey {}", get_rdf_database_connection().api_key),
         },
     ];
 
@@ -65,7 +71,7 @@ async fn send_query(q: String) -> Result<(), GenericError> {
 
     let request = CanisterHttpRequestArgument {
         url,
-        method: HttpMethod::GET,
+        method: HttpMethod::POST,
         body: Some(q.as_bytes().to_vec()),
         max_response_bytes: Some(MAX_RESPONSE_BYTES),
         transform: None,
@@ -73,9 +79,19 @@ async fn send_query(q: String) -> Result<(), GenericError> {
     };
     match http_request(request).await {
         Ok((response,)) => {
-            let message = format!("The http_request resulted into success. Response: {response:?}");
-            print(message);
-            Ok(())
+            // needed just to avoid clippy warnings
+            #[allow(clippy::cmp_owned)]
+            if response.status >= Nat::from(200) && response.status < Nat::from(400) {
+                let message =
+                    format!("The http_request resulted into success. Response: {response:?}");
+                print(message);
+                Ok(())
+            } else {
+                let message =
+                    format!("The http_request resulted into error. Response: {response:?}");
+                print(message.clone());
+                Err(message)
+            }
         }
         Err((r, m)) => {
             let message =
@@ -87,8 +103,24 @@ async fn send_query(q: String) -> Result<(), GenericError> {
     }
 }
 
+/// Insert data in the RDF database.
+/// Available prefixes: [PREFIXES]
 pub async fn insert(triples: Vec<Triple>) -> Result<(), GenericError> {
     let mut query = format!("INSERT DATA {{ GRAPH {OMNIA_GRAPH} {{\n");
+    for (s, p, o) in triples {
+        query.push_str(format!("{s} {p} {o} .\n").as_str());
+    }
+    query.push_str("} }");
+
+    query = build_query(query.as_str());
+
+    send_query(query).await
+}
+
+/// Delete data from the RDF database.
+/// Available prefixes: [PREFIXES]
+pub async fn delete(triples: Vec<Triple>) -> Result<(), GenericError> {
+    let mut query = format!("DELETE DATA {{ GRAPH {OMNIA_GRAPH} {{\n");
     for (s, p, o) in triples {
         query.push_str(format!("{s} {p} {o} .\n").as_str());
     }
