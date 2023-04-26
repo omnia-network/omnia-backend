@@ -10,6 +10,7 @@ import {
   manager2Data,
 } from "./utils/actors";
 import { DEVICE_AFFORDANCE_VALUE, DEVICE_PAIRING_PAYLOAD, ENVIRONMENT_NAME, GATEWAY1_NAME, LONG_TEST_TIMEOUT, OMNIA_PROXY_IPV4 } from "./utils/constants";
+import { PREFIXES, sparqlClient } from "./utils/sparql-client";
 
 let environmentUid: string;
 let deviceUid: string;
@@ -203,7 +204,7 @@ describe("Gateway", () => {
     });
 
     deviceUid = registerDeviceResult.data![0].device_uid;
-    
+
     expect(registerDeviceResult.data![1]).toMatchObject<RegisteredDeviceValue>({
       affordances: [
         DEVICE_AFFORDANCE_VALUE,
@@ -225,8 +226,148 @@ describe("Gateway", () => {
     ]);
   });
 
-  it("getDevicesInEnvironmentByAffordance: Application can retrieve the devices by affordances", async () => {
-    // TODO: the Application should be able to query the database directly
-    expect(true).toBeTruthy();
+  it("Application can retrieve the devices by affordances", async () => {
+    // first, we try a query with a non-existent affordance
+    const failingQuery = await sparqlClient.query.select(
+      `${PREFIXES}
+      SELECT ?device WHERE {
+        GRAPH omnia: {
+          ?device saref:hasFunction saref:NonExistingFunction .
+        }
+      }
+      `,
+      {
+        headers: {
+          Accept: "application/sparql-results+json",
+        }
+      }
+    );
+
+    const failingResponse = await failingQuery.json();
+
+    expect(failingQuery.status).toEqual(200);
+    expect(failingResponse).toMatchObject({
+      head: {
+        vars: [
+          "device",
+        ],
+      },
+      results: {
+        bindings: [],
+      },
+    });
+
+    const response = await sparqlClient.query.select(
+      `${PREFIXES}
+      SELECT ?device ?headerName ?headerValue WHERE {
+        GRAPH omnia: {
+          ?device saref:hasFunction ${DEVICE_AFFORDANCE_VALUE} .
+          ?device omnia:requiresHeader ?header .
+          ?header http:fieldName ?headerName ;
+                  http:fieldValue ?headerValue .
+        }
+      }
+      `,
+      {
+        headers: {
+          Accept: "application/sparql-results+json",
+        }
+      }
+    );
+
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchObject({
+      head: {
+        vars: [
+          "device",
+          "headerName",
+          "headerValue",
+        ],
+      },
+      results: {
+        bindings: [
+          {
+            device: {
+              type: "uri",
+              value: `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
+            },
+            headerName: {
+              type: "literal",
+              value: "X-Forward-To-Port",
+            },
+            headerValue: {
+              type: "literal",
+              value: "8888",
+            },
+          },
+        ],
+      },
+    });
+  });
+
+  it("Application can retrieve the devices in the environment", async () => {
+    // first, we try a query with a non-existent affordance
+    const failingQuery = await sparqlClient.query.select(
+      `${PREFIXES}
+      SELECT ?device WHERE {
+        GRAPH omnia: {
+          urn:uuid:non-existing-environment bot:hasElement ?device .
+        }
+      }
+      `,
+      {
+        headers: {
+          Accept: "application/sparql-results+json",
+        }
+      }
+    );
+
+    const failingResponse = await failingQuery.json();
+
+    expect(failingQuery.status).toEqual(200);
+    expect(failingResponse).toMatchObject({
+      head: {
+        vars: [
+          "device",
+        ],
+      },
+      results: {
+        bindings: [],
+      },
+    });
+
+    const response = await sparqlClient.query.select(
+      `${PREFIXES}
+      SELECT ?device WHERE {
+        GRAPH omnia: {
+          urn:uuid:${environmentUid} bot:hasElement ?device .
+        }
+      }
+      `,
+      {
+        headers: {
+          Accept: "application/sparql-results+json",
+        }
+      }
+    );
+
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchObject({
+      head: {
+        vars: [
+          "device",
+        ],
+      },
+      results: {
+        bindings: [
+          {
+            device: {
+              type: "uri",
+              value: `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
+            },
+          },
+        ],
+      },
+    });
   });
 });

@@ -71,7 +71,7 @@ Available commands:
 
 We use [Jest](https://jestjs.io/) to run integration tests. All tests are in the [`__tests__`](./__tests__/) folder.
 
-To run tests, first deploy **backend** canisters (see above):
+To run tests, first deploy **backend** canisters (see above for details, make sure you the RDF database is also reachable and environment variables are set properly):
 ```bash
 npm run deploy:backend
 ```
