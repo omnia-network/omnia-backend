@@ -1,12 +1,9 @@
-use std::{cmp::Ordering, collections::BTreeSet};
+use std::cmp::Ordering;
 
 use candid::{CandidType, Deserialize};
 use serde::Serialize;
 
-use crate::{
-    affordance::AffordanceValue, environment::EnvironmentUID, errors::GenericResult,
-    gateway::GatewayPrincipalId,
-};
+use crate::{environment::EnvironmentUID, errors::GenericResult, gateway::GatewayPrincipalId};
 
 pub type DeviceUid = String;
 // TODO: change it to a URL type, so that we can validate it properly
@@ -35,7 +32,6 @@ impl PartialOrd for RegisteredDeviceIndex {
 pub struct RegisteredDeviceValue {
     pub gateway_principal_id: GatewayPrincipalId,
     pub env_uid: EnvironmentUID,
-    pub affordances: BTreeSet<AffordanceValue>,
     /// The publicly accessible URL of the device, use [get_device_url](omnia::utils::net::get_device_url) to generate it
     pub device_url: DeviceUrl,
 }

@@ -26,7 +26,6 @@ type RegisteredDeviceValue = record {
   env_uid : text;
   device_url : text;
   gateway_principal_id : text;
-  affordances : vec text;
 };
 type RegisteredGatewayValue = record {
   gateway_name : text;
@@ -72,7 +71,7 @@ service : (opt text, text, text, text) -> {
   http_request_update : (HttpRequest) -> (HttpResponse);
   initGateway : (text) -> (Result_5);
   pairNewDevice : (text, text, text) -> (Result_6);
-  registerDevice : (text, vec text) -> (Result_7);
+  registerDevice : (text, vec record { text; text }) -> (Result_7);
   registerGateway : (text, GatewayRegistrationInput) -> (Result_8);
   resetEnvironment : (text) -> (Result_9);
   setEnvironment : (text) -> (Result_9);

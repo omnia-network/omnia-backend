@@ -233,28 +233,21 @@ async fn pair_new_device(
 
 #[update(name = "registerDevice")]
 #[candid_method(update, rename = "registerDevice")]
-/// we expect the affordances to be a subset of [saref:Function](https://saref.etsi.org/core/v3.1.1/#saref:Function)
 async fn register_device(
     nonce: IpChallengeNonce,
     affordances: BTreeSet<AffordanceValue>,
 ) -> RegisteredDeviceResult {
     let gateway_principal_id = caller().to_string();
 
-    let registered_device = call::<
-        (
-            IpChallengeNonce,
-            GatewayPrincipalId,
-            BTreeSet<AffordanceValue>,
-        ),
-        (RegisteredDeviceResult,),
-    >(
-        get_database_principal(),
-        "registerDeviceOnGateway",
-        (nonce, gateway_principal_id, affordances.clone()),
-    )
-    .await
-    .unwrap()
-    .0?;
+    let registered_device =
+        call::<(IpChallengeNonce, GatewayPrincipalId), (RegisteredDeviceResult,)>(
+            get_database_principal(),
+            "registerDeviceOnGateway",
+            (nonce, gateway_principal_id),
+        )
+        .await
+        .unwrap()
+        .0?;
 
     let device_url = format!("<{}>", registered_device.clone().1.device_url);
 
@@ -298,13 +291,11 @@ async fn register_device(
         ),
     ];
 
-    // device affordances are mapped to saref Functions for now
-    // we expect the affordances to be a subset of saref Functions (https://saref.etsi.org/core/v3.1.1/#saref:Function)
     triples.extend(affordances.iter().map(|affordance| {
         (
             device_url.clone(),
-            "saref:hasFunction".to_string(),
-            affordance.to_string(),
+            affordance.0.clone(),
+            affordance.1.clone(),
         )
     }));
 

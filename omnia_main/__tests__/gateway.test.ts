@@ -206,9 +206,6 @@ describe("Gateway", () => {
     deviceUid = registerDeviceResult.data![0].device_uid;
 
     expect(registerDeviceResult.data![1]).toMatchObject<RegisteredDeviceValue>({
-      affordances: [
-        DEVICE_AFFORDANCE_VALUE,
-      ],
       device_url: `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
       env_uid: environmentUid,
       gateway_principal_id: (await gateway1Data.identity).getPrincipal().toText(),
@@ -232,7 +229,7 @@ describe("Gateway", () => {
       `${PREFIXES}
       SELECT ?device WHERE {
         GRAPH omnia: {
-          ?device saref:hasFunction saref:NonExistingFunction .
+          ?device td:hasPropertyAffordance saref:NonExistingState .
         }
       }
       `,
@@ -261,7 +258,7 @@ describe("Gateway", () => {
       `${PREFIXES}
       SELECT ?device ?headerName ?headerValue WHERE {
         GRAPH omnia: {
-          ?device saref:hasFunction ${DEVICE_AFFORDANCE_VALUE} .
+          ?device ${DEVICE_AFFORDANCE_VALUE[0]} ${DEVICE_AFFORDANCE_VALUE[1]} .
           ?device omnia:requiresHeader ?header .
           ?header http:fieldName ?headerName ;
                   http:fieldValue ?headerValue .

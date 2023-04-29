@@ -18,7 +18,6 @@ type RegisteredDeviceValue = record {
   env_uid : text;
   device_url : text;
   gateway_principal_id : text;
-  affordances : vec text;
 };
 type RegisteredGatewayValue = record {
   gateway_name : text;
@@ -65,7 +64,7 @@ service : {
   initNonceToIp : (text, IpChallengeValue) -> ();
   isGatewayRegistered : (text) -> (bool);
   pairNewDeviceOnGateway : (text, text, text, text) -> (Result_6);
-  registerDeviceOnGateway : (text, text, vec text) -> (Result_7);
+  registerDeviceOnGateway : (text, text) -> (Result_7);
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
       Result_8,
     );

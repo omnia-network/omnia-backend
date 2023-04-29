@@ -2,7 +2,6 @@ use candid::candid_method;
 use ic_cdk::print;
 use ic_cdk_macros::update;
 use omnia_types::{
-    affordance::AffordanceValue,
     device::{
         RegisteredDeviceIndex, RegisteredDeviceResult, RegisteredDeviceValue,
         RegisteredDevicesUidsResult,
@@ -27,7 +26,7 @@ use omnia_utils::{
     net::{get_device_url, get_gateway_url},
     uuid::generate_uuid,
 };
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use crate::STATE;
 
@@ -377,7 +376,6 @@ fn pair_new_device_on_gateway(
 async fn register_device_on_gateway(
     nonce: IpChallengeNonce,
     gateway_principal_id: GatewayPrincipalId,
-    affordances: BTreeSet<AffordanceValue>,
 ) -> RegisteredDeviceResult {
     let device_uid = generate_uuid().await;
 
@@ -407,7 +405,6 @@ async fn register_device_on_gateway(
             let registered_device_value = RegisteredDeviceValue {
                 gateway_principal_id: gateway_principal_id.clone(),
                 env_uid: registered_gateway_value.env_uid.clone(),
-                affordances: affordances.clone(),
                 device_url: get_device_url(
                     registered_gateway_value.gateway_url,
                     device_uid.clone(),
@@ -419,14 +416,6 @@ async fn register_device_on_gateway(
                 .borrow_mut()
                 .registered_gateways
                 .insert_device_uid_in_gateway(registered_gateway_index, device_uid.clone())?;
-
-            // register device in affordance index
-            for affordance in affordances {
-                state
-                    .borrow_mut()
-                    .affordance_devices_index
-                    .insert_device_in_affordances_index(affordance, device_uid.clone())?;
-            }
 
             state.borrow_mut().registered_devices.create(
                 registered_device_index.clone(),

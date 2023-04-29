@@ -29,6 +29,7 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX saref: <https://saref.etsi.org/core/>
 PREFIX bot: <https://w3id.org/bot#>
 PREFIX http: <https://www.w3.org/2011/http#>
+PREFIX td: <https://www.w3.org/2019/wot/td#>
 # Definitions
 PREFIX urn: <urn:>
 "#;
