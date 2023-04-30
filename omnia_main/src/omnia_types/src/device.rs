@@ -34,6 +34,8 @@ pub struct RegisteredDeviceValue {
     pub env_uid: EnvironmentUID,
     /// The publicly accessible URL of the device, use [get_device_url](omnia::utils::net::get_device_url) to generate it
     pub device_url: DeviceUrl,
+    /// HTTP Headers to send along with the request to the device_url
+    pub required_headers: Option<Vec<(String, String)>>,
 }
 
 pub type RegisteredDeviceResult = GenericResult<(RegisteredDeviceIndex, RegisteredDeviceValue)>;

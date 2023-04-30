@@ -264,32 +264,39 @@ async fn register_device(
             "bot:hasElement".to_string(),
             device_url.clone(),
         ),
-        // device required HTTP headers
-        // TODO: define a better name for this HTTP header
-        (
-            "omnia:HTTPHeader".to_string(),
-            "rdf:type".to_string(),
-            "http:RequestHeader".to_string(),
-        ),
-        (
-            "omnia:HTTPHeader".to_string(),
-            "http:fieldName".to_string(),
-            "\"X-Forward-To-Port\"".to_string(),
-        ),
-        (
-            "omnia:HTTPHeader".to_string(),
-            "http:fieldValue".to_string(),
-            // This is the default port for the web server exposed by the Gateway
-            // TODO: store this value in the Gateway state
-            "\"8888\"".to_string(),
-        ),
-        (
-            device_url.clone(),
-            // TODO: use a verb from an ontology instead of a custom one
-            "omnia:requiresHeader".to_string(),
-            "omnia:HTTPHeader".to_string(),
-        ),
     ];
+
+    // device required HTTP headers
+    // TODO: define better names for HTTP headers
+    let required_headers = registered_device.clone().1.required_headers;
+    if required_headers.is_some() {
+        required_headers.unwrap().iter().enumerate().for_each(
+            |(i, (header_name, header_value))| {
+                triples.extend_from_slice(&[
+                    (
+                        format!("omnia:HTTPHeader{}", i),
+                        "rdf:type".to_string(),
+                        "http:RequestHeader".to_string(),
+                    ),
+                    (
+                        format!("omnia:HTTPHeader{}", i),
+                        "http:fieldName".to_string(),
+                        format!("\"{}\"", header_name),
+                    ),
+                    (
+                        format!("omnia:HTTPHeader{}", i),
+                        "http:fieldValue".to_string(),
+                        format!("\"{}\"", header_value),
+                    ),
+                    (
+                        device_url.clone(),
+                        "omnia:requiresHeader".to_string(),
+                        format!("omnia:HTTPHeader{}", i),
+                    ),
+                ]);
+            },
+        );
+    }
 
     triples.extend(affordances.iter().map(|affordance| {
         (

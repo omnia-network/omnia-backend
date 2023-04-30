@@ -409,6 +409,16 @@ async fn register_device_on_gateway(
                     registered_gateway_value.gateway_url,
                     device_uid.clone(),
                 ),
+                required_headers: registered_gateway_value.proxied_gateway_uid.map(
+                    |proxied_gateway_uid| {
+                        vec![
+                            (String::from("X-Forward-To-Peer"), proxied_gateway_uid),
+                            // this is the port where the gateway is running the WoT servient
+                            // TODO: store this value in the Gateway state, because it could be different for each gateway
+                            (String::from("X-Forward-To-Port"), "8888".to_string()),
+                        ]
+                    },
+                ),
             };
 
             // register device in gateway

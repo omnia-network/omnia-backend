@@ -209,6 +209,8 @@ describe("Gateway", () => {
       device_url: `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
       env_uid: environmentUid,
       gateway_principal_id: (await gateway1Data.identity).getPrincipal().toText(),
+      // headers are checked in the Application tests
+      required_headers: expect.any(Array),
     });
   });
 
@@ -222,7 +224,9 @@ describe("Gateway", () => {
       deviceUid,
     ]);
   });
+});
 
+describe("Application", () => {
   it("Application can retrieve the devices by affordances", async () => {
     // first, we try a query with a non-existent affordance
     const failingQuery = await sparqlClient.query.select(
@@ -295,6 +299,20 @@ describe("Gateway", () => {
             headerValue: {
               type: "literal",
               value: "8888",
+            },
+          },
+          {
+            device: {
+              type: "uri",
+              value: `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
+            },
+            headerName: {
+              type: "literal",
+              value: "X-Forward-To-Peer",
+            },
+            headerValue: {
+              type: "literal",
+              value: gateway1Data.proxyData.peerId,
             },
           },
         ],

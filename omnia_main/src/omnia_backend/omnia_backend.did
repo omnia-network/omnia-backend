@@ -23,6 +23,7 @@ type InitializedGatewayValue = record {
 type PairingInfo = record { payload : text };
 type RegisteredDeviceIndex = record { device_uid : text };
 type RegisteredDeviceValue = record {
+  required_headers : opt vec record { text; text };
   env_uid : text;
   device_url : text;
   gateway_principal_id : text;
