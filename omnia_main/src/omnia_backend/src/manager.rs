@@ -306,6 +306,7 @@ async fn register_device(
         )
     }));
 
+    // TODO: handle outcall errors. For example we may want to retry or remove the registered device
     insert(triples).await?;
 
     Ok(registered_device)
