@@ -1,5 +1,7 @@
 // The public IPv4 address of the Omnia Proxy, which forwards requests from and to Gateways.
 export const OMNIA_PROXY_IPV4 = "3.70.56.192";
+// The host under which the Omnia Proxy is reachable.
+export const OMNIA_PROXY_HOST = "proxy.omnia-iot.com";
 
 // test timeouts
 export const LONG_TEST_TIMEOUT = 30_000;

@@ -9,7 +9,7 @@ import {
   manager2,
   manager2Data,
 } from "./utils/actors";
-import { DEVICE_AFFORDANCE_VALUE, DEVICE_PAIRING_PAYLOAD, ENVIRONMENT_NAME, GATEWAY1_NAME, LONG_TEST_TIMEOUT, OMNIA_PROXY_IPV4 } from "./utils/constants";
+import { DEVICE_AFFORDANCE_VALUE, DEVICE_PAIRING_PAYLOAD, ENVIRONMENT_NAME, GATEWAY1_NAME, LONG_TEST_TIMEOUT, OMNIA_PROXY_HOST } from "./utils/constants";
 import { PREFIXES, sparqlClient } from "./utils/sparql-client";
 
 let environmentUid: string;
@@ -125,8 +125,8 @@ describe("Gateway", () => {
       gateway_name: GATEWAY1_NAME,
       gat_registered_device_uids: [],
       gateway_ip: manager1Data.remoteIp,
-      // since the Gateway is proxied, the gateway_url is the proxy's IP
-      gateway_url: `https://${OMNIA_PROXY_IPV4}`,
+      // since the Gateway is proxied, the gateway_url is the proxy's host name
+      gateway_url: `https://${OMNIA_PROXY_HOST}`,
       proxied_gateway_uid: [gateway1Data.proxyData!.peerId],
     });
   });
@@ -206,7 +206,7 @@ describe("Gateway", () => {
     deviceUid = registerDeviceResult.data![0].device_uid;
 
     expect(registerDeviceResult.data![1]).toMatchObject<RegisteredDeviceValue>({
-      device_url: `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
+      device_url: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
       env_uid: environmentUid,
       gateway_principal_id: (await gateway1Data.identity).getPrincipal().toText(),
       // headers are checked in the Application tests
@@ -290,7 +290,7 @@ describe("Application", () => {
           {
             device: {
               type: "uri",
-              value: `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
+              value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
             },
             headerName: {
               type: "literal",
@@ -304,7 +304,7 @@ describe("Application", () => {
           {
             device: {
               type: "uri",
-              value: `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
+              value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
             },
             headerName: {
               type: "literal",
@@ -378,7 +378,7 @@ describe("Application", () => {
           {
             device: {
               type: "uri",
-              value: `https://${OMNIA_PROXY_IPV4}/${deviceUid}`,
+              value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
             },
           },
         ],
