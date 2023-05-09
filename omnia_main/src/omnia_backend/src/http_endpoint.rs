@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::utils::get_database_principal;
+use crate::{rdf::execute_sparql_query, utils::get_database_principal};
 use candid::candid_method;
 use omnia_types::http::{
     HttpRequest, HttpResponse, IpChallengeValue, ParsedHttpRequestBody,
@@ -35,19 +35,75 @@ fn http_request(req: HttpRequest) -> HttpResponse {
         };
     }
 
-    // this response is directed to the boundary node so that it can upgrade the initial query request "http_request" to an upgrade request "http_request_upgrade"
+    if req.url.starts_with("/sparql/query") {
+        let parsed_body = String::from_utf8(req.body.clone().unwrap()).unwrap();
+        return match execute_sparql_query(parsed_body) {
+            Ok(query_result) => HttpResponse {
+                status_code: 200,
+                headers: vec![
+                    (
+                        String::from(CONTENT_TYPE_HEADER_KEY),
+                        String::from("application/json"),
+                    ),
+                    (
+                        String::from(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_KEY),
+                        String::from("*"),
+                    ),
+                ],
+                body: query_result.into(),
+                streaming_strategy: None,
+                upgrade: None,
+            },
+            Err(e) => HttpResponse {
+                status_code: 500,
+                headers: vec![
+                    (
+                        String::from(CONTENT_TYPE_HEADER_KEY),
+                        String::from("plain/text"),
+                    ),
+                    (
+                        String::from(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_KEY),
+                        String::from("*"),
+                    ),
+                ],
+                body: format!("Error: {:?}", e).into(),
+                streaming_strategy: None,
+                upgrade: None,
+            },
+        };
+    } else if req.url.starts_with("/ip-challenge") {
+        // this response is directed to the boundary node so that it can upgrade the initial query request "http_request" to an upgrade request "http_request_upgrade"
+        return HttpResponse {
+            status_code: 101, // this is the HTTP status code to request an Upgrade of the protocol (it's anyway ignored by the Boundary node)
+            headers: vec![
+                // this header is optional and we use it just to explain which protocol we are upgrading to
+                (
+                    String::from(CONNECTION_HEADER_KEY),
+                    String::from("IC_http_update_request"),
+                ),
+            ],
+            body: "".into(),
+            streaming_strategy: None,
+            upgrade: Some(true),
+        };
+    }
+
     HttpResponse {
-        status_code: 101, // this is the HTTP status code to request an Upgrade of the protocol (it's anyway ignored by the Boundary node)
+        status_code: 404,
         headers: vec![
             // this header is optional and we use it just to explain which protocol we are upgrading to
             (
-                String::from(CONNECTION_HEADER_KEY),
-                String::from("IC_http_update_request"),
+                String::from(CONTENT_TYPE_HEADER_KEY),
+                String::from("plain/text"),
+            ),
+            (
+                String::from(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER_KEY),
+                String::from("*"),
             ),
         ],
-        body: "".into(),
+        body: "Not Found".into(),
         streaming_strategy: None,
-        upgrade: Some(true),
+        upgrade: None,
     }
 }
 

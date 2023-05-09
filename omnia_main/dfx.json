@@ -13,8 +13,12 @@
     },
     "omnia_backend": {
       "candid": "src/omnia_backend/omnia_backend.did",
-      "package": "omnia_backend",
-      "type": "rust",
+      "build": [
+        "cargo build --target wasm32-unknown-unknown --release -p omnia_backend --locked",
+        "gzip -f ./target/wasm32-unknown-unknown/release/omnia_backend.wasm"
+      ],
+      "wasm": "target/wasm32-unknown-unknown/release/omnia_backend.wasm.gz",
+      "type": "custom",
       "dependencies": [
         "database"
       ]
@@ -55,6 +59,7 @@
       "packtool": ""
     }
   },
-  "dfx": "0.13.1",
+  "dfx": "0.14.0",
+  "output_env_file": ".env",
   "version": 1
 }

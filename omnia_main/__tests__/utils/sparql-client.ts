@@ -1,14 +1,8 @@
 import SimpleClient from 'sparql-http-client/SimpleClient';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const {
-  RDF_DATABASE_BASE_URL = '',
-} = process.env;
+import { omniaBackendCarnisterUrl } from './omniaApi/http';
 
 export const sparqlClient = new SimpleClient({
-  endpointUrl: `${RDF_DATABASE_BASE_URL}/query`,
+  endpointUrl: omniaBackendCarnisterUrl("/sparql/query"),
 });
 
 // taken from rust code

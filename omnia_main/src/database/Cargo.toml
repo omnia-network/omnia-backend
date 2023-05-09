@@ -15,4 +15,4 @@ ic-cdk-macros = "0.6.10"
 serde = "1.0.111"
 omnia_types ={ path = "../omnia_types"}
 omnia_utils ={ path = "../omnia_utils"}
-ciborium = "0.2.0"
+ciborium = "0.2.1"

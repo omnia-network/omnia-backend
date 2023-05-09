@@ -1,136 +1,114 @@
-use candid::Nat;
-use ic_cdk::api::{
-    management_canister::http_request::{
-        http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod,
-    },
-    print,
-};
+use ic_cdk::api::trap;
+use ic_oxigraph::model::NamedNode;
+use ic_oxigraph::sparql::QueryResults;
 use omnia_types::errors::GenericError;
-use omnia_utils::uuid::generate_uuid;
+use sparesults::{QueryResultsFormat, QueryResultsSerializer};
 
-use crate::utils::get_rdf_database_connection;
+use crate::RDF_DB;
 
-pub type Triple = (String, String, String);
+// RDF available prefixes and nodes
 
-const OMNIA_GRAPH: &str = "omnia:";
-
-/// RDF database graph prefixes:
-/// - **omnia**: <http://rdf.omnia-iot.com#>
-/// - **rdf**: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-/// - **saref**: <https://saref.etsi.org/core/>
-/// - **bot**: <https://w3id.org/bot#>
-/// - **http**: <https://www.w3.org/2011/http#>
-/// - **urn**: `<urn:>`
-const PREFIXES: &str = r#"
-# Omnia
-PREFIX omnia: <http://rdf.omnia-iot.com#>
-# Third parties
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX saref: <https://saref.etsi.org/core/>
-PREFIX bot: <https://w3id.org/bot#>
-PREFIX http: <https://www.w3.org/2011/http#>
-PREFIX td: <https://www.w3.org/2019/wot/td#>
-# Definitions
-PREFIX urn: <urn:>
-"#;
-
-const MAX_RESPONSE_BYTES: u64 = 1024; // 1KB
-
-fn build_query(q: &str) -> String {
-    let mut query = String::from(PREFIXES);
-    query.push_str(q);
-    query
+/// http://rdf.omnia-iot.com#
+pub const OMNIA_PREFIX: &str = "http://rdf.omnia-iot.com#";
+pub struct OmniaNode;
+impl OmniaNode {
+    pub fn new(name: &str) -> NamedNode {
+        match NamedNode::new(format!("{}{}", OMNIA_PREFIX, name)) {
+            Ok(node) => node,
+            Err(_) => trap("Error creating OmniaNode"),
+        }
+    }
 }
 
-async fn send_query(q: String) -> Result<(), GenericError> {
-    let rdf_base_url = get_rdf_database_connection().base_url;
+/// https://saref.etsi.org/core/
+pub const SAREF_PREFIX: &str = "https://saref.etsi.org/core/";
+pub struct SarefNode;
+impl SarefNode {
+    pub fn new(name: &str) -> NamedNode {
+        match NamedNode::new(format!("{}{}", SAREF_PREFIX, name)) {
+            Ok(node) => node,
+            Err(_) => trap("Error creating SarefNode"),
+        }
+    }
+}
 
-    let request_headers = vec![
-        HttpHeader {
-            name: "Host".to_string(),
-            // get only the host:port part of the URL
-            value: rdf_base_url.split("://").collect::<Vec<&str>>()[1].to_string(),
-        },
-        HttpHeader {
-            name: "User-Agent".to_string(),
-            value: "omnia_backend_canister".to_string(),
-        },
-        HttpHeader {
-            name: "Content-Type".to_string(),
-            value: "application/sparql-update".to_string(),
-        },
-        // the Idempotent-Key is required to avoid flooding the RDF store with the same query from all the replicas
-        HttpHeader {
-            name: "Idempotent-Key".to_string(),
-            value: generate_uuid().await,
-        },
-        HttpHeader {
-            name: "Authorization".to_string(),
-            value: format!("apikey {}", get_rdf_database_connection().api_key),
-        },
-    ];
+/// https://w3id.org/bot#
+pub const BOT_PREFIX: &str = "https://w3id.org/bot#";
+pub struct BotNode;
+impl BotNode {
+    pub fn new(name: &str) -> NamedNode {
+        match NamedNode::new(format!("{}{}", BOT_PREFIX, name)) {
+            Ok(node) => node,
+            Err(_) => trap("Error creating BotNode"),
+        }
+    }
+}
 
-    let url = format!("{}/update", rdf_base_url);
+/// https://www.w3.org/2011/http#
+pub const HTTP_PREFIX: &str = "https://www.w3.org/2011/http#";
+pub struct HttpNode;
+impl HttpNode {
+    pub fn new(name: &str) -> NamedNode {
+        match NamedNode::new(format!("{}{}", HTTP_PREFIX, name)) {
+            Ok(node) => node,
+            Err(_) => trap("Error creating HttpNode"),
+        }
+    }
+}
 
-    let request = CanisterHttpRequestArgument {
-        url,
-        method: HttpMethod::POST,
-        body: Some(q.as_bytes().to_vec()),
-        max_response_bytes: Some(MAX_RESPONSE_BYTES),
-        transform: None,
-        headers: request_headers,
-    };
-    match http_request(request).await {
-        Ok((response,)) => {
-            // needed just to avoid clippy warnings
-            #[allow(clippy::cmp_owned)]
-            if response.status >= Nat::from(200) && response.status < Nat::from(400) {
-                let message =
-                    format!("The http_request resulted into success. Response: {response:?}");
-                print(message);
-                Ok(())
-            } else {
-                let message =
-                    format!("The http_request resulted into error. Response: {response:?}");
-                print(message.clone());
-                Err(message)
+/// https://www.w3.org/2019/wot/td#
+pub const TD_PREFIX: &str = "https://www.w3.org/2019/wot/td#";
+pub struct TdNode;
+impl TdNode {
+    pub fn new(name: &str) -> NamedNode {
+        match NamedNode::new(format!("{}{}", TD_PREFIX, name)) {
+            Ok(node) => node,
+            Err(_) => trap("Error creating TdNode"),
+        }
+    }
+}
+
+/// urn:
+pub const URN_PREFIX: &str = "urn:";
+pub struct UrnNode;
+impl UrnNode {
+    pub fn new(name: &str) -> NamedNode {
+        match NamedNode::new(format!("{}{}", URN_PREFIX, name)) {
+            Ok(node) => node,
+            Err(_) => trap("Error creating UrnNode"),
+        }
+    }
+
+    pub fn new_uuid(name: &str) -> NamedNode {
+        match NamedNode::new(format!("{}uuid:{}", URN_PREFIX, name)) {
+            Ok(node) => node,
+            Err(_) => trap("Error creating UrnNode (uuid)"),
+        }
+    }
+}
+
+pub fn execute_sparql_query(query: String) -> Result<Vec<u8>, GenericError> {
+    RDF_DB.with(|store| {
+        let rdf_db = store.borrow();
+
+        if let QueryResults::Solutions(mut solutions) = rdf_db.query(&query).unwrap() {
+            let json_serializer = QueryResultsSerializer::from_format(QueryResultsFormat::Json);
+
+            let mut solutions_writer = json_serializer
+                .solutions_writer(Vec::new(), solutions.variables().to_vec())
+                .map_err(|e| format!("Error serializing SPARQL query variables: {:?}", e))?;
+
+            for solution in solutions {
+                solutions_writer
+                    .write(&solution.map_err(|e| format!("Error getting solution: {:?}", e))?)
+                    .map_err(|e| format!("Error serializing SPARQL query results: {:?}", e))?;
             }
+
+            return solutions_writer
+                .finish()
+                .map_err(|e| format!("Error serializing SPARQL query results: {:?}", e));
         }
-        Err((r, m)) => {
-            let message =
-                format!("The http_request resulted into error. RejectionCode: {r:?}, Error: {m}");
-            print(message.clone());
 
-            Err(message)
-        }
-    }
-}
-
-/// Insert data in the RDF database.<br>
-/// Available prefixes: [PREFIXES]<br>
-/// TODO: implement nested insert and where conditions
-pub async fn insert(triples: Vec<Triple>) -> Result<(), GenericError> {
-    let mut query = format!("INSERT DATA {{ GRAPH {OMNIA_GRAPH} {{\n");
-    for (s, p, o) in triples {
-        query.push_str(format!("{s} {p} {o} .\n").as_str());
-    }
-    query.push_str("} }");
-
-    query = build_query(query.as_str());
-
-    send_query(query).await
-}
-
-/// Delete data from the RDF database.<br>
-/// Available prefixes: [PREFIXES]
-pub async fn delete(triples: Vec<Triple>) -> Result<(), GenericError> {
-    let mut query = format!("DELETE DATA {{ GRAPH {OMNIA_GRAPH} {{\n");
-    for (s, p, o) in triples {
-        query.push_str(format!("{s} {p} {o} .\n").as_str());
-    }
-    query.push_str("} }");
-
-    query = build_query(query.as_str());
-
-    send_query(query).await
+        Err(format!("Error executing SPARQL query"))
+    })
 }

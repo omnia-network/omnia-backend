@@ -61,7 +61,7 @@ type VirtualPersonaValue = record {
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
-service : (opt text, text, text, text) -> {
+service : (opt text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (Result);
   getGatewayUpdates : () -> (opt UpdateValue);
   getInitializedGateways : (text) -> (Result_1);
@@ -76,4 +76,5 @@ service : (opt text, text, text, text) -> {
   registerGateway : (text, GatewayRegistrationInput) -> (Result_8);
   resetEnvironment : (text) -> (Result_9);
   setEnvironment : (text) -> (Result_9);
+  sparql_query : (text) -> ();
 }

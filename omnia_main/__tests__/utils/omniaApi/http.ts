@@ -1,5 +1,5 @@
 import fetch, { HeadersInit } from "node-fetch";
-import { canisterEnv } from "./canisterEnv";
+import { OMNIA_BACKEND_CANISTER_ID } from "./canisterEnv";
 import { getNonce } from "./nonce";
 import { OMNIA_PROXY_IPV4 } from "../constants";
 
@@ -11,6 +11,13 @@ import { OMNIA_PROXY_IPV4 } from "../constants";
 const getForwardedForIps = (lastIp: string): string => {
   return `123.123.123.123,234.234.234.234, ${lastIp}`;
 };
+
+/**
+ * Creates the full URL to the Omnia Backend canister endpoint.
+ * @param {string} path The path to the endpoint, starting with a slash
+ * @returns {string} The full URL to the endpoint
+ */
+export const omniaBackendCarnisterUrl = (path: string): string => `http://localhost:4943${path}?canisterId=${OMNIA_BACKEND_CANISTER_ID}`;
 
 export const httpNonceChallenge = async (remoteIp: string, proxyData?: { peerId: string }) => {
   const nonce = getNonce();
@@ -27,7 +34,7 @@ export const httpNonceChallenge = async (remoteIp: string, proxyData?: { peerId:
     headers["X-Forwarded-For"] = getForwardedForIps(remoteIp);
   }
 
-  const res = await fetch(`http://localhost:4943/?canisterId=${canisterEnv.OMNIA_BACKEND_CANISTER_ID}`, {
+  const res = await fetch(omniaBackendCarnisterUrl("/ip-challenge"), {
     method: "POST",
     headers,
     body: JSON.stringify({

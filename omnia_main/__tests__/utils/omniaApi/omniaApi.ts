@@ -3,7 +3,7 @@ import { Actor, ActorSubclass, HttpAgent, Identity } from "@dfinity/agent";
 // @ts-ignore
 import { idlFactory } from "../../../src/declarations/omnia_backend/omnia_backend.did.js";
 import { _SERVICE } from "../../../src/declarations/omnia_backend/omnia_backend.did";
-import { canisterEnv } from "./canisterEnv";
+import { OMNIA_BACKEND_CANISTER_ID } from "./canisterEnv";
 import { httpNonceChallenge } from "./http";
 import { GenericResult, resultParser } from "./resultParser";
 
@@ -26,7 +26,7 @@ const createActor = async (identity: Promise<Identity>) => {
 
   return Actor.createActor(idlFactory, {
     agent,
-    canisterId: canisterEnv.OMNIA_BACKEND_CANISTER_ID,
+    canisterId: OMNIA_BACKEND_CANISTER_ID,
   }) as ActorSubclass<_SERVICE>;
 };
 

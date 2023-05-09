@@ -9,7 +9,7 @@ import {
   manager2,
   manager2Data,
 } from "./utils/actors";
-import { DEVICE_AFFORDANCE_VALUE, DEVICE_PAIRING_PAYLOAD, ENVIRONMENT_NAME, GATEWAY1_NAME, LONG_TEST_TIMEOUT, OMNIA_PROXY_HOST } from "./utils/constants";
+import { DEVICE_AFFORDANCE_VALUE_NODES, DEVICE_AFFORDANCE_VALUE_TUPLE, DEVICE_PAIRING_PAYLOAD, ENVIRONMENT_NAME, GATEWAY1_NAME, LONG_TEST_TIMEOUT, OMNIA_PROXY_HOST } from "./utils/constants";
 import { PREFIXES, sparqlClient } from "./utils/sparql-client";
 
 let environmentUid: string;
@@ -191,7 +191,7 @@ describe("Gateway", () => {
         return gateway1Actor.registerDevice(
           nonce,
           [
-            DEVICE_AFFORDANCE_VALUE,
+            DEVICE_AFFORDANCE_VALUE_NODES,
           ]
         );
       },
@@ -232,15 +232,11 @@ describe("Application", () => {
     const failingQuery = await sparqlClient.query.select(
       `${PREFIXES}
       SELECT ?device WHERE {
-        GRAPH omnia: {
-          ?device td:hasPropertyAffordance saref:NonExistingState .
-        }
+        ?device td:hasPropertyAffordance saref:NonExistingState .
       }
       `,
       {
-        headers: {
-          Accept: "application/sparql-results+json",
-        }
+        operation: "postDirect",
       }
     );
 
@@ -261,18 +257,14 @@ describe("Application", () => {
     const response = await sparqlClient.query.select(
       `${PREFIXES}
       SELECT ?device ?headerName ?headerValue WHERE {
-        GRAPH omnia: {
-          ?device ${DEVICE_AFFORDANCE_VALUE[0]} ${DEVICE_AFFORDANCE_VALUE[1]} .
-          ?device omnia:requiresHeader ?header .
-          ?header http:fieldName ?headerName ;
-                  http:fieldValue ?headerValue .
-        }
+        ?device ${DEVICE_AFFORDANCE_VALUE_TUPLE[0]} ${DEVICE_AFFORDANCE_VALUE_TUPLE[1]} .
+        ?device omnia:requiresHeader ?header .
+        ?header http:fieldName ?headerName ;
+                http:fieldValue ?headerValue .
       }
       `,
       {
-        headers: {
-          Accept: "application/sparql-results+json",
-        }
+        operation: "postDirect",
       }
     );
 
@@ -325,15 +317,11 @@ describe("Application", () => {
     const failingQuery = await sparqlClient.query.select(
       `${PREFIXES}
       SELECT ?device WHERE {
-        GRAPH omnia: {
-          urn:uuid:non-existing-environment bot:hasElement ?device .
-        }
+        urn:uuid:non-existing-environment bot:hasElement ?device .
       }
       `,
       {
-        headers: {
-          Accept: "application/sparql-results+json",
-        }
+        operation: "postDirect",
       }
     );
 
@@ -354,15 +342,11 @@ describe("Application", () => {
     const response = await sparqlClient.query.select(
       `${PREFIXES}
       SELECT ?device WHERE {
-        GRAPH omnia: {
-          urn:uuid:${environmentUid} bot:hasElement ?device .
-        }
+        urn:uuid:${environmentUid} bot:hasElement ?device .
       }
       `,
       {
-        headers: {
-          Accept: "application/sparql-results+json",
-        }
+        operation: "postDirect",
       }
     );
 

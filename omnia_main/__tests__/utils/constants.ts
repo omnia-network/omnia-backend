@@ -15,4 +15,11 @@ export const DEVICE1_NAME = "test_device1";
 export const DEVICE2_NAME = "test_device2";
 export const TOTAL_DEVICES_IN_ENV = 2;
 export const DEVICE_PAIRING_PAYLOAD = "test_device_pairing_payload";
-export const DEVICE_AFFORDANCE_VALUE: [string, string] = ["td:hasPropertyAffordance", "saref:OnOffState"];
+export const DEVICE_AFFORDANCE_VALUE_NODES: [string, string] = [
+  "https://www.w3.org/2019/wot/td#hasPropertyAffordance",
+  "https://saref.etsi.org/core/OnOffState"
+];
+export const DEVICE_AFFORDANCE_VALUE_TUPLE: [string, string] = [
+  "td:hasPropertyAffordance",
+  "saref:OnOffState"
+];

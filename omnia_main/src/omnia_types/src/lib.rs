@@ -21,7 +21,6 @@ pub mod errors;
 pub mod gateway;
 pub mod http;
 pub mod updates;
-pub mod utils;
 pub mod virtual_persona;
 
 #[derive(Default, CandidType, Serialize, Deserialize)]

@@ -3,9 +3,10 @@ use std::collections::BTreeSet;
 use candid::candid_method;
 use ic_cdk::{
     api::{call::call, caller},
-    print,
+    print, trap,
 };
 use ic_cdk_macros::update;
+use ic_oxigraph::model::{vocab, GraphName, Literal, NamedNode, Quad};
 use omnia_types::{
     affordance::AffordanceValue,
     device::{RegisteredDeviceResult, RegisteredDevicesUidsResult},
@@ -21,8 +22,9 @@ use omnia_types::{
 };
 
 use crate::{
-    rdf::{insert, Triple},
+    rdf::{BotNode, HttpNode, OmniaNode, SarefNode, UrnNode},
     utils::get_database_principal,
+    RDF_DB,
 };
 
 #[update(name = "createEnvironment")]
@@ -61,14 +63,17 @@ async fn create_environment(
             // register the environment in the RDF database
             match environment_creation_result {
                 Ok(result) => {
-                    insert(vec![(
-                        format!("urn:uuid:{}", result.env_uid),
-                        "rdf:type".to_string(),
-                        "bot:Zone".to_string(),
-                    )])
-                    .await?;
+                    let quad = Quad::new(
+                        UrnNode::new_uuid(&result.env_uid),
+                        vocab::rdf::TYPE,
+                        BotNode::new("Zone"),
+                        GraphName::DefaultGraph,
+                    );
 
-                    Ok(result)
+                    RDF_DB.with(|rdf_db| match rdf_db.borrow().insert(&quad) {
+                        Ok(_) => Ok(result),
+                        Err(err) => Err(format!("Error inserting quad: {:?}", err)),
+                    })
                 }
                 Err(err) => Err(err),
             }
@@ -249,20 +254,29 @@ async fn register_device(
         .unwrap()
         .0?;
 
-    let device_url = format!("<{}>", registered_device.clone().1.device_url);
+    let device_url = registered_device.clone().1.device_url.clone();
 
-    let mut triples: Vec<Triple> = vec![
+    let device_node = NamedNode::new(device_url.clone()).map_err(|err| {
+        format!(
+            "Error while creating device node for device with URL: {:?} {:?}",
+            device_url, err
+        )
+    })?;
+
+    let mut quads: Vec<Quad> = vec![
         // device declaration
-        (
-            device_url.clone(),
-            "rdf:type".to_string(),
-            "saref:Device".to_string(),
+        Quad::new(
+            device_node.clone(),
+            vocab::rdf::TYPE,
+            SarefNode::new("Device"),
+            GraphName::DefaultGraph,
         ),
         // device - environment relation
-        (
-            format!("urn:uuid:{}", registered_device.clone().1.env_uid),
-            "bot:hasElement".to_string(),
-            device_url.clone(),
+        Quad::new(
+            UrnNode::new_uuid(&registered_device.clone().1.env_uid),
+            BotNode::new("hasElement"),
+            device_node.clone(),
+            GraphName::DefaultGraph,
         ),
     ];
 
@@ -272,42 +286,56 @@ async fn register_device(
     if required_headers.is_some() {
         required_headers.unwrap().iter().enumerate().for_each(
             |(i, (header_name, header_value))| {
-                triples.extend_from_slice(&[
-                    (
-                        format!("omnia:HTTPHeader{}", i),
-                        "rdf:type".to_string(),
-                        "http:RequestHeader".to_string(),
+                let header_node = OmniaNode::new(&format!("HTTPHeader{}", i));
+
+                quads.extend_from_slice(&[
+                    Quad::new(
+                        header_node.clone(),
+                        vocab::rdf::TYPE,
+                        HttpNode::new("RequestHeader"),
+                        GraphName::DefaultGraph,
                     ),
-                    (
-                        format!("omnia:HTTPHeader{}", i),
-                        "http:fieldName".to_string(),
-                        format!("\"{}\"", header_name),
+                    Quad::new(
+                        header_node.clone(),
+                        HttpNode::new("fieldName"),
+                        Literal::new_simple_literal(header_name),
+                        GraphName::DefaultGraph,
                     ),
-                    (
-                        format!("omnia:HTTPHeader{}", i),
-                        "http:fieldValue".to_string(),
-                        format!("\"{}\"", header_value),
+                    Quad::new(
+                        header_node.clone(),
+                        HttpNode::new("fieldValue"),
+                        Literal::new_simple_literal(header_value),
+                        GraphName::DefaultGraph,
                     ),
-                    (
-                        device_url.clone(),
-                        "omnia:requiresHeader".to_string(),
-                        format!("omnia:HTTPHeader{}", i),
+                    Quad::new(
+                        device_node.clone(),
+                        OmniaNode::new("requiresHeader"),
+                        header_node,
+                        GraphName::DefaultGraph,
                     ),
                 ]);
             },
         );
     }
 
-    triples.extend(affordances.iter().map(|affordance| {
-        (
-            device_url.clone(),
-            affordance.0.clone(),
-            affordance.1.clone(),
+    quads.extend(affordances.iter().map(|affordance| {
+        Quad::new(
+            device_node.clone(),
+            NamedNode::new(affordance.0.clone()).unwrap(),
+            NamedNode::new(affordance.1.clone()).unwrap(),
+            GraphName::DefaultGraph,
         )
     }));
 
     // TODO: handle outcall errors. For example we may want to retry or remove the registered device
-    insert(triples).await?;
+    quads.iter().for_each(|quad| {
+        RDF_DB.with(|rdf_db| match rdf_db.borrow().insert(quad) {
+            Ok(_) => (),
+            Err(e) => {
+                trap(&format!("Error inserting quad: {}", e));
+            }
+        });
+    });
 
     Ok(registered_device)
 }

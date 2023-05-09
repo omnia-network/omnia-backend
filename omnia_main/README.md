@@ -50,9 +50,7 @@ As you can guess, **omnia_backend** depends on **database** and needs to know th
 
 So, follow these steps to deploy everything correctly:
 
-1. copy the `.env.example` file to `.env`, filling in the parameters properly
-2. we suggest running [omnia-rdf-proxy](https://github.com/omnia-network/omnia-rdf-proxy) in development mode to spin up a local proxied RDF database, and since the IC HTTPS outcalls always expect an HTTPS endpoint, we suggest putting the RDF proxy it behind an [ngrok](https://ngrok.com) proxy to have the HTTPS certificate
-3. generate dids and deploy all backend canisters by running:
+1. generate dids and deploy all backend canisters by running:
     ```bash
     npm run generate-dids-and-deploy:backend
     ```
@@ -71,7 +69,7 @@ Available commands:
 
 We use [Jest](https://jestjs.io/) to run integration tests. All tests are in the [`__tests__`](./__tests__/) folder.
 
-To run tests, first deploy **backend** canisters (see above for details, make sure you the RDF database is also reachable and environment variables are set properly):
+To run tests, first deploy **backend** canisters (see above for details):
 ```bash
 npm run deploy:backend
 ```
