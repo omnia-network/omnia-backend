@@ -319,7 +319,7 @@ async fn register_device(
         Quad::new(
             device_node.clone(),
             TdNode::new("hasPropertyAffordance"),
-            SarefNode::new(&affordance),
+            SarefNode::from_string(&affordance),
             GraphName::DefaultGraph,
         )
     }));
@@ -328,7 +328,7 @@ async fn register_device(
         Quad::new(
             device_node.clone(),
             TdNode::new("hasActionAffordance"),
-            SarefNode::new(&affordance),
+            SarefNode::from_string(&affordance),
             GraphName::DefaultGraph,
         )
     }));

@@ -11,16 +11,6 @@ if [ "$DATABASE_CANISTER_ID" = "" ]; then
   echo "Database canister ID: $DATABASE_CANISTER_ID"
 fi
 
-if [ "$RDF_DATABASE_BASE_URL" = "" ]; then
-  echo "Please provide an RDF database base URL"
-  exit 1
-fi
-
-if [ "$RDF_DATABASE_API_KEY" = "" ]; then
-  echo "Please provide an RDF database API key"
-  exit 1
-fi
-
 if [ "$1" = "--backend" ]; then
 
   echo "Deploying only BACKEND canisters..."

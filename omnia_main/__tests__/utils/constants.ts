@@ -18,9 +18,10 @@ export const DEVICE2_NAME = "test_device2";
 export const TOTAL_DEVICES_IN_ENV = 2;
 export const DEVICE_PAIRING_PAYLOAD = "test_device_pairing_payload";
 // mapped from the Thing Description of the device and must be SAREF verbs
+// backend accepts both saref:... and the verb itself
 export const DEVICE_AFFORDANCES: DeviceAffordances = {
   properties: [
-    "OnOffState",
+    "saref:OnOffState",
   ],
   actions: [
     "OnCommand",

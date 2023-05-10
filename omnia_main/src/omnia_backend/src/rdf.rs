@@ -30,6 +30,14 @@ impl SarefNode {
             Err(_) => trap("Error creating SarefNode"),
         }
     }
+
+    /// Expects a string like saref:OnCommand or OnCommand as input and returns the SAREF named node
+    pub fn from_string(name: &str) -> NamedNode {
+        if name.starts_with("saref:") {
+            return SarefNode::new(&name[6..]);
+        }
+        SarefNode::new(name)
+    }
 }
 
 /// https://w3id.org/bot#
