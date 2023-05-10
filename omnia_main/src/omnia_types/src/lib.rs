@@ -14,7 +14,6 @@ use std::collections::BTreeMap;
 use std::fmt::Debug;
 use virtual_persona::{VirtualPersonaIndex, VirtualPersonaPrincipalId, VirtualPersonaValue};
 
-pub mod affordance;
 pub mod device;
 pub mod environment;
 pub mod errors;

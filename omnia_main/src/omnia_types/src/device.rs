@@ -43,3 +43,10 @@ pub type RegisteredDeviceResult = GenericResult<(RegisteredDeviceIndex, Register
 pub type RegisteredDeviceOption = Option<RegisteredDeviceValue>;
 
 pub type RegisteredDevicesUidsResult = GenericResult<RegisteredDevicesUids>;
+
+#[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
+/// The device affordances read from the Thing Description
+pub struct DeviceAffordances {
+    pub properties: Vec<String>,
+    pub actions: Vec<String>,
+}

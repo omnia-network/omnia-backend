@@ -50,7 +50,7 @@ fn http_request(req: HttpRequest) -> HttpResponse {
                         String::from("*"),
                     ),
                 ],
-                body: query_result.into(),
+                body: query_result,
                 streaming_strategy: None,
                 upgrade: None,
             },

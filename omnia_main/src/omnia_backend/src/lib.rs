@@ -8,10 +8,9 @@ mod utils;
 use candid::{candid_method, CandidType, Deserialize, Principal};
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk::print;
-use ic_cdk_macros::{init, post_upgrade, pre_upgrade, update};
+use ic_cdk_macros::{init, post_upgrade, pre_upgrade};
 use ic_oxigraph::io::GraphFormat;
-use ic_oxigraph::model::*;
-use ic_oxigraph::sparql::QueryResults;
+use ic_oxigraph::model::GraphNameRef;
 use ic_oxigraph::store::Store;
 use std::cell::RefCell;
 use utils::update_database_principal;
@@ -81,48 +80,11 @@ fn post_upgrade(_: Option<String>, database_canister_principal: String) {
     });
 }
 
-#[update]
-#[candid_method(update)]
-fn sparql_query(query_str: String) -> Result<(), String> {
-    // insertion
-    let ex = NamedNode::new("http://example.com").unwrap();
-    let quad = Quad::new(ex.clone(), ex.clone(), ex.clone(), GraphName::DefaultGraph);
-
-    RDF_DB.with(|store| {
-        let rdf_db = store.borrow();
-        // let exists = rdf_db.insert(&quad).unwrap();
-
-        // print(format!("Insertion: {:?}", exists));
-
-        // quad filter
-        let results = rdf_db
-            .quads_for_pattern(Some(ex.as_ref().into()), None, None, None)
-            .collect::<Result<Vec<Quad>, _>>()
-            .unwrap();
-        assert_eq!(vec![quad], results);
-
-        print(format!("Query: {:?}", query_str));
-        print(format!("Graph: {:?}", results));
-
-        if let QueryResults::Solutions(mut solutions) = rdf_db.query(&query_str).unwrap() {
-            // let s = solutions.next().unwrap().unwrap().get("s");
-            // assert_eq!(s.clone(), Some(&ex.into()));
-            print(format!(
-                "Query results: {:?}",
-                solutions.next().unwrap().unwrap().get("s")
-            ));
-        }
-    });
-
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use candid::export_service;
     use std::env;
 
-    use omnia_types::affordance::*;
     use omnia_types::device::*;
     use omnia_types::environment::*;
     use omnia_types::errors::*;
@@ -130,7 +92,6 @@ mod tests {
     use omnia_types::http::*;
     use omnia_types::updates::*;
     use omnia_types::virtual_persona::*;
-    use std::collections::BTreeSet;
 
     #[test]
     fn generate_candid_interface() {

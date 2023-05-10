@@ -72,13 +72,7 @@ impl TdNode {
 pub const URN_PREFIX: &str = "urn:";
 pub struct UrnNode;
 impl UrnNode {
-    pub fn new(name: &str) -> NamedNode {
-        match NamedNode::new(format!("{}{}", URN_PREFIX, name)) {
-            Ok(node) => node,
-            Err(_) => trap("Error creating UrnNode"),
-        }
-    }
-
+    /// Creates a urn:uuid: node
     pub fn new_uuid(name: &str) -> NamedNode {
         match NamedNode::new(format!("{}uuid:{}", URN_PREFIX, name)) {
             Ok(node) => node,
@@ -91,7 +85,10 @@ pub fn execute_sparql_query(query: String) -> Result<Vec<u8>, GenericError> {
     RDF_DB.with(|store| {
         let rdf_db = store.borrow();
 
-        if let QueryResults::Solutions(mut solutions) = rdf_db.query(&query).unwrap() {
+        if let QueryResults::Solutions(solutions) = rdf_db
+            .query(&query)
+            .map_err(|e| format!("Error executing SPARQL query: {:?} (query: {})", e, query))?
+        {
             let json_serializer = QueryResultsSerializer::from_format(QueryResultsFormat::Json);
 
             let mut solutions_writer = json_serializer

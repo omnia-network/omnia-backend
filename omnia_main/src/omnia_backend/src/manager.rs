@@ -1,5 +1,3 @@
-use std::collections::BTreeSet;
-
 use candid::candid_method;
 use ic_cdk::{
     api::{call::call, caller},
@@ -8,8 +6,7 @@ use ic_cdk::{
 use ic_cdk_macros::update;
 use ic_oxigraph::model::{vocab, GraphName, Literal, NamedNode, Quad};
 use omnia_types::{
-    affordance::AffordanceValue,
-    device::{RegisteredDeviceResult, RegisteredDevicesUidsResult},
+    device::{DeviceAffordances, RegisteredDeviceResult, RegisteredDevicesUidsResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
     errors::{GenericError, GenericResult},
     gateway::{
@@ -22,7 +19,7 @@ use omnia_types::{
 };
 
 use crate::{
-    rdf::{BotNode, HttpNode, OmniaNode, SarefNode, UrnNode},
+    rdf::{BotNode, HttpNode, OmniaNode, SarefNode, TdNode, UrnNode},
     utils::get_database_principal,
     RDF_DB,
 };
@@ -240,7 +237,7 @@ async fn pair_new_device(
 #[candid_method(update, rename = "registerDevice")]
 async fn register_device(
     nonce: IpChallengeNonce,
-    affordances: BTreeSet<AffordanceValue>,
+    affordances: DeviceAffordances,
 ) -> RegisteredDeviceResult {
     let gateway_principal_id = caller().to_string();
 
@@ -318,11 +315,20 @@ async fn register_device(
         );
     }
 
-    quads.extend(affordances.iter().map(|affordance| {
+    quads.extend(affordances.properties.iter().map(|affordance| {
         Quad::new(
             device_node.clone(),
-            NamedNode::new(affordance.0.clone()).unwrap(),
-            NamedNode::new(affordance.1.clone()).unwrap(),
+            TdNode::new("hasPropertyAffordance"),
+            SarefNode::new(&affordance),
+            GraphName::DefaultGraph,
+        )
+    }));
+
+    quads.extend(affordances.actions.iter().map(|affordance| {
+        Quad::new(
+            device_node.clone(),
+            TdNode::new("hasActionAffordance"),
+            SarefNode::new(&affordance),
             GraphName::DefaultGraph,
         )
     }));

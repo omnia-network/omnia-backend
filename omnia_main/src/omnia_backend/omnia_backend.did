@@ -61,6 +61,10 @@ type VirtualPersonaValue = record {
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
+type DeviceAffordances = record {
+  properties: vec text;
+  actions: vec text;
+};
 service : (opt text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (Result);
   getGatewayUpdates : () -> (opt UpdateValue);
@@ -72,9 +76,8 @@ service : (opt text, text) -> {
   http_request_update : (HttpRequest) -> (HttpResponse);
   initGateway : (text) -> (Result_5);
   pairNewDevice : (text, text, text) -> (Result_6);
-  registerDevice : (text, vec record { text; text }) -> (Result_7);
+  registerDevice : (text, DeviceAffordances) -> (Result_7);
   registerGateway : (text, GatewayRegistrationInput) -> (Result_8);
   resetEnvironment : (text) -> (Result_9);
   setEnvironment : (text) -> (Result_9);
-  sparql_query : (text) -> ();
 }

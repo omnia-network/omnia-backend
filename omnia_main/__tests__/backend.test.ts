@@ -9,7 +9,7 @@ import {
   manager2,
   manager2Data,
 } from "./utils/actors";
-import { DEVICE_AFFORDANCE_VALUE_NODES, DEVICE_AFFORDANCE_VALUE_TUPLE, DEVICE_PAIRING_PAYLOAD, ENVIRONMENT_NAME, GATEWAY1_NAME, LONG_TEST_TIMEOUT, OMNIA_PROXY_HOST } from "./utils/constants";
+import { DEVICE_AFFORDANCES, DEVICE_AFFORDANCE_VALUE_TUPLE, DEVICE_PAIRING_PAYLOAD, ENVIRONMENT_NAME, GATEWAY1_NAME, LONG_TEST_TIMEOUT, OMNIA_PROXY_HOST } from "./utils/constants";
 import { PREFIXES, sparqlClient } from "./utils/sparql-client";
 
 let environmentUid: string;
@@ -190,9 +190,7 @@ describe("Gateway", () => {
       async (nonce) => {
         return gateway1Actor.registerDevice(
           nonce,
-          [
-            DEVICE_AFFORDANCE_VALUE_NODES,
-          ]
+          DEVICE_AFFORDANCES,
         );
       },
       gateway1Data.remoteIp,
