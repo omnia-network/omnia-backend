@@ -1,0 +1,2 @@
+[workspace]
+members = ["src/database", "src/omnia_backend", "src/omnia_types"]
