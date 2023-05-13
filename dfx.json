@@ -15,7 +15,7 @@
       "candid": "src/omnia_backend/omnia_backend.did",
       "build": [
         "cargo build --target wasm32-unknown-unknown --release -p omnia_backend --locked",
-        "gzip -f ./target/wasm32-unknown-unknown/release/omnia_backend.wasm"
+        "gzip -f -k ./target/wasm32-unknown-unknown/release/omnia_backend.wasm"
       ],
       "wasm": "target/wasm32-unknown-unknown/release/omnia_backend.wasm.gz",
       "type": "custom",

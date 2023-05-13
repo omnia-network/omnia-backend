@@ -1,2 +1,6 @@
 [workspace]
 members = ["src/database", "src/omnia_backend", "src/omnia_types"]
+
+[profile.release]
+lto = true
+opt-level = 's'
