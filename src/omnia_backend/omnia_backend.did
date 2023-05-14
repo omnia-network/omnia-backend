@@ -1,3 +1,4 @@
+type DeviceAffordances = record { properties : vec text; actions : vec text };
 type EnvironmentCreationInput = record { env_name : text };
 type EnvironmentCreationResult = record { env_uid : text; env_name : text };
 type EnvironmentInfo = record { env_uid : text };
@@ -60,10 +61,6 @@ type VirtualPersonaValue = record {
   user_env_uid : opt text;
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
-};
-type DeviceAffordances = record {
-  properties: vec text;
-  actions: vec text;
 };
 service : (opt text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (Result);

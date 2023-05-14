@@ -513,7 +513,7 @@ dependencies = [
 [[package]]
 name = "ic-oxigraph"
 version = "0.3.17-dev"
-source = "git+https://github.com/omnia-network/ic-oxigraph.git#623bcc2e0a20a68d9bf99ff0bab6ea61f555ae79"
+source = "git+https://github.com/omnia-network/ic-oxigraph.git#74b2901fa214ff9958e91bd2f2dead74e389e89d"
 dependencies = [
  "digest",
  "getrandom",
@@ -846,7 +846,7 @@ checksum = "bb175ec8981211357b7b379869c2f8d555881c55ea62311428ec0de46d89bd5c"
 [[package]]
 name = "oxrdf"
 version = "0.1.6-dev"
-source = "git+https://github.com/omnia-network/ic-oxigraph.git#623bcc2e0a20a68d9bf99ff0bab6ea61f555ae79"
+source = "git+https://github.com/omnia-network/ic-oxigraph.git#74b2901fa214ff9958e91bd2f2dead74e389e89d"
 dependencies = [
  "oxilangtag",
  "oxiri",
@@ -857,7 +857,7 @@ dependencies = [
 [[package]]
 name = "oxsdatatypes"
 version = "0.1.2-dev"
-source = "git+https://github.com/omnia-network/ic-oxigraph.git#623bcc2e0a20a68d9bf99ff0bab6ea61f555ae79"
+source = "git+https://github.com/omnia-network/ic-oxigraph.git#74b2901fa214ff9958e91bd2f2dead74e389e89d"
 dependencies = [
  "ic-cdk",
  "nom",
@@ -1249,7 +1249,7 @@ checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 [[package]]
 name = "sparesults"
 version = "0.1.8-dev"
-source = "git+https://github.com/omnia-network/ic-oxigraph.git#623bcc2e0a20a68d9bf99ff0bab6ea61f555ae79"
+source = "git+https://github.com/omnia-network/ic-oxigraph.git#74b2901fa214ff9958e91bd2f2dead74e389e89d"
 dependencies = [
  "json-event-parser",
  "oxrdf",
@@ -1259,7 +1259,7 @@ dependencies = [
 [[package]]
 name = "spargebra"
 version = "0.2.8-dev"
-source = "git+https://github.com/omnia-network/ic-oxigraph.git#623bcc2e0a20a68d9bf99ff0bab6ea61f555ae79"
+source = "git+https://github.com/omnia-network/ic-oxigraph.git#74b2901fa214ff9958e91bd2f2dead74e389e89d"
 dependencies = [
  "oxilangtag",
  "oxiri",
