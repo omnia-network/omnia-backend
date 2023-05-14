@@ -53,7 +53,7 @@ type VirtualPersonaValue = record {
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
-service : {
+service : () -> {
   checkIfVirtualPersonaExists : (text) -> (bool) query;
   createNewEnvironment : (text, EnvironmentCreationInput) -> (Result);
   getGatewayUpdatesByPrincipal : (text) -> (opt UpdateValue);
