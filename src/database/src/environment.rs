@@ -22,11 +22,9 @@ use omnia_types::{
     },
     virtual_persona::{VirtualPersonaIndex, VirtualPersonaPrincipalId},
 };
-use omnia_utils::{
-    net::{get_device_url, get_gateway_url},
-    uuid::generate_uuid,
-};
+use omnia_utils::net::{get_device_url, get_gateway_url};
 use std::collections::BTreeMap;
+use uuid::Uuid;
 
 use crate::STATE;
 
@@ -124,7 +122,7 @@ async fn create_new_environment(
     environment_manager_principal_id: VirtualPersonaPrincipalId,
     environment_creation_input: EnvironmentCreationInput,
 ) -> Result<EnvironmentCreationResult, GenericError> {
-    let environment_uid = generate_uuid().await;
+    let environment_uid = Uuid::new_v4().hyphenated().to_string();
 
     STATE.with(|state| {
         // create new environment
@@ -377,7 +375,7 @@ async fn register_device_on_gateway(
     nonce: IpChallengeNonce,
     gateway_principal_id: GatewayPrincipalId,
 ) -> RegisteredDeviceResult {
-    let device_uid = generate_uuid().await;
+    let device_uid = Uuid::new_v4().hyphenated().to_string();
 
     STATE.with(|state| {
         // validate IP challenge

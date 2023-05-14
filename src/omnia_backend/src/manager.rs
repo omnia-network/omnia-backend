@@ -63,7 +63,7 @@ async fn create_environment(
                     let quad = Quad::new(
                         UrnNode::new_uuid(&result.env_uid),
                         vocab::rdf::TYPE,
-                        BotNode::new("Zone"),
+                        BotNode::from("Zone"),
                         GraphName::DefaultGraph,
                     );
 
@@ -251,7 +251,7 @@ async fn register_device(
         .unwrap()
         .0?;
 
-    let device_url = registered_device.clone().1.device_url.clone();
+    let device_url = registered_device.clone().1.device_url;
 
     let device_node = NamedNode::new(device_url.clone()).map_err(|err| {
         format!(
@@ -265,13 +265,13 @@ async fn register_device(
         Quad::new(
             device_node.clone(),
             vocab::rdf::TYPE,
-            SarefNode::new("Device"),
+            SarefNode::from("Device"),
             GraphName::DefaultGraph,
         ),
         // device - environment relation
         Quad::new(
-            UrnNode::new_uuid(&registered_device.clone().1.env_uid),
-            BotNode::new("hasElement"),
+            UrnNode::new_uuid(&registered_device.1.env_uid),
+            BotNode::from("hasElement"),
             device_node.clone(),
             GraphName::DefaultGraph,
         ),
@@ -283,30 +283,30 @@ async fn register_device(
     if required_headers.is_some() {
         required_headers.unwrap().iter().enumerate().for_each(
             |(i, (header_name, header_value))| {
-                let header_node = OmniaNode::new(&format!("HTTPHeader{}", i));
+                let header_node = OmniaNode::from(&format!("HTTPHeader{}", i));
 
                 quads.extend_from_slice(&[
                     Quad::new(
                         header_node.clone(),
                         vocab::rdf::TYPE,
-                        HttpNode::new("RequestHeader"),
+                        HttpNode::from("RequestHeader"),
                         GraphName::DefaultGraph,
                     ),
                     Quad::new(
                         header_node.clone(),
-                        HttpNode::new("fieldName"),
+                        HttpNode::from("fieldName"),
                         Literal::new_simple_literal(header_name),
                         GraphName::DefaultGraph,
                     ),
                     Quad::new(
                         header_node.clone(),
-                        HttpNode::new("fieldValue"),
+                        HttpNode::from("fieldValue"),
                         Literal::new_simple_literal(header_value),
                         GraphName::DefaultGraph,
                     ),
                     Quad::new(
                         device_node.clone(),
-                        OmniaNode::new("requiresHeader"),
+                        OmniaNode::from("requiresHeader"),
                         header_node,
                         GraphName::DefaultGraph,
                     ),
@@ -318,8 +318,8 @@ async fn register_device(
     quads.extend(affordances.properties.iter().map(|affordance| {
         Quad::new(
             device_node.clone(),
-            TdNode::new("hasPropertyAffordance"),
-            SarefNode::from_string(&affordance),
+            TdNode::from("hasPropertyAffordance"),
+            SarefNode::from_prefixed(affordance),
             GraphName::DefaultGraph,
         )
     }));
@@ -327,8 +327,8 @@ async fn register_device(
     quads.extend(affordances.actions.iter().map(|affordance| {
         Quad::new(
             device_node.clone(),
-            TdNode::new("hasActionAffordance"),
-            SarefNode::from_string(&affordance),
+            TdNode::from("hasActionAffordance"),
+            SarefNode::from_prefixed(affordance),
             GraphName::DefaultGraph,
         )
     }));

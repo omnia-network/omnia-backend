@@ -1,6 +1,7 @@
 mod http_endpoint;
 mod manager;
 mod outcalls;
+mod random;
 mod rdf;
 mod user;
 mod utils;
@@ -12,6 +13,8 @@ use ic_cdk_macros::{init, post_upgrade, pre_upgrade};
 use ic_oxigraph::io::GraphFormat;
 use ic_oxigraph::model::GraphNameRef;
 use ic_oxigraph::store::Store;
+use rand::{rngs::StdRng, SeedableRng};
+use random::init_rng;
 use std::cell::RefCell;
 use utils::update_database_principal;
 
@@ -25,6 +28,7 @@ struct State {
 
 thread_local! {
     /* flexible */ static STATE: RefCell<State>  = RefCell::new(State::default());
+    /* flexible */ static RNG_REF_CELL: RefCell<StdRng> = RefCell::new(SeedableRng::from_seed([0_u8; 32]));
     /* stable */ static RDF_DB: RefCell<Store>  = RefCell::new(Store::new().unwrap());
 }
 
@@ -35,6 +39,13 @@ thread_local! {
 #[candid_method(init)]
 fn init(_: Option<String>, database_canister_principal: String) {
     print("Init canister...");
+
+    // initialize rng
+    init_rng();
+
+    // initialize rng in the ic-oxigraph library
+    RNG_REF_CELL.with(ic_oxigraph::init);
+
     update_database_principal(database_canister_principal);
 }
 
@@ -59,6 +70,13 @@ fn pre_upgrade() {
 #[post_upgrade]
 fn post_upgrade(_: Option<String>, database_canister_principal: String) {
     print("Post upgrade canister...");
+
+    // initialize rng
+    init_rng();
+
+    // initialize rng in the ic-oxigraph library
+    RNG_REF_CELL.with(ic_oxigraph::init);
+
     update_database_principal(database_canister_principal);
 
     RDF_DB.with(|cell| {

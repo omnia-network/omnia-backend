@@ -1,6 +1,6 @@
-use candid::{CandidType, Deserialize};
+use candid::{candid_method, CandidType, Deserialize};
 use ic_cdk::api::stable::{StableReader, StableWriter};
-use ic_cdk_macros::{post_upgrade, pre_upgrade};
+use ic_cdk_macros::{init, post_upgrade, pre_upgrade};
 use omnia_types::device::{RegisteredDeviceIndex, RegisteredDeviceValue};
 use omnia_types::environment::{
     EnvironmentIndex, EnvironmentUidIndex, EnvironmentUidValue, EnvironmentValue,
@@ -13,11 +13,14 @@ use omnia_types::http::{IpChallengeIndex, IpChallengeValue};
 use omnia_types::updates::{UpdateIndex, UpdateValue};
 use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValue};
 use omnia_types::CrudMap;
+use rand::{rngs::StdRng, SeedableRng};
+use random::init_rng;
 use serde::Serialize;
 use std::{cell::RefCell, ops::Deref};
 
 mod auth;
 mod environment;
+mod random;
 mod virtual_persona;
 
 #[derive(Default, CandidType, Serialize, Deserialize)]
@@ -49,6 +52,14 @@ impl State {
 
 thread_local! {
     /* stable */ static STATE: RefCell<State>  = RefCell::new(State::default());
+    /* flexible */ static RNG_REF_CELL: RefCell<StdRng> = RefCell::new(SeedableRng::from_seed([0_u8; 32]));
+}
+
+#[init]
+#[candid_method(init)]
+fn init() {
+    // initialize rng
+    init_rng();
 }
 
 #[pre_upgrade]
@@ -61,6 +72,9 @@ fn pre_upgrade() {
 
 #[post_upgrade]
 fn post_upgrade() {
+    // initialize rng
+    init_rng();
+
     STATE.with(|cell| {
         *cell.borrow_mut() =
             ciborium::de::from_reader(StableReader::default()).expect("failed to decode state");

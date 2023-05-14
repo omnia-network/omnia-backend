@@ -36,7 +36,7 @@ fn http_request(req: HttpRequest) -> HttpResponse {
     }
 
     if req.url.starts_with("/sparql/query") {
-        let parsed_body = String::from_utf8(req.body.clone().unwrap()).unwrap();
+        let parsed_body = String::from_utf8(req.body.unwrap()).unwrap();
         return match execute_sparql_query(parsed_body) {
             Ok(query_result) => HttpResponse {
                 status_code: 200,

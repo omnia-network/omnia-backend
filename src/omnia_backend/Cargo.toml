@@ -19,3 +19,6 @@ omnia_utils = { path = "../omnia_utils" }
 ic-oxigraph = { git = "https://github.com/omnia-network/ic-oxigraph.git", version = "0.3.17-dev" }
 ciborium = "0.2.1"
 sparesults = { git = "https://github.com/omnia-network/ic-oxigraph.git", version = "0.1.8-dev" }
+rand = "0.8.5"
+getrandom = { version = "0.2.9", features = ["custom"] }
+ic-cdk-timers = "0.1.2"

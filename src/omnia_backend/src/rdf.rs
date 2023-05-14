@@ -12,7 +12,7 @@ use crate::RDF_DB;
 pub const OMNIA_PREFIX: &str = "http://rdf.omnia-iot.com#";
 pub struct OmniaNode;
 impl OmniaNode {
-    pub fn new(name: &str) -> NamedNode {
+    pub fn from(name: &str) -> NamedNode {
         match NamedNode::new(format!("{}{}", OMNIA_PREFIX, name)) {
             Ok(node) => node,
             Err(_) => trap("Error creating OmniaNode"),
@@ -24,7 +24,7 @@ impl OmniaNode {
 pub const SAREF_PREFIX: &str = "https://saref.etsi.org/core/";
 pub struct SarefNode;
 impl SarefNode {
-    pub fn new(name: &str) -> NamedNode {
+    pub fn from(name: &str) -> NamedNode {
         match NamedNode::new(format!("{}{}", SAREF_PREFIX, name)) {
             Ok(node) => node,
             Err(_) => trap("Error creating SarefNode"),
@@ -32,11 +32,11 @@ impl SarefNode {
     }
 
     /// Expects a string like saref:OnCommand or OnCommand as input and returns the SAREF named node
-    pub fn from_string(name: &str) -> NamedNode {
-        if name.starts_with("saref:") {
-            return SarefNode::new(&name[6..]);
+    pub fn from_prefixed(name: &str) -> NamedNode {
+        if let Some(stripped) = name.strip_prefix("saref:") {
+            return SarefNode::from(stripped);
         }
-        SarefNode::new(name)
+        SarefNode::from(name)
     }
 }
 
@@ -44,7 +44,7 @@ impl SarefNode {
 pub const BOT_PREFIX: &str = "https://w3id.org/bot#";
 pub struct BotNode;
 impl BotNode {
-    pub fn new(name: &str) -> NamedNode {
+    pub fn from(name: &str) -> NamedNode {
         match NamedNode::new(format!("{}{}", BOT_PREFIX, name)) {
             Ok(node) => node,
             Err(_) => trap("Error creating BotNode"),
@@ -56,7 +56,7 @@ impl BotNode {
 pub const HTTP_PREFIX: &str = "https://www.w3.org/2011/http#";
 pub struct HttpNode;
 impl HttpNode {
-    pub fn new(name: &str) -> NamedNode {
+    pub fn from(name: &str) -> NamedNode {
         match NamedNode::new(format!("{}{}", HTTP_PREFIX, name)) {
             Ok(node) => node,
             Err(_) => trap("Error creating HttpNode"),
@@ -68,7 +68,7 @@ impl HttpNode {
 pub const TD_PREFIX: &str = "https://www.w3.org/2019/wot/td#";
 pub struct TdNode;
 impl TdNode {
-    pub fn new(name: &str) -> NamedNode {
+    pub fn from(name: &str) -> NamedNode {
         match NamedNode::new(format!("{}{}", TD_PREFIX, name)) {
             Ok(node) => node,
             Err(_) => trap("Error creating TdNode"),
@@ -114,6 +114,6 @@ pub fn execute_sparql_query(query: String) -> Result<Vec<u8>, GenericError> {
                 .map_err(|e| format!("Error serializing SPARQL query results: {:?}", e));
         }
 
-        Err(format!("Error executing SPARQL query"))
+        Err("Error executing SPARQL query".to_string())
     })
 }
