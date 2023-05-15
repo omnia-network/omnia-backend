@@ -1,19 +1,20 @@
 import { EnvironmentCreationResult, InitializedGatewayValue, RegisteredDeviceIndex, RegisteredDeviceValue, RegisteredGatewayValue, UpdateValue } from "../src/declarations/omnia_backend/omnia_backend.did";
 import {
+  application1,
   gateway1,
   gateway1Data,
-  gateway2,
-  gateway2Data,
   manager1,
   manager1Data,
   manager2,
   manager2Data,
 } from "./utils/actors";
 import { DEVICE_AFFORDANCES, DEVICE_AFFORDANCE_VALUE_TUPLE, DEVICE_PAIRING_PAYLOAD, ENVIRONMENT_NAME, GATEWAY1_NAME, LONG_TEST_TIMEOUT, OMNIA_PROXY_HOST } from "./utils/constants";
-import { PREFIXES, sparqlClient } from "./utils/sparql-client";
+import { PREFIXES, parseSparqlQueryResult, sparqlClient } from "./utils/sparql-client";
 
 let environmentUid: string;
 let deviceUid: string;
+
+const getDeviceUrl = () => { };
 
 // every test takes a long time
 jest.setTimeout(LONG_TEST_TIMEOUT);
@@ -225,91 +226,6 @@ describe("Gateway", () => {
 });
 
 describe("Application", () => {
-  it("Application can retrieve the devices by affordances", async () => {
-    // first, we try a query with a non-existent affordance
-    const failingQuery = await sparqlClient.query.select(
-      `${PREFIXES}
-      SELECT ?device WHERE {
-        ?device td:hasPropertyAffordance saref:NonExistingState .
-      }
-      `,
-      {
-        operation: "postDirect",
-      }
-    );
-
-    const failingResponse = await failingQuery.json();
-
-    expect(failingQuery.status).toEqual(200);
-    expect(failingResponse).toMatchObject({
-      head: {
-        vars: [
-          "device",
-        ],
-      },
-      results: {
-        bindings: [],
-      },
-    });
-
-    const response = await sparqlClient.query.select(
-      `${PREFIXES}
-      SELECT ?device ?headerName ?headerValue WHERE {
-        ?device ${DEVICE_AFFORDANCE_VALUE_TUPLE[0]} ${DEVICE_AFFORDANCE_VALUE_TUPLE[1]} .
-        ?device omnia:requiresHeader ?header .
-        ?header http:fieldName ?headerName ;
-                http:fieldValue ?headerValue .
-      }
-      `,
-      {
-        operation: "postDirect",
-      }
-    );
-
-    expect(response.status).toEqual(200);
-    expect(await response.json()).toMatchObject({
-      head: {
-        vars: [
-          "device",
-          "headerName",
-          "headerValue",
-        ],
-      },
-      results: {
-        bindings: [
-          {
-            device: {
-              type: "uri",
-              value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
-            },
-            headerName: {
-              type: "literal",
-              value: "X-Forward-To-Port",
-            },
-            headerValue: {
-              type: "literal",
-              value: "8888",
-            },
-          },
-          {
-            device: {
-              type: "uri",
-              value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
-            },
-            headerName: {
-              type: "literal",
-              value: "X-Forward-To-Peer",
-            },
-            headerValue: {
-              type: "literal",
-              value: gateway1Data.proxyData.peerId,
-            },
-          },
-        ],
-      },
-    });
-  });
-
   it("Application can retrieve the devices in the environment", async () => {
     // first, we try a query with a non-existent affordance
     const failingQuery = await sparqlClient.query.select(
@@ -366,5 +282,111 @@ describe("Application", () => {
         ],
       },
     });
+  });
+
+  const deviceAffordancesSparqlQuery = `${PREFIXES}
+    SELECT ?device ?headerName ?headerValue WHERE {
+      ?device ${DEVICE_AFFORDANCE_VALUE_TUPLE[0]} ${DEVICE_AFFORDANCE_VALUE_TUPLE[1]} .
+      ?device omnia:requiresHeader ?header .
+      ?header http:fieldName ?headerName ;
+              http:fieldValue ?headerValue .
+    }
+    `;
+
+  // we need a function to get the expected object, because the device UID is generated
+  const getExpectedDeviceAffordancesObject = () => ({
+    head: {
+      vars: [
+        "device",
+        "headerName",
+        "headerValue",
+      ],
+    },
+    results: {
+      bindings: [
+        {
+          device: {
+            type: "uri",
+            value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
+          },
+          headerName: {
+            type: "literal",
+            value: "X-Forward-To-Port",
+          },
+          headerValue: {
+            type: "literal",
+            value: "8888",
+          },
+        },
+        {
+          device: {
+            type: "uri",
+            value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
+          },
+          headerName: {
+            type: "literal",
+            value: "X-Forward-To-Peer",
+          },
+          headerValue: {
+            type: "literal",
+            value: gateway1Data.proxyData.peerId,
+          },
+        },
+      ],
+    },
+  });
+
+  it("Application can retrieve the devices by affordances", async () => {
+    // first, we try a query with a non-existent affordance
+    const failingQuery = await sparqlClient.query.select(
+      `${PREFIXES}
+      SELECT ?device WHERE {
+        ?device td:hasPropertyAffordance saref:NonExistingState .
+      }
+      `,
+      {
+        operation: "postDirect",
+      }
+    );
+
+    expect(failingQuery.status).toEqual(200);
+    expect(await failingQuery.json()).toMatchObject({
+      head: {
+        vars: [
+          "device",
+        ],
+      },
+      results: {
+        bindings: [],
+      },
+    });
+
+    // then, we try a query with an existing affordance
+    const response = await sparqlClient.query.select(
+      deviceAffordancesSparqlQuery,
+      {
+        operation: "postDirect",
+      }
+    );
+
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchObject(getExpectedDeviceAffordancesObject());
+  });
+
+  it("Application can retrieve the devices by affordances (candid methods)", async () => {
+    // same query as the previous test, but using the candid methods
+    const application1Actor = await application1.getActor();
+
+    const executeRdfQuery = await application1.parseResult(
+      application1Actor.executeRdfDbQuery(deviceAffordancesSparqlQuery)
+    );
+    expect(executeRdfQuery.error).toBeNull();
+    expect(parseSparqlQueryResult(executeRdfQuery.data as Uint8Array)).toMatchObject(getExpectedDeviceAffordancesObject());
+
+    const executeRdfQueryAsUpdate = await application1.parseResult(
+      application1Actor.executeRdfDbQueryAsUpdate(deviceAffordancesSparqlQuery)
+    );
+    expect(executeRdfQueryAsUpdate.error).toBeNull();
+    expect(parseSparqlQueryResult(executeRdfQuery.data as Uint8Array)).toMatchObject(getExpectedDeviceAffordancesObject());
   });
 });

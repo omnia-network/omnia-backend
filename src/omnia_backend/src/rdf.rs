@@ -1,7 +1,9 @@
+use candid::candid_method;
 use ic_cdk::api::trap;
+use ic_cdk_macros::{query, update};
 use ic_oxigraph::model::NamedNode;
 use ic_oxigraph::sparql::QueryResults;
-use omnia_types::errors::GenericError;
+use omnia_types::errors::{GenericError, GenericResult};
 use sparesults::{QueryResultsFormat, QueryResultsSerializer};
 
 use crate::RDF_DB;
@@ -116,4 +118,18 @@ pub fn execute_sparql_query(query: String) -> Result<Vec<u8>, GenericError> {
 
         Err("Error executing SPARQL query".to_string())
     })
+}
+
+#[query(name = "executeRdfDbQuery")]
+#[candid_method(query, rename = "executeRdfDbQuery")]
+/// The result is returned in JSON in the form of a Vec<u8> that can be parsed
+fn execute_rdf_db_query(input_query: String) -> GenericResult<Vec<u8>> {
+    execute_sparql_query(input_query)
+}
+
+#[update(name = "executeRdfDbQueryAsUpdate")]
+#[candid_method(update, rename = "executeRdfDbQueryAsUpdate")]
+/// Same as `executeRdfDbQuery` but for inter-canister calls
+fn execute_rdf_db_query_as_update(input_query: String) -> GenericResult<Vec<u8>> {
+    execute_sparql_query(input_query)
 }

@@ -19,3 +19,9 @@ PREFIX td: <https://www.w3.org/2019/wot/td#>
 # Definitions
 PREFIX urn: <urn:>
 `;
+
+export const parseSparqlQueryResult = (result: Uint8Array) => {
+  const resultString = new TextDecoder("utf-8").decode(result);
+  const resultJson = JSON.parse(resultString);
+  return resultJson;
+};

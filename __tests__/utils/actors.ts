@@ -1,7 +1,7 @@
 import { identityFromSeed } from "./identity";
 import { OmniaApi } from "./omniaApi";
 
-// These seed phrases are completely INSECURE. DO NOT use them for any purpose other than testing.
+// These seed phrases are completely INSECURE. DO NOT use them for any purpose other than local testing.
 
 //// Managers
 // Principal ID: "wnkwv-wdqb5-7wlzr-azfpw-5e5n5-dyxrf-uug7x-qxb55-mkmpa-5jqik-tqe"
@@ -57,3 +57,12 @@ export const gateway2Data = {
   proxyData: undefined,
 };
 export const gateway2 = new OmniaApi(gateway2Data.identity);
+
+/// Applications
+// Principal ID: "3lrgf-6kqpq-5237e-rpobo-kqsam-t3l6b-2yye6-cvfas-ekudm-t4rqw-vae"
+const application1Seed = "grape grape grape grape grape grape grape grape grape grape grape grape";
+export const application1Data = {
+  identity: identityFromSeed(application1Seed),
+  remoteIp: manager1Data.remoteIp, // same environment as manager1
+};
+export const application1 = new OmniaApi(application1Data.identity);
