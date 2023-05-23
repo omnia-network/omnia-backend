@@ -1,16 +1,11 @@
-# omnia_main
+# Omnia Backend
+Omnia Backend is the core of the Omnia Network and is deployed as a canister on the [Internet Computer](https://internetcomputer.org). It manages the interaction main components of the Omnia Network.
 
-Here are some references on the SDKs and libraries we use in the codebase:
-
-- [Internet Computer quick start](https://internetcomputer.org/docs/quickstart/quickstart-intro.html)
-- [Internet Computer SDK Developer Tools](https://internetcomputer.org/docs/developers-guide/sdk-guide.html)
-- [Rust Canister Devlopment Guide](https://internetcomputer.org/docs/rust-guide/rust-intro.html)
-- [ic-cdk](https://docs.rs/ic-cdk)
-- [ic-cdk-macros](https://docs.rs/ic-cdk-macros)
-- [Candid Introduction](https://internetcomputer.org/docs/candid-guide/candid-intro.html)
-- [JavaScript API Reference](https://erxue-5aaaa-aaaab-qaagq-cai.raw.ic0.app)
+## Architecture
+See [Architecture](./docs/architecture.md).
 
 ## Development
+We suggest using the Dev Container with Visual Studio Code. If you can't use it (e.g. there are some problems with macOS on M1/M2 chips), have a look at the [Dockerfile](./.devcontainer/Dockerfile) and install the dependencies manually.
 
 ### Generate DIDs
 `dfx` utility still doesn't support automatic did interfaces generation. There's a workaround, which uses Rust tests and Rust DFINITY CDK under the hood: for each canister, there's a `generate_candid_interface` _test_ function that saves the candid interface in the canister's `.did` file. To run the did generation, run:
