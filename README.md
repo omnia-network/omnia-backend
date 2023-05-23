@@ -1,8 +1,19 @@
 # Omnia Backend
 Omnia Backend is the core of the Omnia Network and is deployed as a canister on the [Internet Computer](https://internetcomputer.org). It manages the interaction main components of the Omnia Network.
 
-## Architecture
-See [Architecture](./docs/architecture.md).
+We suggest reading the [Architecture](./docs/architecture.md) document to understand how the Omnia Network works before diving into the code.
+
+## Structure
+The Omnia Backend is fully deployed on the Internet Computer and is composed of the following canisters:
+- [omnia_backend](./src/omnia_backend), the main canister that exposes the methods to Gateways, Managers and Applications.
+- [database](./src/database), that stores all the data (devices, gateways, applications, etc.) using custom Create, Read, Update and Delete (**CRUD**) [BTreeMap](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html)s structures. 
+
+An **RDF database** is also embedded in the **omnia_backend** canister. See [RDF database](./docs/rdf-database.md) for details.
+
+### Additional libraries
+To serve the purposes of the canisters mentioned above, some additional libraries are available in the source code:
+- [omnia_utils](./src/omnia_utils) contains some utility functions used by the other canisters.
+- [omnia_types](./src/omnia_types) contains the types shared between the canisters.
 
 ## Development
 We suggest using the Dev Container with Visual Studio Code. If you can't use it (e.g. there are some problems with macOS on M1/M2 chips), have a look at the [Dockerfile](./.devcontainer/Dockerfile) and install the dependencies manually.
