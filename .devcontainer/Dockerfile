@@ -18,6 +18,7 @@ RUN DFX_VERSION=0.14.0 sh -ci "$(curl -fsSL https://internetcomputer.org/install
 RUN cargo install ic-cdk-optimizer
 
 RUN cargo install cargo-audit
+RUN cargo install cargo-license
 
 # install wasm32-unknown-unknown
 # https://internetcomputer.org/docs/current/developer-docs/build/cdks/cdk-rs-dfinity/rust-quickstart#register-build-and-deploy-your-project

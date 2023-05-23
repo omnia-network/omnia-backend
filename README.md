@@ -79,3 +79,12 @@ and then run:
 npm run test
 ```
 After running the tests, it's recommended to stop the local replica and start it again with the `--clean` flag (see above).
+
+## License
+Licensed under the [MIT License](./LICENSE).
+
+### Dependencies report
+To generate a report of all dependencies licenses, run:
+```bash
+npm run report:licenses
+```

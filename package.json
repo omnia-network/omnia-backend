@@ -1,7 +1,8 @@
 {
-  "name": "omnia_main",
+  "name": "omnia_backend",
   "version": "0.1.0",
   "description": "Internet Computer starter application",
+  "license": "MIT",
   "keywords": [
     "Internet Computer",
     "Motoko",
@@ -16,7 +17,8 @@
     "deploy:backend": "./scripts/deploy.sh --backend",
     "generate-dids-and-deploy": "npm run generate:dids && npm run deploy",
     "generate-dids-and-deploy:backend": "npm run generate:dids && npm run deploy:backend",
-    "test": "jest"
+    "test": "jest",
+    "report:licenses": "echo \"Rust dependencies:\" && cargo license && echo \"\\n-------------\\nNode.js dependencies:\" && license-checker --summary"
   },
   "devDependencies": {
     "@babel/core": "^7.20.12",
@@ -37,6 +39,7 @@
     "events": "3.3.0",
     "hdkey": "^2.1.0",
     "jest": "^29.3.1",
+    "license-checker": "^25.0.1",
     "process": "0.11.10",
     "sparql-http-client": "^2.4.2",
     "stream-browserify": "3.0.0",
