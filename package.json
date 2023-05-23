@@ -9,11 +9,6 @@
     "Canister"
   ],
   "scripts": {
-    "start:user": "cd src/omnia_user_frontend && npm start",
-    "start:manager": "cd src/omnia_manager_frontend && npm start",
-    "build": "./scripts/build.sh",
-    "prebuild": "npm run generate:types",
-    "prestart": "npm run generate:types",
     "generate:types": "./scripts/generate-types.sh",
     "generate:types:backend": "./scripts/generate-types.sh --backend",
     "generate:dids": "./scripts/generate-dids.sh",

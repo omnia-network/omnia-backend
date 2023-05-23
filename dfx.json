@@ -1,16 +1,5 @@
 {
   "canisters": {
-    "internet_identity": {
-      "type": "custom",
-      "candid": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity.did",
-      "wasm": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity_dev.wasm",
-      "shrink": false,
-      "remote": {
-        "id": {
-          "ic": "rdmx6-jaaaa-aaaaa-aaadq-cai"
-        }
-      }
-    },
     "omnia_backend": {
       "candid": "src/omnia_backend/omnia_backend.did",
       "build": [
@@ -27,30 +16,6 @@
       "candid": "src/database/database.did",
       "package": "database",
       "type": "rust"
-    },
-    "omnia_user_frontend": {
-      "dependencies": [
-        "omnia_backend"
-      ],
-      "frontend": {
-        "entrypoint": "src/omnia_user_frontend/build/index.html"
-      },
-      "source": [
-        "src/omnia_user_frontend/build"
-      ],
-      "type": "assets"
-    },
-    "omnia_manager_frontend": {
-      "dependencies": [
-        "omnia_backend"
-      ],
-      "frontend": {
-        "entrypoint": "src/omnia_manager_frontend/build/index.html"
-      },
-      "source": [
-        "src/omnia_manager_frontend/build"
-      ],
-      "type": "assets"
     }
   },
   "defaults": {
