@@ -6,7 +6,9 @@ We suggest reading the [Architecture](./docs/architecture.md) document to unders
 ## Structure
 The Omnia Backend is fully deployed on the Internet Computer and is composed of the following canisters:
 - [omnia_backend](./src/omnia_backend), the main canister that exposes the methods to Gateways, Managers and Applications.
-- [database](./src/database), that stores all the data (devices, gateways, applications, etc.) using custom Create, Read, Update and Delete (**CRUD**) [BTreeMap](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html)s structures. 
+- [database](./src/database), that stores all the data (devices, gateways, applications, etc.) using custom Create, Read, Update and Delete (**CRUD**) [BTreeMap](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html)s structures.
+
+**omnia_backend** canister depends on **database**, so they're always deployed together.
 
 An **RDF database** is also embedded in the **omnia_backend** canister. See [RDF database](./docs/rdf-database.md) for details.
 
@@ -48,18 +50,10 @@ where `--background` is optional and makes it run in the background and `--clean
 
 First of all, start a local IC replica (see above).
 
-There are two main canisters in the backend:
-- **database**, which stores all data
-- **omnia_backend**, which runs all the logics and exposes the methods to the frontend 
-
-As you can guess, **omnia_backend** depends on **database** and needs to know the database canister id to make inter-canister calls work.
-
-So, follow these steps to deploy everything correctly:
-
-1. generate dids and deploy all backend canisters by running:
-    ```bash
-    npm run generate-dids-and-deploy:backend
-    ```
+**omnia_backend** canister depends on **database** and needs to know the database canister id to make inter-canister calls work. For this reason, you must execute this command to deploy everything correctly:
+```bash
+npm run generate-dids-and-deploy:backend
+```
 
 ### Deployment
 
@@ -71,7 +65,7 @@ Available commands:
 - `npm run generate-dids-and-deploy`: first generates dids and then deploys **all** canisters
 - `npm run generate-dids-and-deploy:backend`: first generates dids and then deploys **backend** canisters only
 
-## Tests (Backend only)
+## Tests
 
 We use [Jest](https://jestjs.io/) to run integration tests. All tests are in the [`__tests__`](./__tests__/) folder.
 
