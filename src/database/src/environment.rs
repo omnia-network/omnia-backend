@@ -413,7 +413,9 @@ async fn register_device_on_gateway(
                             (String::from("X-Forward-To-Peer"), proxied_gateway_uid),
                             // this is the port where the gateway is running the WoT servient
                             // TODO: store this value in the Gateway state, because it could be different for each gateway
-                            (String::from("X-Forward-To-Port"), "8888".to_string()),
+                            // why 8080? That's because the WoT servient is behind an NGINX reverse proxy that handles idempotency for requests coming from the canisters
+                            // see https://omnia-network/omnia-gateway README for details
+                            (String::from("X-Forward-To-Port"), "8080".to_string()),
                         ]
                     },
                 ),
