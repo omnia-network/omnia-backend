@@ -63,7 +63,7 @@ type VirtualPersonaValue = record {
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
-service : (opt text, text) -> {
+service : (text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (Result);
   executeRdfDbQuery : (text) -> (Result_1) query;
   executeRdfDbQueryAsUpdate : (text) -> (Result_1);
@@ -80,4 +80,4 @@ service : (opt text, text) -> {
   registerGateway : (text, GatewayRegistrationInput) -> (Result_9);
   resetEnvironment : (text) -> (Result_10);
   setEnvironment : (text) -> (Result_10);
-}
+};

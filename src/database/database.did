@@ -53,7 +53,7 @@ type VirtualPersonaValue = record {
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
-service : (text) -> {
+service : (text, text) -> {
   checkIfVirtualPersonaExists : (text) -> (bool) query;
   createNewEnvironment : (text, EnvironmentCreationInput) -> (Result);
   getGatewayUpdatesByPrincipal : (text) -> (opt UpdateValue);
@@ -67,8 +67,8 @@ service : (text) -> {
   pairNewDeviceOnGateway : (text, text, text, text) -> (Result_6);
   registerDeviceOnGateway : (text, text) -> (Result_7);
   registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
-      Result_8,
-    );
+    Result_8
+  );
   resetUserFromEnvironment : (text, text) -> (Result_9);
   setUserInEnvironment : (text, text) -> (Result_9);
-}
+};

@@ -22,7 +22,4 @@ fi
 
 echo "Deploying canisters..."
 
-dfx deploy database --no-wallet --argument "(\"$OMNIA_BACKEND_CANISTER_ID\")"
-
-# this command will deploy also the database canister, because it's a dependency of omnia_backend. See the dfx.json file.
-dfx deploy omnia_backend --no-wallet --argument "(null, \"$DATABASE_CANISTER_ID\")"
+dfx deploy --no-wallet --argument "(\"$OMNIA_BACKEND_CANISTER_ID\", \"$DATABASE_CANISTER_ID\")"

@@ -37,7 +37,7 @@ thread_local! {
 // null first argument is needed to deploy internet_identity canister properly
 #[init]
 #[candid_method(init)]
-fn init(_: Option<String>, database_canister_principal: String) {
+fn init(_omnia_backend_canister_principal_id: String, database_canister_principal_id: String) {
     print("Init canister...");
 
     // initialize rng
@@ -46,7 +46,7 @@ fn init(_: Option<String>, database_canister_principal: String) {
     // initialize rng in the ic-oxigraph library
     RNG_REF_CELL.with(ic_oxigraph::init);
 
-    update_database_principal(database_canister_principal);
+    update_database_principal(database_canister_principal_id);
 }
 
 #[pre_upgrade]
@@ -68,7 +68,10 @@ fn pre_upgrade() {
 }
 
 #[post_upgrade]
-fn post_upgrade(_: Option<String>, database_canister_principal: String) {
+fn post_upgrade(
+    _omnia_backend_canister_principal_id: String,
+    database_canister_principal_id: String,
+) {
     print("Post upgrade canister...");
 
     // initialize rng
@@ -77,7 +80,7 @@ fn post_upgrade(_: Option<String>, database_canister_principal: String) {
     // initialize rng in the ic-oxigraph library
     RNG_REF_CELL.with(ic_oxigraph::init);
 
-    update_database_principal(database_canister_principal);
+    update_database_principal(database_canister_principal_id);
 
     RDF_DB.with(|cell| {
         let deserialized: Vec<u8> =

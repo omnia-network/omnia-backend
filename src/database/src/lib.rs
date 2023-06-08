@@ -61,7 +61,7 @@ thread_local! {
 
 #[init]
 #[candid_method(init)]
-fn init(omnia_backend_canister_principal_id: String) {
+fn init(omnia_backend_canister_principal_id: String, _database_canister_principal_id: String) {
     // initialize rng
     init_rng();
 
@@ -73,18 +73,23 @@ fn pre_upgrade() {
     STATE.with(|state| {
         ciborium::ser::into_writer(state.borrow().deref(), StableWriter::default())
             .expect("failed to encode state")
-    })
+    });
 }
 
 #[post_upgrade]
-fn post_upgrade() {
+fn post_upgrade(
+    omnia_backend_canister_principal_id: String,
+    _database_canister_principal_id: String,
+) {
     // initialize rng
     init_rng();
 
     STATE.with(|cell| {
         *cell.borrow_mut() =
             ciborium::de::from_reader(StableReader::default()).expect("failed to decode state");
-    })
+    });
+
+    update_omnia_backend_principal(omnia_backend_canister_principal_id);
 }
 
 #[cfg(test)]
