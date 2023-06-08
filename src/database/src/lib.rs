@@ -1,4 +1,4 @@
-use candid::{candid_method, CandidType, Deserialize};
+use candid::{candid_method, CandidType, Deserialize, Principal};
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{init, post_upgrade, pre_upgrade};
 use omnia_types::device::{RegisteredDeviceIndex, RegisteredDeviceValue};
@@ -17,10 +17,12 @@ use rand::{rngs::StdRng, SeedableRng};
 use random::init_rng;
 use serde::Serialize;
 use std::{cell::RefCell, ops::Deref};
+use utils::update_omnia_backend_principal;
 
 mod auth;
 mod environment;
 mod random;
+mod utils;
 mod virtual_persona;
 
 #[derive(Default, CandidType, Serialize, Deserialize)]
@@ -33,6 +35,7 @@ struct State {
     pub initialized_gateways: CrudMap<InitializedGatewayIndex, InitializedGatewayValue>,
     pub updates: CrudMap<UpdateIndex, UpdateValue>,
     pub registered_devices: CrudMap<RegisteredDeviceIndex, RegisteredDeviceValue>,
+    pub omnia_backend_principal: Option<Principal>,
 }
 
 impl State {
@@ -46,6 +49,7 @@ impl State {
             initialized_gateways: CrudMap::default(),
             updates: CrudMap::default(),
             registered_devices: CrudMap::default(),
+            omnia_backend_principal: None,
         }
     }
 }
@@ -57,9 +61,11 @@ thread_local! {
 
 #[init]
 #[candid_method(init)]
-fn init() {
+fn init(omnia_backend_canister_principal_id: String) {
     // initialize rng
     init_rng();
+
+    update_omnia_backend_principal(omnia_backend_canister_principal_id);
 }
 
 #[pre_upgrade]

@@ -26,11 +26,13 @@ use omnia_utils::net::{get_device_url, get_gateway_url};
 use std::collections::BTreeMap;
 use uuid::Uuid;
 
-use crate::STATE;
+use crate::{utils::caller_is_omnia_backend, STATE};
 
 #[update(name = "isGatewayRegistered")]
 #[candid_method(update, rename = "isGatewayRegistered")]
 async fn is_gateway_registered(gateway_principal_id: GatewayPrincipalId) -> bool {
+    caller_is_omnia_backend();
+
     STATE.with(|state| {
         // check existance in registered gateways
         let registered_gateway_index = RegisteredGatewayIndex {
@@ -51,6 +53,8 @@ async fn init_gateway_by_ip(
     nonce: IpChallengeNonce,
     gateway_principal_id: GatewayPrincipalId,
 ) -> GenericResult<GatewayPrincipalId> {
+    caller_is_omnia_backend();
+
     STATE.with(|state| {
         // validate IP challenge
         let ip_challenge_value = state
@@ -94,6 +98,8 @@ async fn init_gateway_by_ip(
 async fn get_initialized_gateways_by_ip(
     nonce: IpChallengeNonce,
 ) -> GenericResult<Vec<InitializedGatewayValue>> {
+    caller_is_omnia_backend();
+
     STATE.with(|state| {
         // validate IP challenge
         let ip_challenge_value = state
@@ -122,6 +128,8 @@ async fn create_new_environment(
     environment_manager_principal_id: VirtualPersonaPrincipalId,
     environment_creation_input: EnvironmentCreationInput,
 ) -> Result<EnvironmentCreationResult, GenericError> {
+    caller_is_omnia_backend();
+
     let environment_uid = Uuid::new_v4().hyphenated().to_string();
 
     STATE.with(|state| {
@@ -178,6 +186,8 @@ fn register_gateway_in_environment(
     environment_manager_principal_id: VirtualPersonaPrincipalId,
     gateway_registration_input: GatewayRegistrationInput,
 ) -> RegisteredGatewayResult {
+    caller_is_omnia_backend();
+
     STATE.with(|state| {
         // validate IP challenge
         let ip_challenge_value = state
@@ -252,6 +262,8 @@ fn register_gateway_in_environment(
 fn get_registered_gateways_in_environment(
     environment_uid: EnvironmentUID,
 ) -> MultipleRegisteredGatewayResult {
+    caller_is_omnia_backend();
+
     STATE.with(|state| {
         // get principal IDs of gateways registered in environment
         let environment_index = EnvironmentIndex { environment_uid };
@@ -290,6 +302,8 @@ fn get_registered_gateways_in_environment(
 #[update(name = "getGatewayUpdatesByPrincipal")]
 #[candid_method(update, rename = "getGatewayUpdatesByPrincipal")]
 fn get_gateway_updates_by_principal(gateway_principal_id: GatewayPrincipalId) -> UpdateValueOption {
+    caller_is_omnia_backend();
+
     STATE.with(|state| {
         // get updates for gateway
         let update_index = UpdateIndex {
@@ -319,6 +333,8 @@ fn pair_new_device_on_gateway(
     gateway_principal_id: GatewayPrincipalId,
     pairing_payload: PairingPayload,
 ) -> UpdateValueResult {
+    caller_is_omnia_backend();
+
     STATE.with(|state| {
         // validate IP challenge
         let ip_challenge_value = state
@@ -375,6 +391,8 @@ async fn register_device_on_gateway(
     nonce: IpChallengeNonce,
     gateway_principal_id: GatewayPrincipalId,
 ) -> RegisteredDeviceResult {
+    caller_is_omnia_backend();
+
     let device_uid = Uuid::new_v4().hyphenated().to_string();
 
     STATE.with(|state| {
@@ -449,6 +467,8 @@ async fn register_device_on_gateway(
 async fn get_registered_devices_on_gateway(
     gateway_principal_id: GatewayPrincipalId,
 ) -> RegisteredDevicesUidsResult {
+    caller_is_omnia_backend();
+
     STATE.with(|state| {
         // check if gateway is already registered
         let registered_gateway_index = RegisteredGatewayIndex {

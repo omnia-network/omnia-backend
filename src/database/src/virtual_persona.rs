@@ -9,6 +9,7 @@ use omnia_types::{
     virtual_persona::{VirtualPersonaPrincipalId, VirtualPersonaValue},
 };
 
+use crate::utils::caller_is_omnia_backend;
 use crate::STATE;
 
 #[update(name = "setUserInEnvironment")]
@@ -17,6 +18,8 @@ fn set_user_in_environment(
     virtual_persona_principal_id: VirtualPersonaPrincipalId,
     nonce: IpChallengeNonce,
 ) -> EnvironmentInfoResult {
+    caller_is_omnia_backend();
+
     STATE.with(|state| {
         // validate IP challenge
         let ip_challenge_value = state
@@ -72,6 +75,8 @@ fn reset_user_from_environment(
     virtual_persona_principal_id: VirtualPersonaPrincipalId,
     nonce: IpChallengeNonce,
 ) -> EnvironmentInfoResult {
+    caller_is_omnia_backend();
+
     STATE.with(|state| {
         // validate IP challenge
         let ip_challenge_value = state
@@ -124,6 +129,8 @@ fn get_virtual_persona(
     nonce: IpChallengeNonce,
     virtual_persona_principal_id: VirtualPersonaPrincipalId,
 ) -> VirtualPersonaValueResult {
+    caller_is_omnia_backend();
+
     STATE.with(|state| {
         // validate IP challenge
         let ip_challenge_value = state
@@ -173,6 +180,8 @@ fn get_virtual_persona(
 fn check_if_virtual_persona_exists(
     virtual_persona_principal_id: VirtualPersonaPrincipalId,
 ) -> bool {
+    caller_is_omnia_backend();
+
     let virtual_persona_index = VirtualPersonaIndex {
         principal_id: virtual_persona_principal_id,
     };
