@@ -1,0 +1,12 @@
+[package]
+name = "scripts"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+candid = "0.8.4"
+ic-ledger-types = "0.5.0"
+hex = "0.3.0"
