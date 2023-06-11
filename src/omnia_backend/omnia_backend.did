@@ -80,4 +80,5 @@ service : (text, text, text) -> {
   registerGateway : (text, GatewayRegistrationInput) -> (Result_9);
   resetEnvironment : (text) -> (Result_10);
   setEnvironment : (text) -> (Result_10);
+  transferIcpsToPrincipal : (text) -> ();
 }

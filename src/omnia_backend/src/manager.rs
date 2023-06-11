@@ -1,4 +1,4 @@
-use candid::candid_method;
+use candid::{candid_method, Principal};
 use ic_cdk::{
     api::{call::call, caller},
     print, trap,
@@ -20,7 +20,7 @@ use omnia_types::{
 
 use crate::{
     rdf::{BotNode, HttpNode, OmniaNode, SarefNode, TdNode, UrnNode},
-    utils::get_database_principal,
+    utils::{check_balance, get_database_principal, transfer_to},
     RDF_DB,
 };
 
@@ -359,4 +359,14 @@ async fn get_registered_devices() -> RegisteredDevicesUidsResult {
     .await
     .unwrap()
     .0
+}
+
+#[update(name = "transferIcpsToPrincipal")]
+#[candid_method(update, rename = "transferIcpsToPrincipal")]
+async fn transfer_icps_to_principal(principal_id: String) {
+    check_balance(Principal::from_text(principal_id.clone()).unwrap()).await;
+
+    transfer_to(Principal::from_text(principal_id.clone()).unwrap()).await;
+
+    check_balance(Principal::from_text(principal_id).unwrap()).await;
 }

@@ -26,10 +26,7 @@ use omnia_utils::net::{get_device_url, get_gateway_url};
 use std::collections::BTreeMap;
 use uuid::Uuid;
 
-use crate::{
-    utils::{caller_is_omnia_backend, check_callers_balance},
-    STATE,
-};
+use crate::{utils::caller_is_omnia_backend, STATE};
 
 #[update(name = "isGatewayRegistered")]
 #[candid_method(update, rename = "isGatewayRegistered")]
@@ -132,8 +129,6 @@ async fn create_new_environment(
     environment_creation_input: EnvironmentCreationInput,
 ) -> Result<EnvironmentCreationResult, GenericError> {
     caller_is_omnia_backend();
-
-    check_callers_balance().await;
 
     let environment_uid = Uuid::new_v4().hyphenated().to_string();
 

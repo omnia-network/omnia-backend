@@ -23,3 +23,4 @@ sparesults = { git = "https://github.com/omnia-network/ic-oxigraph.git", version
 rand = "0.8.5"
 getrandom = { version = "0.2.9", features = ["custom"] }
 ic-cdk-timers = "0.1.2"
+ic-ledger-types = "0.5.0"

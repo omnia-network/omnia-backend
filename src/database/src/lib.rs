@@ -17,7 +17,7 @@ use rand::{rngs::StdRng, SeedableRng};
 use random::init_rng;
 use serde::Serialize;
 use std::{cell::RefCell, ops::Deref};
-use utils::{update_ledger_principal, update_omnia_backend_principal};
+use utils::update_omnia_backend_principal;
 
 mod auth;
 mod environment;
@@ -36,7 +36,6 @@ struct State {
     pub updates: CrudMap<UpdateIndex, UpdateValue>,
     pub registered_devices: CrudMap<RegisteredDeviceIndex, RegisteredDeviceValue>,
     pub omnia_backend_principal: Option<Principal>,
-    pub ledger_principal: Option<Principal>,
 }
 
 impl State {
@@ -51,7 +50,6 @@ impl State {
             updates: CrudMap::default(),
             registered_devices: CrudMap::default(),
             omnia_backend_principal: None,
-            ledger_principal: None,
         }
     }
 }
@@ -66,13 +64,12 @@ thread_local! {
 fn init(
     omnia_backend_canister_principal_id: String,
     _database_canister_principal_id: String,
-    ledger_canister_principal_id: String,
+    _ledger_canister_principal_id: String,
 ) {
     // initialize rng
     init_rng();
 
     update_omnia_backend_principal(omnia_backend_canister_principal_id);
-    update_ledger_principal(ledger_canister_principal_id);
 }
 
 #[pre_upgrade]
@@ -87,7 +84,7 @@ fn pre_upgrade() {
 fn post_upgrade(
     omnia_backend_canister_principal_id: String,
     _database_canister_principal_id: String,
-    ledger_canister_principal_id: String,
+    _ledger_canister_principal_id: String,
 ) {
     // initialize rng
     init_rng();
@@ -98,7 +95,6 @@ fn post_upgrade(
     });
 
     update_omnia_backend_principal(omnia_backend_canister_principal_id);
-    update_ledger_principal(ledger_canister_principal_id);
 }
 
 #[cfg(test)]
