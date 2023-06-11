@@ -20,7 +20,7 @@
     "ledger": {
       "type": "custom",
       "wasm": "https://download.dfinity.systems/ic/5eb2810653d4c72c7afc48a0450e2ad01378dfc7/canisters/ledger-canister_notify-method.wasm.gz",
-      "candid": "icp-ledger/ledger.private.did",
+      "candid": "icp-ledger/ledger.public.did",
       "remote": {
         "candid": "icp-ledger/ledger.public.did",
         "id": {
@@ -35,7 +35,7 @@
       "packtool": ""
     },
     "replica": {
-      "subnet_type":"system"
+      "subnet_type": "system"
     }
   },
   "dfx": "0.14.0",
