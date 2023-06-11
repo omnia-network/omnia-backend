@@ -52,7 +52,7 @@ First of all, start a local IC replica (see above).
 
 **omnia_backend** canister depends on **database** and needs to know the database canister id to make inter-canister calls work. For this reason, you must execute this command to deploy everything correctly:
 ```bash
-npm run generate-dids-and-deploy:backend
+npm run generate-dids-and-deploy
 ```
 
 ### Deployment
@@ -61,17 +61,15 @@ Before executing any of the following commands, make sure you create a `.env` fi
 
 Available commands:
 - `npm run deploy`: deploys **all** canisters
-- `npm run deploy:backend`: deploys **backend** canisters only
 - `npm run generate-dids-and-deploy`: first generates dids and then deploys **all** canisters
-- `npm run generate-dids-and-deploy:backend`: first generates dids and then deploys **backend** canisters only
 
 ## Tests
 
 We use [Jest](https://jestjs.io/) to run integration tests. All tests are in the [`__tests__`](./__tests__/) folder.
 
-To run tests, first deploy **backend** canisters (see above for details):
+To run tests, first deploy the canisters (see above for details):
 ```bash
-npm run deploy:backend
+npm run deploy
 ```
 
 and then run:

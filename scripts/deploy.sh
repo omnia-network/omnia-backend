@@ -26,6 +26,22 @@ if [ "$LEDGER_CANISTER_ID" = "" ]; then
   # it's weird that the dfx command outputs to stderr...
   export LEDGER_CANISTER_ID=$(dfx canister create ledger --no-wallet 2>&1 | sed -n '2s/^.*id: //p')
   echo "Ledger canister ID: $LEDGER_CANISTER_ID"
+
+  # if the ledger canister is still not running, we need to start it
+  # create a minter identity for the local ledger canister
+  # (we don't need to secure the PK, since it's only used locally)
+  # (if the identity already exists, the command will fail, but we don't care)
+  dfx identity new minter --storage-mode plaintext || true
+  dfx identity use minter
+  export MINT_ACC=$(dfx ledger account-id)
+
+  dfx identity use default
+  export OMNIA_BACKEND_ACC=$(cargo run --bin principal_2_account "$OMNIA_BACKEND_CANISTER_ID" | tail -n 1)
+  echo "Omnia Backend ledger account: $OMNIA_BACKEND_ACC"
+
+  # deploy the ledger canister, and give some tokens to Omnia Backend
+  dfx deploy ledger --argument '(record {minting_account = "'${MINT_ACC}'"; initial_values = vec { record { "'${OMNIA_BACKEND_ACC}'"; record { e8s=100_000_000_000 } }; }; send_whitelist = vec {}})'
+
 fi
 
 echo "Deploying canisters..."

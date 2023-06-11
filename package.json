@@ -10,13 +10,10 @@
     "Canister"
   ],
   "scripts": {
-    "generate:types": "./scripts/generate-types.sh",
-    "generate:types:backend": "./scripts/generate-types.sh --backend",
+    "generate:types": "dfx generate",
     "generate:dids": "./scripts/generate-dids.sh",
     "deploy": "./scripts/deploy.sh",
-    "deploy:backend": "./scripts/deploy.sh --backend",
     "generate-dids-and-deploy": "npm run generate:dids && npm run deploy",
-    "generate-dids-and-deploy:backend": "npm run generate:dids && npm run deploy:backend",
     "test": "jest",
     "report:licenses": "echo \"Rust dependencies:\" && cargo license && echo \"\\n-------------\\nNode.js dependencies:\" && license-checker --summary"
   },
