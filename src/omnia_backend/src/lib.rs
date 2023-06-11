@@ -37,7 +37,11 @@ thread_local! {
 // null first argument is needed to deploy internet_identity canister properly
 #[init]
 #[candid_method(init)]
-fn init(_omnia_backend_canister_principal_id: String, database_canister_principal_id: String) {
+fn init(
+    _omnia_backend_canister_principal_id: String,
+    database_canister_principal_id: String,
+    _ledger_canister_principal_id: String,
+) {
     print("Init canister...");
 
     // initialize rng
@@ -71,6 +75,7 @@ fn pre_upgrade() {
 fn post_upgrade(
     _omnia_backend_canister_principal_id: String,
     database_canister_principal_id: String,
+    _ledger_canister_principal_id: String,
 ) {
     print("Post upgrade canister...");
 

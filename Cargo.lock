@@ -90,6 +90,15 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "block-buffer"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4152116fd6e9dadb291ae18fc1ec3575ed6d84c29642d97890f4b4a3417297e4"
+dependencies = [
+ "generic-array",
+]
+
+[[package]]
+name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3078c7629b62d3f0439517fa394996acacc5cbc91c5a20d8c658e77abd503a71"
@@ -128,7 +137,7 @@ dependencies = [
  "pretty",
  "serde",
  "serde_bytes",
- "sha2",
+ "sha2 0.10.6",
  "thiserror",
 ]
 
@@ -240,9 +249,10 @@ dependencies = [
  "candid",
  "ciborium",
  "getrandom",
- "ic-cdk",
+ "ic-cdk 0.7.4",
  "ic-cdk-macros",
  "ic-cdk-timers",
+ "ic-ledger-types",
  "omnia_types",
  "omnia_utils",
  "rand",
@@ -258,11 +268,20 @@ checksum = "56254986775e3233ffa9c4d7d3faaf6d36a2c09d30b20687e9f88bc8bafc16c8"
 
 [[package]]
 name = "digest"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3dd60d1080a57a05ab032377049e0591415d2b31afd7028356dbf3cc6dcb066"
+dependencies = [
+ "generic-array",
+]
+
+[[package]]
+name = "digest"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8168378f4e5023e7218c89c891c0fd8ecdb5e5e4f18cb78f38cf245dd021e76f"
 dependencies = [
- "block-buffer",
+ "block-buffer 0.10.4",
  "crypto-common",
 ]
 
@@ -483,6 +502,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "ic-cdk"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1faa7b42964694fb38d7f62172e0d8261381e39ce85b4d6b519929f7cad9b4fb"
+dependencies = [
+ "candid",
+ "ic-cdk-macros",
+ "ic0",
+ "serde",
+ "serde_bytes",
+]
+
+[[package]]
 name = "ic-cdk-macros"
 version = "0.6.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -503,7 +535,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c739e7c592cb66df4f15c6b6c4859b1195782f63923e2fb1b29553d9c0819bd4"
 dependencies = [
  "futures",
- "ic-cdk",
+ "ic-cdk 0.7.4",
  "ic0",
  "serde",
  "serde_bytes",
@@ -511,14 +543,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "ic-ledger-types"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d66518c7730e1b00e179b9b198d886a047c2ba15bbc2f0cd6ac9fbdc0ab56490"
+dependencies = [
+ "candid",
+ "crc32fast",
+ "hex",
+ "ic-cdk 0.8.1",
+ "serde",
+ "serde_bytes",
+ "sha2 0.9.9",
+]
+
+[[package]]
 name = "ic-oxigraph"
 version = "0.3.17-dev"
 source = "git+https://github.com/omnia-network/ic-oxigraph.git#74b2901fa214ff9958e91bd2f2dead74e389e89d"
 dependencies = [
- "digest",
+ "digest 0.10.6",
  "getrandom",
  "hex",
- "ic-cdk",
+ "ic-cdk 0.7.4",
  "json-event-parser",
  "lazy_static",
  "md-5",
@@ -532,7 +579,7 @@ dependencies = [
  "rio_turtle",
  "rio_xml",
  "sha-1",
- "sha2",
+ "sha2 0.10.6",
  "siphasher",
  "sparesults",
  "spargebra",
@@ -540,9 +587,9 @@ dependencies = [
 
 [[package]]
 name = "ic0"
-version = "0.18.9"
+version = "0.18.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "978b91fc78de9d2eb0144db717839cde3b35470199ea51aca362cb6310e93dfd"
+checksum = "187fa0cecf46628330b7a390a1a65fb0637ea00d3a1121aa847ecbebc0f3ff79"
 
 [[package]]
 name = "indexmap"
@@ -701,7 +748,7 @@ version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6365506850d44bff6e2fbcb5176cf63650e48bd45ef2fe2665ae1570e0f4b9ca"
 dependencies = [
- "digest",
+ "digest 0.10.6",
 ]
 
 [[package]]
@@ -791,7 +838,7 @@ dependencies = [
  "candid",
  "ciborium",
  "getrandom",
- "ic-cdk",
+ "ic-cdk 0.7.4",
  "ic-cdk-macros",
  "ic-cdk-timers",
  "ic-oxigraph",
@@ -808,7 +855,7 @@ name = "omnia_types"
 version = "0.1.0"
 dependencies = [
  "candid",
- "ic-cdk",
+ "ic-cdk 0.7.4",
  "serde",
 ]
 
@@ -819,7 +866,7 @@ dependencies = [
  "candid",
  "getrandom",
  "hex",
- "ic-cdk",
+ "ic-cdk 0.7.4",
  "rand",
  "rand_chacha",
  "uuid",
@@ -830,6 +877,12 @@ name = "once_cell"
 version = "1.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7e5500299e16ebb147ae15a00a942af264cf3688f47923b8fc2cd5858f23ad3"
+
+[[package]]
+name = "opaque-debug"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "oxilangtag"
@@ -859,7 +912,7 @@ name = "oxsdatatypes"
 version = "0.1.2-dev"
 source = "git+https://github.com/omnia-network/ic-oxigraph.git#74b2901fa214ff9958e91bd2f2dead74e389e89d"
 dependencies = [
- "ic-cdk",
+ "ic-cdk 0.7.4",
  "nom",
 ]
 
@@ -1202,7 +1255,20 @@ checksum = "f5058ada175748e33390e40e872bd0fe59a19f265d0158daa551c5a88a76009c"
 dependencies = [
  "cfg-if",
  "cpufeatures",
- "digest",
+ "digest 0.10.6",
+]
+
+[[package]]
+name = "sha2"
+version = "0.9.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d58a1e1bf39749807d89cf2d98ac2dfa0ff1cb3faa38fbb64dd88ac8013d800"
+dependencies = [
+ "block-buffer 0.9.0",
+ "cfg-if",
+ "cpufeatures",
+ "digest 0.9.0",
+ "opaque-debug",
 ]
 
 [[package]]
@@ -1213,7 +1279,7 @@ checksum = "82e6b795fe2e3b1e845bafcb27aa35405c4d47cdfc92af5fc8d3002f76cebdc0"
 dependencies = [
  "cfg-if",
  "cpufeatures",
- "digest",
+ "digest 0.10.6",
 ]
 
 [[package]]
