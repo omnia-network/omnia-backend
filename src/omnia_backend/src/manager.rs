@@ -4,6 +4,7 @@ use ic_cdk::{
     print, trap,
 };
 use ic_cdk_macros::update;
+use ic_ledger_types::Tokens;
 use ic_oxigraph::model::{vocab, GraphName, Literal, NamedNode, Quad};
 use omnia_types::{
     device::{DeviceAffordances, RegisteredDeviceResult, RegisteredDevicesUidsResult},
@@ -363,10 +364,14 @@ async fn get_registered_devices() -> RegisteredDevicesUidsResult {
 
 #[update(name = "transferIcpsToPrincipal")]
 #[candid_method(update, rename = "transferIcpsToPrincipal")]
-async fn transfer_icps_to_principal(principal_id: String) {
-    check_balance(Principal::from_text(principal_id.clone()).unwrap()).await;
+async fn transfer_icps_to_principal(principal_id: String, amount: Tokens) {
+    check_balance(Principal::from_text(principal_id.clone()).expect("valid principal")).await;
 
-    transfer_to(Principal::from_text(principal_id.clone()).unwrap()).await;
+    transfer_to(
+        Principal::from_text(principal_id.clone()).expect("valid principal"),
+        amount,
+    )
+    .await;
 
-    check_balance(Principal::from_text(principal_id).unwrap()).await;
+    check_balance(Principal::from_text(principal_id.clone()).expect("valid principal")).await;
 }

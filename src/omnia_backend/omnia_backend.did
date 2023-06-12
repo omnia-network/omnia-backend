@@ -51,6 +51,7 @@ type Result_8 = variant {
   Err : text;
 };
 type Result_9 = variant { Ok : RegisteredGatewayValue; Err : text };
+type Tokens = record { e8s : nat64 };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;
@@ -80,5 +81,5 @@ service : (text, text, text) -> {
   registerGateway : (text, GatewayRegistrationInput) -> (Result_9);
   resetEnvironment : (text) -> (Result_10);
   setEnvironment : (text) -> (Result_10);
-  transferIcpsToPrincipal : (text) -> ();
+  transferIcpsToPrincipal : (text, Tokens) -> ();
 }

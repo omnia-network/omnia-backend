@@ -124,6 +124,7 @@ mod tests {
     use candid::export_service;
     use std::env;
 
+    use ic_ledger_types::*;
     use omnia_types::device::*;
     use omnia_types::environment::*;
     use omnia_types::errors::*;

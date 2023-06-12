@@ -1,7 +1,7 @@
 use candid::Principal;
-use ic_cdk::print;
+use ic_cdk::{api::time, print};
 use ic_ledger_types::{
-    account_balance, transfer, AccountBalanceArgs, AccountIdentifier, BlockIndex, Memo, Tokens,
+    account_balance, transfer, AccountBalanceArgs, AccountIdentifier, Memo, Timestamp, Tokens,
     TransferArgs, DEFAULT_FEE, DEFAULT_SUBACCOUNT,
 };
 
@@ -52,12 +52,16 @@ pub async fn check_balance(principal: Principal) -> Tokens {
     .await
     .expect("call to ledger failed");
 
-    print(format!("Caller's balance: {:?}", balance));
+    print(format!(
+        "Balance of principal ID: {:?} is: {:?}",
+        principal.to_string(),
+        balance
+    ));
 
     balance
 }
 
-pub async fn transfer_to(principal: Principal) -> BlockIndex {
+pub async fn transfer_to(principal: Principal, amount: Tokens) -> Tokens {
     let ledger_principal = STATE
         .with(|state| state.borrow().ledger_principal)
         .expect("should have provided ledger principal id");
@@ -66,14 +70,24 @@ pub async fn transfer_to(principal: Principal) -> BlockIndex {
         ledger_principal,
         TransferArgs {
             memo: Memo(0),
-            amount: Tokens::from_e8s(1_000_000),
+            amount,
             fee: DEFAULT_FEE,
             from_subaccount: None,
             to: AccountIdentifier::new(&principal, &DEFAULT_SUBACCOUNT),
-            created_at_time: None,
+            created_at_time: Some(Timestamp {
+                timestamp_nanos: time(),
+            }),
         },
     )
     .await
     .expect("call to ledger failed")
-    .expect("transfer failed")
+    .expect("error while transfering funds");
+
+    print(format!(
+        "Transferred: {:?} to principal ID: {:?}",
+        amount,
+        principal.to_string()
+    ));
+
+    amount
 }
