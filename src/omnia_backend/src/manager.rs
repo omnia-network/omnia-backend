@@ -1,9 +1,12 @@
 use candid::{candid_method, Principal};
 use ic_cdk::{
-    api::{call::call, caller},
+    api::{
+        call::{call, call_with_payment},
+        caller,
+    },
     print, trap,
 };
-use ic_cdk_macros::update;
+use ic_cdk_macros::{query, update};
 use ic_ledger_types::Tokens;
 use ic_oxigraph::model::{vocab, GraphName, Literal, NamedNode, Quad};
 use omnia_types::{
@@ -15,13 +18,17 @@ use omnia_types::{
         MultipleRegisteredGatewayResult, RegisteredGatewayResult,
     },
     http::IpChallengeNonce,
+    signature::{
+        ECDSAPublicKey, ECDSAPublicKeyReply, EcdsaKeyIds, PublicKeyReply, SignWithECDSA,
+        SignWithECDSAReply, SignatureReply, SignatureVerificationReply,
+    },
     updates::{PairingPayload, UpdateValueOption, UpdateValueResult},
     virtual_persona::VirtualPersonaPrincipalId,
 };
 
 use crate::{
     rdf::{BotNode, HttpNode, OmniaNode, SarefNode, TdNode, UrnNode},
-    utils::{check_balance, get_database_principal, transfer_to},
+    utils::{check_balance, get_database_principal, mgmt_canister_id, sha256, transfer_to},
     RDF_DB,
 };
 
@@ -374,4 +381,67 @@ async fn transfer_icps_to_principal(principal_id: String, amount: Tokens) {
     .await;
 
     check_balance(Principal::from_text(principal_id.clone()).expect("valid principal")).await;
+}
+
+#[update(name = "signMessage")]
+#[candid_method(update, rename = "signMessage")]
+async fn sign_message(message: String) -> Result<SignatureReply, String> {
+    let request = SignWithECDSA {
+        message_hash: sha256(&message).to_vec(),
+        derivation_path: vec![],
+        key_id: EcdsaKeyIds::TestKeyLocalDevelopment.to_key_id(),
+    };
+
+    let (response,): (SignWithECDSAReply,) = call_with_payment(
+        mgmt_canister_id(),
+        "sign_with_ecdsa",
+        (request,),
+        25_000_000_000,
+    )
+    .await
+    .map_err(|e| format!("sign_with_ecdsa failed {}", e.1))?;
+
+    Ok(SignatureReply {
+        signature_hex: hex::encode(&response.signature),
+    })
+}
+
+#[query(name = "verifyMessage")]
+#[candid_method(query, rename = "verifyMessage")]
+async fn verify_message(
+    signature_hex: String,
+    message: String,
+    public_key_hex: String,
+) -> Result<SignatureVerificationReply, String> {
+    let signature_bytes = hex::decode(&signature_hex).expect("failed to hex-decode signature");
+    let pubkey_bytes = hex::decode(&public_key_hex).expect("failed to hex-decode public key");
+    let message_bytes = message.as_bytes();
+
+    use k256::ecdsa::signature::Verifier;
+    let signature = k256::ecdsa::Signature::try_from(signature_bytes.as_slice())
+        .expect("failed to deserialize signature");
+    let is_signature_valid = k256::ecdsa::VerifyingKey::from_sec1_bytes(&pubkey_bytes)
+        .expect("failed to deserialize sec1 encoding into public key")
+        .verify(message_bytes, &signature)
+        .is_ok();
+
+    Ok(SignatureVerificationReply { is_signature_valid })
+}
+
+#[update(name = "getCanisterPublicKey")]
+#[candid_method(update, rename = "getCanisterPublicKey")]
+async fn get_canister_public_key(canister_id: String) -> Result<PublicKeyReply, String> {
+    let request = ECDSAPublicKey {
+        canister_id: Principal::from_text(canister_id).expect("valid principal"),
+        derivation_path: vec![],
+        key_id: EcdsaKeyIds::TestKeyLocalDevelopment.to_key_id(),
+    };
+
+    let (res,): (ECDSAPublicKeyReply,) = call(mgmt_canister_id(), "ecdsa_public_key", (request,))
+        .await
+        .map_err(|e| format!("ecdsa_public_key failed {}", e.1))?;
+
+    Ok(PublicKeyReply {
+        public_key_hex: hex::encode(&res.public_key),
+    })
 }

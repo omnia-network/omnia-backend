@@ -91,3 +91,14 @@ pub async fn transfer_to(principal: Principal, amount: Tokens) -> Tokens {
 
     amount
 }
+
+pub fn sha256(input: &String) -> [u8; 32] {
+    use sha2::Digest;
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(input.as_bytes());
+    hasher.finalize().into()
+}
+
+pub fn mgmt_canister_id() -> Principal {
+    Principal::from_text(&"aaaaa-aa").unwrap()
+}
