@@ -80,6 +80,7 @@ service : (text, text, text) -> {
   getProfile : (text) -> (Result_4);
   getRegisteredDevices : () -> (Result_5);
   getRegisteredGateways : (text) -> (Result_6);
+  getRequestKey : (nat64) -> (opt nat);
   http_request : (HttpRequest) -> (HttpResponse) query;
   http_request_update : (HttpRequest) -> (HttpResponse);
   initGateway : (text) -> (Result_7);
@@ -89,6 +90,7 @@ service : (text, text, text) -> {
   resetEnvironment : (text) -> (Result_11);
   setEnvironment : (text) -> (Result_11);
   signMessage : (text) -> (Result_12);
-  transferIcpsToPrincipal : (text, Tokens) -> ();
+  transferIcpsToPrincipal : (text, Tokens) -> (nat64);
   verifyMessage : (text, text, text) -> (Result_13) query;
+  whoAmI : () -> (text) query;
 }

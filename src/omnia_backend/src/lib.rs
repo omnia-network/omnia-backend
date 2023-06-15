@@ -16,13 +16,14 @@ use ic_oxigraph::store::Store;
 use rand::{rngs::StdRng, SeedableRng};
 use random::init_rng;
 use std::cell::RefCell;
-use utils::{update_database_principal, update_ledger_principal};
+use utils::{update_backend_principal, update_database_principal, update_ledger_principal};
 
 // if you want to make the state persistent:
 // - add serde::Serialize trait
 // - implement pre_upgrade and post_upgrade as it's done in database canister
 #[derive(Default, CandidType, Deserialize)]
 struct State {
+    pub backend_principal: Option<Principal>,
     pub database_principal: Option<Principal>,
     pub ledger_principal: Option<Principal>,
 }
@@ -30,6 +31,7 @@ struct State {
 impl State {
     fn default() -> Self {
         Self {
+            backend_principal: None,
             database_principal: None,
             ledger_principal: None,
         }
@@ -48,7 +50,7 @@ thread_local! {
 #[init]
 #[candid_method(init)]
 fn init(
-    _omnia_backend_canister_principal_id: String,
+    omnia_backend_canister_principal_id: String,
     database_canister_principal_id: String,
     ledger_canister_principal_id: String,
 ) {
@@ -60,6 +62,7 @@ fn init(
     // initialize rng in the ic-oxigraph library
     RNG_REF_CELL.with(ic_oxigraph::init);
 
+    update_backend_principal(omnia_backend_canister_principal_id);
     update_database_principal(database_canister_principal_id);
     update_ledger_principal(ledger_canister_principal_id);
 }
@@ -84,7 +87,7 @@ fn pre_upgrade() {
 
 #[post_upgrade]
 fn post_upgrade(
-    _omnia_backend_canister_principal_id: String,
+    omnia_backend_canister_principal_id: String,
     database_canister_principal_id: String,
     ledger_canister_principal_id: String,
 ) {
@@ -96,6 +99,7 @@ fn post_upgrade(
     // initialize rng in the ic-oxigraph library
     RNG_REF_CELL.with(ic_oxigraph::init);
 
+    update_backend_principal(omnia_backend_canister_principal_id);
     update_database_principal(database_canister_principal_id);
 
     RDF_DB.with(|cell| {

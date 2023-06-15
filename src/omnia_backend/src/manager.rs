@@ -7,7 +7,7 @@ use ic_cdk::{
     print, trap,
 };
 use ic_cdk_macros::{query, update};
-use ic_ledger_types::Tokens;
+use ic_ledger_types::{BlockIndex, Operation, Tokens};
 use ic_oxigraph::model::{vocab, GraphName, Literal, NamedNode, Quad};
 use omnia_types::{
     device::{DeviceAffordances, RegisteredDeviceResult, RegisteredDevicesUidsResult},
@@ -28,7 +28,10 @@ use omnia_types::{
 
 use crate::{
     rdf::{BotNode, HttpNode, OmniaNode, SarefNode, TdNode, UrnNode},
-    utils::{check_balance, get_database_principal, mgmt_canister_id, sha256, transfer_to},
+    utils::{
+        check_balance, generate_new_request_key, get_backend_principal, get_database_principal,
+        mgmt_canister_id, principal_to_account, query_one_block, sha256, transfer_to,
+    },
     RDF_DB,
 };
 
@@ -371,16 +374,60 @@ async fn get_registered_devices() -> RegisteredDevicesUidsResult {
 
 #[update(name = "transferIcpsToPrincipal")]
 #[candid_method(update, rename = "transferIcpsToPrincipal")]
-async fn transfer_icps_to_principal(principal_id: String, amount: Tokens) {
+async fn transfer_icps_to_principal(principal_id: String, amount: Tokens) -> BlockIndex {
     check_balance(Principal::from_text(principal_id.clone()).expect("valid principal")).await;
 
-    transfer_to(
+    let block_index = transfer_to(
         Principal::from_text(principal_id.clone()).expect("valid principal"),
         amount,
     )
     .await;
 
     check_balance(Principal::from_text(principal_id.clone()).expect("valid principal")).await;
+
+    block_index
+}
+
+#[update(name = "getRequestKey")]
+#[candid_method(update, rename = "getRequestKey")]
+async fn get_request_key(block_index: BlockIndex) -> Option<u128> {
+    let caller_principal = caller();
+    let caller_account = principal_to_account(caller_principal);
+
+    let block = query_one_block(block_index).await?;
+    print(format!("Block at index {:?}: {:?}", block_index, block));
+
+    if let Operation::Transfer {
+        from, to, amount, ..
+    } = block.transaction.operation?
+    {
+        let backend_account = principal_to_account(get_backend_principal());
+        let request_key_price = Tokens::from_e8s(1000000);
+
+        // TODO: check if this transfer hasn't been used to pay for a request key yet
+
+        // check if the caller of this method is the same principal that paid for the request key
+        if from != caller_account {
+            print("Caller account does not match the sender");
+            return None;
+        }
+        // check if the receiver of the transfer was the Omnia Backend canister
+        if to != backend_account {
+            print("Receiver does not match the Omnia Backend account");
+            return None;
+        }
+        // check if the amount of the transfer is correct
+        if amount != request_key_price {
+            print("Transferred amount does not match the price of the request key");
+            return None;
+        }
+
+        let request_key = generate_new_request_key();
+
+        return Some(request_key);
+    }
+
+    None
 }
 
 #[update(name = "signMessage")]
@@ -444,4 +491,10 @@ async fn get_canister_public_key(canister_id: String) -> Result<PublicKeyReply, 
     Ok(PublicKeyReply {
         public_key_hex: hex::encode(&res.public_key),
     })
+}
+
+#[query(name = "whoAmI")]
+#[candid_method(query, rename = "whoAmI")]
+fn who_am_i() -> String {
+    caller().to_string()
 }

@@ -36,14 +36,15 @@ if [ "$LEDGER_CANISTER_ID" = "" ]; then
   export MINT_ACC=$(dfx ledger account-id)
 
   dfx identity use default
+  export ARCHIVE_CONTROLLER=$(dfx identity get-principal)
   export OMNIA_BACKEND_ACC=$(cargo run --bin principal_2_account "$OMNIA_BACKEND_CANISTER_ID" | tail -n 1)
   echo "Omnia Backend ledger account: $OMNIA_BACKEND_ACC"
 
   # first deploy the ledger with private did
   npx json -I -f dfx.json -e 'this.canisters.ledger.candid = "icp-ledger/ledger.private.did"'
 
-  # deploy the ledger canister, and give some tokens to Omnia Backend
-  dfx deploy ledger --argument '(record {minting_account = "'${MINT_ACC}'"; initial_values = vec { record { "'${OMNIA_BACKEND_ACC}'"; record { e8s=100_000_000_000 } }; }; send_whitelist = vec {}})'
+  # deploy the ledger canister with archiving enabled, and give some tokens to Omnia Backend
+  dfx deploy ledger --argument '(record {minting_account = "'${MINT_ACC}'"; initial_values = vec { record { "'${OMNIA_BACKEND_ACC}'"; record { e8s=100_000_000_000 } }; }; send_whitelist = vec {}; archive_options = opt record { trigger_threshold = 20; num_blocks_to_archive = 10; controller_id = principal "'${ARCHIVE_CONTROLLER}'" }})'
 
   # then set the interface to public did
   npx json -I -f dfx.json -e 'this.canisters.ledger.candid = "icp-ledger/ledger.public.did"'

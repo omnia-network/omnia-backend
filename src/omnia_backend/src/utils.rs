@@ -1,11 +1,31 @@
 use candid::Principal;
-use ic_cdk::{api::time, print};
+use ic_cdk::{api::time, print, trap};
 use ic_ledger_types::{
-    account_balance, transfer, AccountBalanceArgs, AccountIdentifier, Memo, Timestamp, Tokens,
+    account_balance, query_archived_blocks, query_blocks, transfer, AccountBalanceArgs,
+    AccountIdentifier, Block, BlockIndex, GetBlocksArgs, Memo, Subaccount, Timestamp, Tokens,
     TransferArgs, DEFAULT_FEE, DEFAULT_SUBACCOUNT,
 };
 
 use crate::STATE;
+
+pub fn get_backend_principal() -> Principal {
+    STATE
+        .with(|state| state.borrow().backend_principal)
+        .expect("No Backend canister principal")
+}
+
+pub fn update_backend_principal(backend_principal_id: String) {
+    print(format!(
+        "Backend canister Principal ID: {:?}",
+        backend_principal_id
+    ));
+
+    let remote_principal: Principal =
+        Principal::from_text(backend_principal_id).expect("Invalid Backend canister principal id");
+    STATE.with(|state| {
+        state.borrow_mut().backend_principal = Some(remote_principal);
+    });
+}
 
 pub fn get_database_principal() -> Principal {
     STATE
@@ -61,12 +81,12 @@ pub async fn check_balance(principal: Principal) -> Tokens {
     balance
 }
 
-pub async fn transfer_to(principal: Principal, amount: Tokens) -> Tokens {
+pub async fn transfer_to(principal: Principal, amount: Tokens) -> BlockIndex {
     let ledger_principal = STATE
         .with(|state| state.borrow().ledger_principal)
         .expect("should have provided ledger principal id");
 
-    transfer(
+    let block_index = transfer(
         ledger_principal,
         TransferArgs {
             memo: Memo(0),
@@ -84,12 +104,44 @@ pub async fn transfer_to(principal: Principal, amount: Tokens) -> Tokens {
     .expect("error while transfering funds");
 
     print(format!(
-        "Transferred: {:?} to principal ID: {:?}",
+        "Created block with index: {:?}, transferred: {:?} to principal ID: {:?}",
+        block_index,
         amount,
         principal.to_string()
     ));
 
-    amount
+    block_index
+}
+
+pub async fn query_one_block(block_index: BlockIndex) -> Option<Block> {
+    let ledger_principal = STATE
+        .with(|state| state.borrow().ledger_principal)
+        .expect("should have provided ledger principal id");
+
+    let args = GetBlocksArgs {
+        start: block_index,
+        length: 1,
+    };
+
+    if let Ok(blocks_result) = query_blocks(ledger_principal, args.clone()).await {
+        if blocks_result.blocks.len() >= 1 {
+            debug_assert_eq!(blocks_result.first_block_index, block_index);
+            return blocks_result.blocks.into_iter().next();
+        }
+
+        if let Some(func) = blocks_result.archived_blocks.into_iter().find_map(|b| {
+            (b.start <= block_index && (block_index - b.start) < b.length).then(|| b.callback)
+        }) {
+            if let Ok(archived_blocks) = query_archived_blocks(&func, args).await {
+                match archived_blocks {
+                    Ok(range) => return range.blocks.into_iter().next(),
+                    _ => (),
+                }
+            }
+        }
+        return None;
+    }
+    trap("Query block failed");
 }
 
 pub fn sha256(input: &String) -> [u8; 32] {
@@ -101,4 +153,12 @@ pub fn sha256(input: &String) -> [u8; 32] {
 
 pub fn mgmt_canister_id() -> Principal {
     Principal::from_text(&"aaaaa-aa").unwrap()
+}
+
+pub fn principal_to_account(principal: Principal) -> AccountIdentifier {
+    AccountIdentifier::new(&principal, &Subaccount([0; 32]))
+}
+
+pub fn generate_new_request_key() -> u128 {
+    rand::random::<u128>()
 }
