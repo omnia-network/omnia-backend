@@ -10,6 +10,7 @@ use omnia_types::gateway::{
     RegisteredGatewayValue,
 };
 use omnia_types::http::{IpChallengeIndex, IpChallengeValue};
+use omnia_types::request_key::{RequestKeyIndex, RequestKeyValue};
 use omnia_types::updates::{UpdateIndex, UpdateValue};
 use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValue};
 use omnia_types::CrudMap;
@@ -22,6 +23,7 @@ use utils::update_omnia_backend_principal;
 mod auth;
 mod environment;
 mod random;
+mod request_key;
 mod utils;
 mod virtual_persona;
 
@@ -35,6 +37,7 @@ struct State {
     pub initialized_gateways: CrudMap<InitializedGatewayIndex, InitializedGatewayValue>,
     pub updates: CrudMap<UpdateIndex, UpdateValue>,
     pub registered_devices: CrudMap<RegisteredDeviceIndex, RegisteredDeviceValue>,
+    pub valid_request_keys: CrudMap<RequestKeyIndex, RequestKeyValue>,
     pub omnia_backend_principal: Option<Principal>,
 }
 
@@ -49,6 +52,7 @@ impl State {
             initialized_gateways: CrudMap::default(),
             updates: CrudMap::default(),
             registered_devices: CrudMap::default(),
+            valid_request_keys: CrudMap::default(),
             omnia_backend_principal: None,
         }
     }
@@ -108,6 +112,7 @@ mod tests {
     use omnia_types::errors::*;
     use omnia_types::gateway::*;
     use omnia_types::http::*;
+    use omnia_types::request_key::*;
     use omnia_types::updates::*;
     use omnia_types::virtual_persona::*;
 

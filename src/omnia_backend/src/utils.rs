@@ -158,7 +158,3 @@ pub fn mgmt_canister_id() -> Principal {
 pub fn principal_to_account(principal: Principal) -> AccountIdentifier {
     AccountIdentifier::new(&principal, &Subaccount([0; 32]))
 }
-
-pub fn generate_new_request_key() -> u128 {
-    rand::random::<u128>()
-}

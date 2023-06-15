@@ -18,6 +18,7 @@ use omnia_types::{
         MultipleRegisteredGatewayResult, RegisteredGatewayResult,
     },
     http::IpChallengeNonce,
+    request_key::{RequestKeyCreationResult, RequestKeyUID},
     signature::{
         ECDSAPublicKey, ECDSAPublicKeyReply, EcdsaKeyIds, PublicKeyReply, SignWithECDSA,
         SignWithECDSAReply, SignatureReply, SignatureVerificationReply,
@@ -29,8 +30,8 @@ use omnia_types::{
 use crate::{
     rdf::{BotNode, HttpNode, OmniaNode, SarefNode, TdNode, UrnNode},
     utils::{
-        check_balance, generate_new_request_key, get_backend_principal, get_database_principal,
-        mgmt_canister_id, principal_to_account, query_one_block, sha256, transfer_to,
+        check_balance, get_backend_principal, get_database_principal, mgmt_canister_id,
+        principal_to_account, query_one_block, sha256, transfer_to,
     },
     RDF_DB,
 };
@@ -390,7 +391,7 @@ async fn transfer_icps_to_principal(principal_id: String, amount: Tokens) -> Blo
 
 #[update(name = "getRequestKey")]
 #[candid_method(update, rename = "getRequestKey")]
-async fn get_request_key(block_index: BlockIndex) -> Option<u128> {
+async fn get_request_key(block_index: BlockIndex) -> Option<RequestKeyUID> {
     let caller_principal = caller();
     let caller_account = principal_to_account(caller_principal);
 
@@ -422,9 +423,21 @@ async fn get_request_key(block_index: BlockIndex) -> Option<u128> {
             return None;
         }
 
-        let request_key = generate_new_request_key();
+        let request_key_creation_result = call::<(String,), (RequestKeyCreationResult,)>(
+            get_database_principal(),
+            "createNewRequestKey",
+            (caller_principal.to_string(),),
+        )
+        .await
+        .unwrap()
+        .0;
 
-        return Some(request_key);
+        print(format!(
+            "Request key creation result: {:?}",
+            request_key_creation_result
+        ));
+
+        return Some(request_key_creation_result.unwrap().key);
     }
 
     None

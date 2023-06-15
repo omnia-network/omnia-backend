@@ -80,7 +80,7 @@ service : (text, text, text) -> {
   getProfile : (text) -> (Result_4);
   getRegisteredDevices : () -> (Result_5);
   getRegisteredGateways : (text) -> (Result_6);
-  getRequestKey : (nat64) -> (opt nat);
+  getRequestKey : (nat64) -> (opt text);
   http_request : (HttpRequest) -> (HttpResponse) query;
   http_request_update : (HttpRequest) -> (HttpResponse);
   initGateway : (text) -> (Result_7);

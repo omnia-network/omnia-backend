@@ -19,6 +19,7 @@ pub mod environment;
 pub mod errors;
 pub mod gateway;
 pub mod http;
+pub mod request_key;
 pub mod signature;
 pub mod updates;
 pub mod virtual_persona;

@@ -134,6 +134,7 @@ mod tests {
     use omnia_types::errors::*;
     use omnia_types::gateway::*;
     use omnia_types::http::*;
+    use omnia_types::request_key::*;
     use omnia_types::signature::*;
     use omnia_types::updates::*;
     use omnia_types::virtual_persona::*;

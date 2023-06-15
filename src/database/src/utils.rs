@@ -5,7 +5,6 @@ use crate::STATE;
 
 pub fn caller_is_omnia_backend() {
     let caller = caller();
-    print(format!("Caller with principal: {:?}", caller.to_string()));
 
     STATE.with(|state| {
         if caller
