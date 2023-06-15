@@ -391,56 +391,58 @@ async fn transfer_icps_to_principal(principal_id: String, amount: Tokens) -> Blo
 
 #[update(name = "getRequestKey")]
 #[candid_method(update, rename = "getRequestKey")]
-async fn get_request_key(block_index: BlockIndex) -> Option<RequestKeyUID> {
+async fn get_request_key(block_index: BlockIndex) -> GenericResult<RequestKeyUID> {
     let caller_principal = caller();
     let caller_account = principal_to_account(caller_principal);
 
-    let block = query_one_block(block_index).await?;
-    print(format!("Block at index {:?}: {:?}", block_index, block));
+    let block_opt = query_one_block(block_index).await?;
 
-    if let Operation::Transfer {
-        from, to, amount, ..
-    } = block.transaction.operation?
-    {
-        let backend_account = principal_to_account(get_backend_principal());
-        let request_key_price = Tokens::from_e8s(1000000);
+    if let Some(block) = block_opt {
+        print(format!("Block at index {:?}: {:?}", block_index, block));
+        if let Some(Operation::Transfer {
+            from, to, amount, ..
+        }) = block.transaction.operation
+        {
+            let backend_account = principal_to_account(get_backend_principal());
+            let request_key_price = Tokens::from_e8s(1000000);
 
-        // TODO: check if this transfer hasn't been used to pay for a request key yet
+            // TODO: check if this transfer hasn't been used to pay for a request key yet
 
-        // check if the caller of this method is the same principal that paid for the request key
-        if from != caller_account {
-            print("Caller account does not match the sender");
-            return None;
+            // check if the caller of this method is the same principal that paid for the request key
+            if from != caller_account {
+                return Err(String::from("Caller account does not match the sender"));
+            }
+            // check if the receiver of the transfer was the Omnia Backend canister
+            if to != backend_account {
+                return Err(String::from(
+                    "Receiver does not match the Omnia Backend account",
+                ));
+            }
+            // check if the amount of the transfer is correct
+            if amount != request_key_price {
+                return Err(String::from(
+                    "Transferred amount does not match the price of the request key",
+                ));
+            }
+
+            let request_key_creation_result = call::<(String,), (RequestKeyCreationResult,)>(
+                get_database_principal(),
+                "createNewRequestKey",
+                (caller_principal.to_string(),),
+            )
+            .await
+            .unwrap()
+            .0;
+
+            print(format!(
+                "Request key creation result: {:?}",
+                request_key_creation_result
+            ));
+
+            return Ok(request_key_creation_result.unwrap().key);
         }
-        // check if the receiver of the transfer was the Omnia Backend canister
-        if to != backend_account {
-            print("Receiver does not match the Omnia Backend account");
-            return None;
-        }
-        // check if the amount of the transfer is correct
-        if amount != request_key_price {
-            print("Transferred amount does not match the price of the request key");
-            return None;
-        }
-
-        let request_key_creation_result = call::<(String,), (RequestKeyCreationResult,)>(
-            get_database_principal(),
-            "createNewRequestKey",
-            (caller_principal.to_string(),),
-        )
-        .await
-        .unwrap()
-        .0;
-
-        print(format!(
-            "Request key creation result: {:?}",
-            request_key_creation_result
-        ));
-
-        return Some(request_key_creation_result.unwrap().key);
     }
-
-    None
+    Err(String::from("No block found"))
 }
 
 #[update(name = "signMessage")]

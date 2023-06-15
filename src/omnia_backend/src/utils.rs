@@ -5,6 +5,7 @@ use ic_ledger_types::{
     AccountIdentifier, Block, BlockIndex, GetBlocksArgs, Memo, Subaccount, Timestamp, Tokens,
     TransferArgs, DEFAULT_FEE, DEFAULT_SUBACCOUNT,
 };
+use omnia_types::errors::GenericResult;
 
 use crate::STATE;
 
@@ -113,7 +114,7 @@ pub async fn transfer_to(principal: Principal, amount: Tokens) -> BlockIndex {
     block_index
 }
 
-pub async fn query_one_block(block_index: BlockIndex) -> Option<Block> {
+pub async fn query_one_block(block_index: BlockIndex) -> GenericResult<Option<Block>> {
     let ledger_principal = STATE
         .with(|state| state.borrow().ledger_principal)
         .expect("should have provided ledger principal id");
@@ -126,7 +127,7 @@ pub async fn query_one_block(block_index: BlockIndex) -> Option<Block> {
     if let Ok(blocks_result) = query_blocks(ledger_principal, args.clone()).await {
         if blocks_result.blocks.len() >= 1 {
             debug_assert_eq!(blocks_result.first_block_index, block_index);
-            return blocks_result.blocks.into_iter().next();
+            return Ok(blocks_result.blocks.into_iter().next());
         }
 
         if let Some(func) = blocks_result.archived_blocks.into_iter().find_map(|b| {
@@ -134,14 +135,14 @@ pub async fn query_one_block(block_index: BlockIndex) -> Option<Block> {
         }) {
             if let Ok(archived_blocks) = query_archived_blocks(&func, args).await {
                 match archived_blocks {
-                    Ok(range) => return range.blocks.into_iter().next(),
+                    Ok(range) => return Ok(range.blocks.into_iter().next()),
                     _ => (),
                 }
             }
         }
-        return None;
+        return Ok(None);
     }
-    trap("Query block failed");
+    Err(String::from("Query block failed"))
 }
 
 pub fn sha256(input: &String) -> [u8; 32] {
