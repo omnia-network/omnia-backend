@@ -28,7 +28,12 @@ type RegisteredGatewayValue = record {
   gateway_url : text;
   proxied_gateway_uid : opt text;
 };
-type RequestKeyValue = record { key : text; counter : nat; owner : text };
+type RequestKeyValue = record {
+  key : text;
+  counter : nat;
+  owner : text;
+  used_nonces : vec nat;
+};
 type Result = variant { Ok : EnvironmentCreationResult; Err : text };
 type Result_1 = variant { Ok : RequestKeyValue; Err : text };
 type Result_10 = variant { Ok : EnvironmentInfo; Err : text };
@@ -43,6 +48,7 @@ type Result_8 = variant {
   Err : text;
 };
 type Result_9 = variant { Ok : RegisteredGatewayValue; Err : text };
+type UniqueRequestKey = record { uid : text; nonce : nat };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;
@@ -74,4 +80,5 @@ service : (text, text, text) -> {
     );
   resetUserFromEnvironment : (text, text) -> (Result_10);
   setUserInEnvironment : (text, text) -> (Result_10);
+  spendRequestForKey : (UniqueRequestKey) -> (Result_1);
 }

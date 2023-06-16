@@ -38,12 +38,19 @@ type RegisteredGatewayValue = record {
   gateway_url : text;
   proxied_gateway_uid : opt text;
 };
+type RequestKeyValue = record {
+  key : text;
+  counter : nat;
+  owner : text;
+  used_nonces : vec nat;
+};
 type Result = variant { Ok : EnvironmentCreationResult; Err : text };
 type Result_1 = variant { Ok : vec nat8; Err : text };
 type Result_10 = variant { Ok : RegisteredGatewayValue; Err : text };
-type Result_11 = variant { Ok : EnvironmentInfo; Err : text };
-type Result_12 = variant { Ok : SignatureReply; Err : text };
-type Result_13 = variant { Ok : SignatureVerificationReply; Err : text };
+type Result_11 = variant { Ok : RequestKeyValue; Err : text };
+type Result_12 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_13 = variant { Ok : SignatureReply; Err : text };
+type Result_14 = variant { Ok : SignatureVerificationReply; Err : text };
 type Result_2 = variant { Ok : PublicKeyReply; Err : text };
 type Result_3 = variant { Ok : vec InitializedGatewayValue; Err : text };
 type Result_4 = variant { Ok : VirtualPersonaValue; Err : text };
@@ -57,7 +64,13 @@ type Result_9 = variant {
 };
 type SignatureReply = record { signature_hex : text };
 type SignatureVerificationReply = record { is_signature_valid : bool };
+type SignedRequest = record {
+  signature_hex : text;
+  unique_request_key : UniqueRequestKey;
+  requester_principal_id : text;
+};
 type Tokens = record { e8s : nat64 };
+type UniqueRequestKey = record { uid : text; nonce : nat };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;
@@ -87,10 +100,11 @@ service : (text, text, text) -> {
   pairNewDevice : (text, text, text) -> (Result_8);
   registerDevice : (text, DeviceAffordances) -> (Result_9);
   registerGateway : (text, GatewayRegistrationInput) -> (Result_10);
-  resetEnvironment : (text) -> (Result_11);
-  setEnvironment : (text) -> (Result_11);
-  signMessage : (text) -> (Result_12);
+  reportSignedRequest : (SignedRequest) -> (Result_11);
+  resetEnvironment : (text) -> (Result_12);
+  setEnvironment : (text) -> (Result_12);
+  signMessage : (text) -> (Result_13);
   transferIcpsToPrincipal : (text, Tokens) -> (nat64);
-  verifyMessage : (text, text, text) -> (Result_13) query;
+  verifyMessage : (text, text, text) -> (Result_14) query;
   whoAmI : () -> (text) query;
 }

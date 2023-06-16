@@ -26,9 +26,10 @@ impl PartialOrd for RequestKeyIndex {
 
 #[derive(Default, Debug, Clone, CandidType, Deserialize, Serialize)]
 pub struct RequestKeyValue {
-    pub key: RequestKeyUID,
-    pub owner: String,
-    pub counter: u128,
+    key: RequestKeyUID,
+    owner: String,
+    counter: u128,
+    used_nonces: Vec<u128>,
 }
 
 impl RequestKeyValue {
@@ -37,8 +38,61 @@ impl RequestKeyValue {
             key,
             owner,
             counter: 0,
+            used_nonces: vec![],
         }
+    }
+
+    pub fn increment_counter(self) -> Self {
+        Self {
+            counter: self.counter + 1,
+            ..self
+        }
+    }
+
+    pub fn get_key(self) -> String {
+        self.key
+    }
+
+    pub fn is_used_nonce(&self, nonce: u128) -> bool {
+        self.used_nonces.contains(&nonce)
     }
 }
 
 pub type RequestKeyCreationResult = GenericResult<RequestKeyValue>;
+
+#[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
+pub struct SignedRequest {
+    signature_hex: String,
+    unique_request_key: UniqueRequestKey,
+    requester_principal_id: String,
+}
+
+impl SignedRequest {
+    pub fn get_signature(&self) -> String {
+        self.signature_hex.clone()
+    }
+
+    pub fn get_unique_request_key(&self) -> UniqueRequestKey {
+        self.unique_request_key.clone()
+    }
+
+    pub fn get_requester_principal_id(&self) -> String {
+        self.requester_principal_id.clone()
+    }
+}
+
+#[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
+pub struct UniqueRequestKey {
+    nonce: u128,
+    uid: RequestKeyUID,
+}
+
+impl UniqueRequestKey {
+    pub fn get_nonce(&self) -> u128 {
+        self.nonce.clone()
+    }
+
+    pub fn get_uid(&self) -> RequestKeyUID {
+        self.uid.clone()
+    }
+}

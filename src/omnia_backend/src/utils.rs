@@ -1,11 +1,18 @@
 use candid::Principal;
-use ic_cdk::{api::time, print, trap};
+use ic_cdk::{
+    api::{call::call, time},
+    print,
+};
 use ic_ledger_types::{
     account_balance, query_archived_blocks, query_blocks, transfer, AccountBalanceArgs,
     AccountIdentifier, Block, BlockIndex, GetBlocksArgs, Memo, Subaccount, Timestamp, Tokens,
     TransferArgs, DEFAULT_FEE, DEFAULT_SUBACCOUNT,
 };
-use omnia_types::errors::GenericResult;
+use k256::ecdsa::signature::Verifier;
+use omnia_types::{
+    errors::GenericResult,
+    signature::{ECDSAPublicKey, ECDSAPublicKeyReply, EcdsaKeyIds},
+};
 
 use crate::STATE;
 
@@ -158,4 +165,43 @@ pub fn mgmt_canister_id() -> Principal {
 
 pub fn principal_to_account(principal: Principal) -> AccountIdentifier {
     AccountIdentifier::new(&principal, &Subaccount([0; 32]))
+}
+
+pub async fn is_valid_signature(
+    signature_hex: String,
+    message: String,
+    principal_id: String,
+) -> bool {
+    let public_key_hex = hex::encode(
+        &principal_id_to_public_key(principal_id)
+            .await
+            .expect("valid principal")
+            .public_key,
+    );
+    let signature_bytes = hex::decode(&signature_hex).expect("failed to hex-decode signature");
+    let pubkey_bytes = hex::decode(&public_key_hex).expect("failed to hex-decode public key");
+    let message_bytes = message.as_bytes();
+
+    let signature = k256::ecdsa::Signature::try_from(signature_bytes.as_slice())
+        .expect("failed to deserialize signature");
+    k256::ecdsa::VerifyingKey::from_sec1_bytes(&pubkey_bytes)
+        .expect("failed to deserialize sec1 encoding into public key")
+        .verify(message_bytes, &signature)
+        .is_ok()
+}
+
+pub async fn principal_id_to_public_key(
+    principal_id: String,
+) -> GenericResult<ECDSAPublicKeyReply> {
+    let request = ECDSAPublicKey {
+        canister_id: Principal::from_text(principal_id).expect("valid principal"),
+        derivation_path: vec![],
+        key_id: EcdsaKeyIds::TestKeyLocalDevelopment.to_key_id(),
+    };
+
+    let (res,): (ECDSAPublicKeyReply,) = call(mgmt_canister_id(), "ecdsa_public_key", (request,))
+        .await
+        .map_err(|e| format!("ecdsa_public_key failed {}", e.1))?;
+
+    Ok(res)
 }

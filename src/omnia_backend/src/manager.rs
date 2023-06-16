@@ -18,10 +18,12 @@ use omnia_types::{
         MultipleRegisteredGatewayResult, RegisteredGatewayResult,
     },
     http::IpChallengeNonce,
-    request_key::{RequestKeyCreationResult, RequestKeyUID},
+    request_key::{
+        RequestKeyCreationResult, RequestKeyUID, RequestKeyValue, SignedRequest, UniqueRequestKey,
+    },
     signature::{
-        ECDSAPublicKey, ECDSAPublicKeyReply, EcdsaKeyIds, PublicKeyReply, SignWithECDSA,
-        SignWithECDSAReply, SignatureReply, SignatureVerificationReply,
+        EcdsaKeyIds, PublicKeyReply, SignWithECDSA, SignWithECDSAReply, SignatureReply,
+        SignatureVerificationReply,
     },
     updates::{PairingPayload, UpdateValueOption, UpdateValueResult},
     virtual_persona::VirtualPersonaPrincipalId,
@@ -30,8 +32,9 @@ use omnia_types::{
 use crate::{
     rdf::{BotNode, HttpNode, OmniaNode, SarefNode, TdNode, UrnNode},
     utils::{
-        check_balance, get_backend_principal, get_database_principal, mgmt_canister_id,
-        principal_to_account, query_one_block, sha256, transfer_to,
+        check_balance, get_backend_principal, get_database_principal, is_valid_signature,
+        mgmt_canister_id, principal_id_to_public_key, principal_to_account, query_one_block,
+        sha256, transfer_to,
     },
     RDF_DB,
 };
@@ -425,24 +428,50 @@ async fn get_request_key(block_index: BlockIndex) -> GenericResult<RequestKeyUID
                 ));
             }
 
-            let request_key_creation_result = call::<(String,), (RequestKeyCreationResult,)>(
+            let request_key_value = call::<(String,), (RequestKeyCreationResult,)>(
                 get_database_principal(),
                 "createNewRequestKey",
                 (caller_principal.to_string(),),
             )
             .await
             .unwrap()
-            .0;
+            .0?;
 
-            print(format!(
-                "Request key creation result: {:?}",
-                request_key_creation_result
-            ));
+            print(format!("Request key value: {:?}", request_key_value));
 
-            return Ok(request_key_creation_result.unwrap().key);
+            return Ok(request_key_value.get_key());
         }
     }
     Err(String::from("No block found"))
+}
+
+#[update(name = "reportSignedRequest")]
+#[candid_method(update, rename = "reportSignedRequest")]
+async fn report_signed_request(signed_request: SignedRequest) -> GenericResult<RequestKeyValue> {
+    print(format!("Signed request: {:?}", signed_request));
+
+    if !is_valid_signature(
+        signed_request.get_signature(),
+        format!(
+            "{},{}",
+            signed_request.get_unique_request_key().get_nonce(),
+            signed_request.get_unique_request_key().get_uid()
+        ),
+        signed_request.get_requester_principal_id(),
+    )
+    .await
+    {
+        return Err(format!("Signature is not valid"));
+    }
+
+    call::<(UniqueRequestKey,), (GenericResult<RequestKeyValue>,)>(
+        get_database_principal(),
+        "spendRequestForKey",
+        (signed_request.get_unique_request_key(),),
+    )
+    .await
+    .unwrap()
+    .0
 }
 
 #[update(name = "signMessage")]
@@ -473,19 +502,9 @@ async fn sign_message(message: String) -> Result<SignatureReply, String> {
 async fn verify_message(
     signature_hex: String,
     message: String,
-    public_key_hex: String,
+    principal_id: String,
 ) -> Result<SignatureVerificationReply, String> {
-    let signature_bytes = hex::decode(&signature_hex).expect("failed to hex-decode signature");
-    let pubkey_bytes = hex::decode(&public_key_hex).expect("failed to hex-decode public key");
-    let message_bytes = message.as_bytes();
-
-    use k256::ecdsa::signature::Verifier;
-    let signature = k256::ecdsa::Signature::try_from(signature_bytes.as_slice())
-        .expect("failed to deserialize signature");
-    let is_signature_valid = k256::ecdsa::VerifyingKey::from_sec1_bytes(&pubkey_bytes)
-        .expect("failed to deserialize sec1 encoding into public key")
-        .verify(message_bytes, &signature)
-        .is_ok();
+    let is_signature_valid = is_valid_signature(signature_hex, message, principal_id).await;
 
     Ok(SignatureVerificationReply { is_signature_valid })
 }
@@ -493,16 +512,7 @@ async fn verify_message(
 #[update(name = "getCanisterPublicKey")]
 #[candid_method(update, rename = "getCanisterPublicKey")]
 async fn get_canister_public_key(canister_id: String) -> Result<PublicKeyReply, String> {
-    let request = ECDSAPublicKey {
-        canister_id: Principal::from_text(canister_id).expect("valid principal"),
-        derivation_path: vec![],
-        key_id: EcdsaKeyIds::TestKeyLocalDevelopment.to_key_id(),
-    };
-
-    let (res,): (ECDSAPublicKeyReply,) = call(mgmt_canister_id(), "ecdsa_public_key", (request,))
-        .await
-        .map_err(|e| format!("ecdsa_public_key failed {}", e.1))?;
-
+    let res = principal_id_to_public_key(canister_id).await?;
     Ok(PublicKeyReply {
         public_key_hex: hex::encode(&res.public_key),
     })
