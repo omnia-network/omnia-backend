@@ -31,3 +31,5 @@ export const DEVICE_AFFORDANCE_VALUE_TUPLE: [string, string] = [
   "td:hasPropertyAffordance",
   "saref:OnOffState"
 ];
+
+export const ACCESS_KEY_PRICE = BigInt(1_000_000);

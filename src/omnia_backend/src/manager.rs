@@ -1,13 +1,6 @@
 use candid::candid_method;
 use ic_cdk::{
-    api::{
-        call::call,
-        caller,
-        management_canister::{
-            ecdsa::{sign_with_ecdsa, SignWithEcdsaArgument},
-            provisional::CanisterId,
-        },
-    },
+    api::{call::call, caller, management_canister::provisional::CanisterId},
     print, trap,
 };
 use ic_cdk_macros::{query, update};
@@ -15,28 +8,28 @@ use ic_ledger_types::{BlockIndex, Operation, Tokens};
 use ic_oxigraph::model::{vocab, GraphName, Literal, NamedNode, Quad};
 use omnia_types::{
     access_key::{
-        AccessKeyCreationResult, AccessKeyUID, AccessKeyValue, SignedRequest, UniqueAccessKey,
+        AccessKeyCreationArgs, AccessKeyCreationResult, AccessKeyUID, AccessKeyValue,
+        SignedRequest, UniqueAccessKey,
     },
     device::{DeviceAffordances, RegisteredDeviceResult, RegisteredDevicesUidsResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
-    errors::{GenericError, GenericResult},
+    errors::GenericResult,
     gateway::{
         GatewayPrincipalId, GatewayRegistrationInput, InitializedGatewayValue,
         MultipleRegisteredGatewayResult, RegisteredGatewayResult,
     },
     http::IpChallengeNonce,
-    signature::{EcdsaKeyIds, SignatureReply, SignatureVerificationReply},
+    signature::SignatureVerificationReply,
     updates::{PairingPayload, UpdateValueOption, UpdateValueResult},
     virtual_persona::VirtualPersonaPrincipalId,
 };
-use omnia_utils::ic::principal_to_account;
+use omnia_utils::ic::{get_transaction_hash, principal_to_account};
 
 use crate::{
     constants::ACCESS_KEY_PRICE,
     rdf::{BotNode, HttpNode, OmniaNode, SarefNode, TdNode, UrnNode},
     utils::{
-        check_balance, get_backend_principal, get_database_principal, is_valid_signature,
-        query_ledger_block, sha256, transfer_to,
+        get_backend_principal, get_database_principal, is_valid_signature, query_ledger_block,
     },
     RDF_DB,
 };
@@ -380,6 +373,8 @@ async fn get_registered_devices() -> RegisteredDevicesUidsResult {
 #[update(name = "obtainAccessKey")]
 #[candid_method(update, rename = "obtainAccessKey")]
 async fn obtain_access_key(block_index: BlockIndex) -> GenericResult<AccessKeyUID> {
+    let caller_principal = caller();
+
     let ledger_block = query_ledger_block(block_index).await?;
 
     if let Some(block) = ledger_block {
@@ -389,13 +384,10 @@ async fn obtain_access_key(block_index: BlockIndex) -> GenericResult<AccessKeyUI
             from, to, amount, ..
         }) = block.transaction.operation
         {
-            let caller_principal = caller();
             let caller_account = principal_to_account(caller_principal);
             let backend_account = principal_to_account(get_backend_principal());
 
-            // TODO: check if this transfer hasn't been used to pay for a request key yet
-
-            // check if the caller of this method is the same principal that paid for the request key
+            // check if the caller of this method is the same principal that paid for the access key
             if from != caller_account {
                 return Err(String::from("Caller account does not match the sender"));
             }
@@ -408,23 +400,28 @@ async fn obtain_access_key(block_index: BlockIndex) -> GenericResult<AccessKeyUI
             // check if the amount of the transfer is correct
             if amount != ACCESS_KEY_PRICE {
                 return Err(String::from(
-                    "Transferred amount does not match the price of the request key",
+                    "Transferred amount does not match the price of the access key",
                 ));
             }
 
-            let access_key_value = call::<(String,), (AccessKeyCreationResult,)>(
+            let access_key_value = call::<(AccessKeyCreationArgs,), (AccessKeyCreationResult,)>(
                 get_database_principal(),
                 "create_new_access_key",
-                (caller_principal.to_string(),),
+                (AccessKeyCreationArgs {
+                    owner: caller_principal,
+                    transaction_hash: get_transaction_hash(block.transaction),
+                },),
             )
             .await
             .unwrap()
             .0?;
 
-            print(format!("Request key value: {:?}", access_key_value));
+            print(format!("Access key value: {:?}", access_key_value));
 
             return Ok(access_key_value.get_key());
         }
+
+        return Err(String::from("Block does not contain a transfer operation"));
     }
     Err(String::from("No block found"))
 }
@@ -456,24 +453,6 @@ async fn report_signed_request(signed_request: SignedRequest) -> GenericResult<A
     .await
     .unwrap()
     .0
-}
-
-#[update(name = "signMessage")]
-#[candid_method(update, rename = "signMessage")]
-async fn sign_message(message: String) -> GenericResult<SignatureReply> {
-    let request = SignWithEcdsaArgument {
-        message_hash: sha256(&message).to_vec(),
-        derivation_path: vec![],
-        key_id: EcdsaKeyIds::TestKeyLocalDevelopment.to_key_id(),
-    };
-
-    let (response,) = sign_with_ecdsa(request)
-        .await
-        .map_err(|e| format!("sign_with_ecdsa failed {:?}", e))?;
-
-    Ok(SignatureReply {
-        signature_hex: hex::encode(response.signature),
-    })
 }
 
 #[query(name = "verifyMessage")]

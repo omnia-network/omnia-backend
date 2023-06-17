@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use candid::CandidType;
+use candid::{CandidType, Principal};
 use ic_cdk::api::management_canister::provisional::CanisterId;
 use serde::{Deserialize, Serialize};
 
@@ -25,19 +25,33 @@ impl PartialOrd for AccessKeyIndex {
     }
 }
 
-#[derive(Default, Debug, Clone, CandidType, Deserialize, Serialize)]
+#[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
 pub struct AccessKeyValue {
-    key: AccessKeyUID,
-    owner: String,
-    counter: u128,
-    used_nonces: Vec<u128>,
+    pub key: AccessKeyUID,
+    pub owner: Principal,
+    pub transaction_hash: TransactionHash,
+    pub counter: u128,
+    pub used_nonces: Vec<u128>,
+}
+
+impl Default for AccessKeyValue {
+    fn default() -> Self {
+        Self {
+            key: "".to_string(),
+            owner: Principal::anonymous(),
+            transaction_hash: [0; 32],
+            counter: 0,
+            used_nonces: vec![],
+        }
+    }
 }
 
 impl AccessKeyValue {
-    pub fn new(key: AccessKeyUID, owner: String) -> Self {
+    pub fn new(key: AccessKeyUID, owner: Principal, transaction_hash: TransactionHash) -> Self {
         Self {
             key,
             owner,
+            transaction_hash,
             counter: 0,
             used_nonces: vec![],
         }
@@ -59,6 +73,14 @@ impl AccessKeyValue {
     }
 }
 
+/// Use [get_transaction_hash][omnia_utils::ic::get_transaction_hash] to generate the transaction hash
+pub type TransactionHash = [u8; 32];
+
+#[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
+pub struct AccessKeyCreationArgs {
+    pub owner: Principal,
+    pub transaction_hash: TransactionHash,
+}
 pub type AccessKeyCreationResult = GenericResult<AccessKeyValue>;
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]

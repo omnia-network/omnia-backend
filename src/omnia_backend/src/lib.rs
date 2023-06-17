@@ -126,7 +126,6 @@ mod tests {
     use candid::export_service;
     use std::env;
 
-    use candid::Principal;
     use ic_cdk::api::management_canister::provisional::CanisterId;
     use ic_ledger_types::*;
     use omnia_types::access_key::*;

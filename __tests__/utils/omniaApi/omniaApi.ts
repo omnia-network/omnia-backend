@@ -8,12 +8,7 @@ import { httpNonceChallenge } from "./http";
 import { GenericResult, resultParser } from "./resultParser";
 
 // we need to recreate the agent because the environment variables are not available at the time of import
-const createActor = async (identity: Promise<Identity>) => {
-  const agent = new HttpAgent({
-    host: "http://localhost:4943",
-    identity,
-  });
-
+const createActor = async (agent: HttpAgent) => {
   // Fetch root key for certificate validation during development
   if (process.env.DFX_NETWORK !== "ic") {
     agent.fetchRootKey().catch((err) => {
@@ -31,15 +26,33 @@ const createActor = async (identity: Promise<Identity>) => {
 };
 
 export class OmniaApi {
-  private _identity: Promise<Identity>;
+  identity: Promise<Identity>;
+  agent: HttpAgent;
   private _actor: ActorSubclass<_SERVICE> | undefined;
 
-  constructor(identity: Promise<Identity>) {
-    this._identity = identity;
+  constructor(
+    identity: Promise<Identity>
+  ) {
+    this.identity = identity;
+    this.agent = new HttpAgent({
+      host: "http://localhost:4943",
+      identity,
+    });
+    // we need to fetch the root key of the local replica here because sometimes the agent is used before the actor is created
+    this.agent.fetchRootKey().catch((err) => {
+      console.warn(
+        "Unable to fetch root key. Check to ensure that your local replica is running"
+      );
+      console.error(err);
+    });
   }
 
   async getActor() {
-    return this._actor || await createActor(this._identity);
+    return this._actor || await createActor(this.agent);
+  }
+
+  getAgent() {
+    return this.agent;
   }
 
   async callMethodWithChallenge<T>(

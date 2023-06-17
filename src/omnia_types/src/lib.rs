@@ -1,3 +1,4 @@
+use access_key::{AccessKeyIndex, AccessKeyValue, TransactionHash};
 use candid::{CandidType, Deserialize};
 use device::DeviceUid;
 use environment::{
@@ -213,5 +214,15 @@ impl CrudMap<RegisteredGatewayIndex, RegisteredGatewayValue> {
             .gat_registered_device_uids
             .insert(device_uid, ());
         self.update(registered_gateway_index, updatable_registered_gateway_value)
+    }
+}
+
+impl CrudMap<AccessKeyIndex, AccessKeyValue> {
+    pub fn transaction_hash_exists(&self, transaction_hash: TransactionHash) -> bool {
+        self.map
+            .iter()
+            .find(|(_, value)| value.transaction_hash == transaction_hash)
+            .map(|_| true)
+            .unwrap_or(false)
     }
 }

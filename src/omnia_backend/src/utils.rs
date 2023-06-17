@@ -1,19 +1,12 @@
 use candid::Principal;
 use ic_cdk::{
-    api::{
-        management_canister::{
-            ecdsa::{ecdsa_public_key, EcdsaPublicKeyArgument, EcdsaPublicKeyResponse},
-            provisional::CanisterId,
-        },
-        time,
+    api::management_canister::{
+        ecdsa::{ecdsa_public_key, EcdsaPublicKeyArgument, EcdsaPublicKeyResponse},
+        provisional::CanisterId,
     },
     print,
 };
-use ic_ledger_types::{
-    account_balance, query_archived_blocks, query_blocks, transfer, AccountBalanceArgs,
-    AccountIdentifier, Block, BlockIndex, GetBlocksArgs, Memo, Timestamp, Tokens, TransferArgs,
-    DEFAULT_FEE, DEFAULT_SUBACCOUNT,
-};
+use ic_ledger_types::{query_archived_blocks, query_blocks, Block, BlockIndex, GetBlocksArgs};
 use k256::ecdsa::signature::Verifier;
 use omnia_types::{errors::GenericResult, signature::EcdsaKeyIds};
 
@@ -76,58 +69,6 @@ pub fn update_ledger_principal(ledger_canister_principal_id: String) {
     });
 }
 
-pub async fn check_balance(principal: Principal) -> Tokens {
-    let ledger_principal = STATE
-        .with(|state| state.borrow().ledger_principal)
-        .expect("should have provided ledger principal id");
-    let balance = account_balance(
-        ledger_principal,
-        AccountBalanceArgs {
-            account: AccountIdentifier::new(&principal, &DEFAULT_SUBACCOUNT),
-        },
-    )
-    .await
-    .expect("call to ledger failed");
-
-    print(format!(
-        "Balance of principal ID: {:?} is: {:?}",
-        principal.to_string(),
-        balance
-    ));
-
-    balance
-}
-
-pub async fn transfer_to(principal: Principal, amount: Tokens) -> GenericResult<BlockIndex> {
-    let ledger_principal = get_ledger_principal();
-
-    let block_index = transfer(
-        ledger_principal,
-        TransferArgs {
-            memo: Memo(0),
-            amount,
-            fee: DEFAULT_FEE,
-            from_subaccount: None,
-            to: AccountIdentifier::new(&principal, &DEFAULT_SUBACCOUNT),
-            created_at_time: Some(Timestamp {
-                timestamp_nanos: time(),
-            }),
-        },
-    )
-    .await
-    .map_err(|e| format!("call to ledger failed: {:?}", e))?
-    .map_err(|e| format!("transfer failed: {:?}", e))?;
-
-    print(format!(
-        "Created block with index: {:?}, transferred: {:?} to principal ID: {:?}",
-        block_index,
-        amount,
-        principal.to_string()
-    ));
-
-    Ok(block_index)
-}
-
 pub async fn query_ledger_block(block_index: BlockIndex) -> GenericResult<Option<Block>> {
     let ledger_principal = get_ledger_principal();
 
@@ -152,13 +93,6 @@ pub async fn query_ledger_block(block_index: BlockIndex) -> GenericResult<Option
     }
 
     Err(String::from("Query block failed"))
-}
-
-pub fn sha256(input: &String) -> [u8; 32] {
-    use sha2::Digest;
-    let mut hasher = sha2::Sha256::new();
-    hasher.update(input.as_bytes());
-    hasher.finalize().into()
 }
 
 pub async fn is_valid_signature(
