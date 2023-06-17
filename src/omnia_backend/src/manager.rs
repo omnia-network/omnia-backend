@@ -57,17 +57,16 @@ async fn create_environment(
     .unwrap();
     match virtual_persona_exists {
         true => {
-            let (environment_creation_result,): (Result<EnvironmentCreationResult, GenericError>,) =
-                call(
-                    get_database_principal(),
-                    "create_new_environment",
-                    (
-                        environment_manager_principal_id,
-                        Box::new(environment_creation_input),
-                    ),
-                )
-                .await
-                .unwrap();
+            let (environment_creation_result,): (GenericResult<EnvironmentCreationResult>,) = call(
+                get_database_principal(),
+                "create_new_environment",
+                (
+                    environment_manager_principal_id,
+                    Box::new(environment_creation_input),
+                ),
+            )
+            .await
+            .unwrap();
 
             print(format!(
                 "Created new environment: {:?}",
