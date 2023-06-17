@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
-use crate::errors::GenericError;
+use crate::errors::GenericResult;
 
 pub const CONTENT_TYPE_HEADER_KEY: &str = "content-type";
 
@@ -67,4 +67,4 @@ impl PartialOrd for IpChallengeIndex {
     }
 }
 
-pub type IpChallengeValueResult = Result<IpChallengeValue, GenericError>;
+pub type IpChallengeValueResult = GenericResult<IpChallengeValue>;

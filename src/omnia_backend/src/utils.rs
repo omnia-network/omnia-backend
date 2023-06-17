@@ -1,18 +1,21 @@
 use candid::Principal;
 use ic_cdk::{
-    api::{call::call, time},
+    api::{
+        management_canister::{
+            ecdsa::{ecdsa_public_key, EcdsaPublicKeyArgument, EcdsaPublicKeyResponse},
+            provisional::CanisterId,
+        },
+        time,
+    },
     print,
 };
 use ic_ledger_types::{
     account_balance, query_archived_blocks, query_blocks, transfer, AccountBalanceArgs,
-    AccountIdentifier, Block, BlockIndex, GetBlocksArgs, Memo, Subaccount, Timestamp, Tokens,
-    TransferArgs, DEFAULT_FEE, DEFAULT_SUBACCOUNT,
+    AccountIdentifier, Block, BlockIndex, GetBlocksArgs, Memo, Timestamp, Tokens, TransferArgs,
+    DEFAULT_FEE, DEFAULT_SUBACCOUNT,
 };
 use k256::ecdsa::signature::Verifier;
-use omnia_types::{
-    errors::GenericResult,
-    signature::{ECDSAPublicKey, ECDSAPublicKeyReply, EcdsaKeyIds},
-};
+use omnia_types::{errors::GenericResult, signature::EcdsaKeyIds};
 
 use crate::STATE;
 
@@ -132,19 +135,16 @@ pub async fn query_one_block(block_index: BlockIndex) -> GenericResult<Option<Bl
     };
 
     if let Ok(blocks_result) = query_blocks(ledger_principal, args.clone()).await {
-        if blocks_result.blocks.len() >= 1 {
+        if !blocks_result.blocks.is_empty() {
             debug_assert_eq!(blocks_result.first_block_index, block_index);
             return Ok(blocks_result.blocks.into_iter().next());
         }
 
         if let Some(func) = blocks_result.archived_blocks.into_iter().find_map(|b| {
-            (b.start <= block_index && (block_index - b.start) < b.length).then(|| b.callback)
+            (b.start <= block_index && (block_index - b.start) < b.length).then_some(b.callback)
         }) {
-            if let Ok(archived_blocks) = query_archived_blocks(&func, args).await {
-                match archived_blocks {
-                    Ok(range) => return Ok(range.blocks.into_iter().next()),
-                    _ => (),
-                }
+            if let Ok(Ok(archived_blocks)) = query_archived_blocks(&func, args).await {
+                return Ok(archived_blocks.blocks.into_iter().next());
             }
         }
         return Ok(None);
@@ -159,27 +159,19 @@ pub fn sha256(input: &String) -> [u8; 32] {
     hasher.finalize().into()
 }
 
-pub fn mgmt_canister_id() -> Principal {
-    Principal::from_text(&"aaaaa-aa").unwrap()
-}
-
-pub fn principal_to_account(principal: Principal) -> AccountIdentifier {
-    AccountIdentifier::new(&principal, &Subaccount([0; 32]))
-}
-
 pub async fn is_valid_signature(
     signature_hex: String,
     message: String,
-    principal_id: String,
+    canister_id: CanisterId,
 ) -> bool {
     let public_key_hex = hex::encode(
-        &principal_id_to_public_key(principal_id)
+        get_canister_public_key(canister_id)
             .await
             .expect("valid principal")
             .public_key,
     );
     let signature_bytes = hex::decode(&signature_hex).expect("failed to hex-decode signature");
-    let pubkey_bytes = hex::decode(&public_key_hex).expect("failed to hex-decode public key");
+    let pubkey_bytes = hex::decode(public_key_hex).expect("failed to hex-decode public key");
     let message_bytes = message.as_bytes();
 
     let signature = k256::ecdsa::Signature::try_from(signature_bytes.as_slice())
@@ -190,18 +182,18 @@ pub async fn is_valid_signature(
         .is_ok()
 }
 
-pub async fn principal_id_to_public_key(
-    principal_id: String,
-) -> GenericResult<ECDSAPublicKeyReply> {
-    let request = ECDSAPublicKey {
-        canister_id: Principal::from_text(principal_id).expect("valid principal"),
+pub async fn get_canister_public_key(
+    canister_id: CanisterId,
+) -> GenericResult<EcdsaPublicKeyResponse> {
+    let request = EcdsaPublicKeyArgument {
+        canister_id: Some(canister_id),
         derivation_path: vec![],
         key_id: EcdsaKeyIds::TestKeyLocalDevelopment.to_key_id(),
     };
 
-    let (res,): (ECDSAPublicKeyReply,) = call(mgmt_canister_id(), "ecdsa_public_key", (request,))
+    let (res,) = ecdsa_public_key(request)
         .await
-        .map_err(|e| format!("ecdsa_public_key failed {}", e.1))?;
+        .map_err(|e| format!("ecdsa_public_key failed {:?}", e))?;
 
     Ok(res)
 }

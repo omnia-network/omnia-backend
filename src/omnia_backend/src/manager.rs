@@ -1,8 +1,12 @@
 use candid::{candid_method, Principal};
 use ic_cdk::{
     api::{
-        call::{call, call_with_payment},
+        call::call,
         caller,
+        management_canister::{
+            ecdsa::{sign_with_ecdsa, SignWithEcdsaArgument},
+            provisional::CanisterId,
+        },
     },
     print, trap,
 };
@@ -21,20 +25,17 @@ use omnia_types::{
     request_key::{
         RequestKeyCreationResult, RequestKeyUID, RequestKeyValue, SignedRequest, UniqueRequestKey,
     },
-    signature::{
-        EcdsaKeyIds, PublicKeyReply, SignWithECDSA, SignWithECDSAReply, SignatureReply,
-        SignatureVerificationReply,
-    },
+    signature::{EcdsaKeyIds, SignatureReply, SignatureVerificationReply},
     updates::{PairingPayload, UpdateValueOption, UpdateValueResult},
     virtual_persona::VirtualPersonaPrincipalId,
 };
+use omnia_utils::ic::principal_to_account;
 
 use crate::{
     rdf::{BotNode, HttpNode, OmniaNode, SarefNode, TdNode, UrnNode},
     utils::{
         check_balance, get_backend_principal, get_database_principal, is_valid_signature,
-        mgmt_canister_id, principal_id_to_public_key, principal_to_account, query_one_block,
-        sha256, transfer_to,
+        query_one_block, sha256, transfer_to,
     },
     RDF_DB,
 };
@@ -378,16 +379,12 @@ async fn get_registered_devices() -> RegisteredDevicesUidsResult {
 
 #[update(name = "transferIcpsToPrincipal")]
 #[candid_method(update, rename = "transferIcpsToPrincipal")]
-async fn transfer_icps_to_principal(principal_id: String, amount: Tokens) -> BlockIndex {
-    check_balance(Principal::from_text(principal_id.clone()).expect("valid principal")).await;
+async fn transfer_icps_to_principal(principal: Principal, amount: Tokens) -> BlockIndex {
+    check_balance(principal).await;
 
-    let block_index = transfer_to(
-        Principal::from_text(principal_id.clone()).expect("valid principal"),
-        amount,
-    )
-    .await;
+    let block_index = transfer_to(principal, amount).await;
 
-    check_balance(Principal::from_text(principal_id.clone()).expect("valid principal")).await;
+    check_balance(principal).await;
 
     block_index
 }
@@ -461,7 +458,7 @@ async fn report_signed_request(signed_request: SignedRequest) -> GenericResult<R
     )
     .await
     {
-        return Err(format!("Signature is not valid"));
+        return Err(String::from("Signature is not valid"));
     }
 
     call::<(UniqueRequestKey,), (GenericResult<RequestKeyValue>,)>(
@@ -476,24 +473,19 @@ async fn report_signed_request(signed_request: SignedRequest) -> GenericResult<R
 
 #[update(name = "signMessage")]
 #[candid_method(update, rename = "signMessage")]
-async fn sign_message(message: String) -> Result<SignatureReply, String> {
-    let request = SignWithECDSA {
+async fn sign_message(message: String) -> GenericResult<SignatureReply> {
+    let request = SignWithEcdsaArgument {
         message_hash: sha256(&message).to_vec(),
         derivation_path: vec![],
         key_id: EcdsaKeyIds::TestKeyLocalDevelopment.to_key_id(),
     };
 
-    let (response,): (SignWithECDSAReply,) = call_with_payment(
-        mgmt_canister_id(),
-        "sign_with_ecdsa",
-        (request,),
-        25_000_000_000,
-    )
-    .await
-    .map_err(|e| format!("sign_with_ecdsa failed {}", e.1))?;
+    let (response,) = sign_with_ecdsa(request)
+        .await
+        .map_err(|e| format!("sign_with_ecdsa failed {:?}", e))?;
 
     Ok(SignatureReply {
-        signature_hex: hex::encode(&response.signature),
+        signature_hex: hex::encode(response.signature),
     })
 }
 
@@ -502,24 +494,9 @@ async fn sign_message(message: String) -> Result<SignatureReply, String> {
 async fn verify_message(
     signature_hex: String,
     message: String,
-    principal_id: String,
-) -> Result<SignatureVerificationReply, String> {
-    let is_signature_valid = is_valid_signature(signature_hex, message, principal_id).await;
+    canister_id: CanisterId,
+) -> GenericResult<SignatureVerificationReply> {
+    let is_signature_valid = is_valid_signature(signature_hex, message, canister_id).await;
 
     Ok(SignatureVerificationReply { is_signature_valid })
-}
-
-#[update(name = "getCanisterPublicKey")]
-#[candid_method(update, rename = "getCanisterPublicKey")]
-async fn get_canister_public_key(canister_id: String) -> Result<PublicKeyReply, String> {
-    let res = principal_id_to_public_key(canister_id).await?;
-    Ok(PublicKeyReply {
-        public_key_hex: hex::encode(&res.public_key),
-    })
-}
-
-#[query(name = "whoAmI")]
-#[candid_method(query, rename = "whoAmI")]
-fn who_am_i() -> String {
-    caller().to_string()
 }

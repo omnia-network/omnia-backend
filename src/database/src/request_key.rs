@@ -56,7 +56,7 @@ fn spend_request_for_key(unique_request_key: UniqueRequestKey) -> GenericResult<
 
         if request_key_value.is_used_nonce(unique_request_key.get_nonce()) {
             // TODO: disqualify request key
-            return Err(format!("Nonce has already been used"));
+            return Err(String::from("Nonce has already been used"));
         }
 
         let updated_request_key_value = request_key_value.increment_counter();

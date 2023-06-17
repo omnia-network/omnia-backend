@@ -9,4 +9,5 @@ license = "MIT"
 [dependencies]
 candid = "0.8.4"
 ic-ledger-types = "0.5.0"
-hex = "0.3.0"
+hex = "0.4.3"
+omnia_utils = { path = "../omnia_utils" }

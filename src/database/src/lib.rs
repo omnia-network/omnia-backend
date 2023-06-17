@@ -14,15 +14,13 @@ use omnia_types::request_key::{RequestKeyIndex, RequestKeyValue};
 use omnia_types::updates::{UpdateIndex, UpdateValue};
 use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValue};
 use omnia_types::CrudMap;
-use rand::{rngs::StdRng, SeedableRng};
-use random::init_rng;
+use omnia_utils::random::init_rng;
 use serde::Serialize;
 use std::{cell::RefCell, ops::Deref};
 use utils::update_omnia_backend_principal;
 
 mod auth;
 mod environment;
-mod random;
 mod request_key;
 mod utils;
 mod virtual_persona;
@@ -60,7 +58,6 @@ impl State {
 
 thread_local! {
     /* stable */ static STATE: RefCell<State>  = RefCell::new(State::default());
-    /* flexible */ static RNG_REF_CELL: RefCell<StdRng> = RefCell::new(SeedableRng::from_seed([0_u8; 32]));
 }
 
 #[init]

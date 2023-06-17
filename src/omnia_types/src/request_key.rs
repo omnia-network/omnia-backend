@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 
 use candid::CandidType;
+use ic_cdk::api::management_canister::provisional::CanisterId;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::GenericResult;
@@ -64,7 +65,7 @@ pub type RequestKeyCreationResult = GenericResult<RequestKeyValue>;
 pub struct SignedRequest {
     signature_hex: String,
     unique_request_key: UniqueRequestKey,
-    requester_principal_id: String,
+    requester_canister_id: CanisterId,
 }
 
 impl SignedRequest {
@@ -76,8 +77,8 @@ impl SignedRequest {
         self.unique_request_key.clone()
     }
 
-    pub fn get_requester_principal_id(&self) -> String {
-        self.requester_principal_id.clone()
+    pub fn get_requester_principal_id(&self) -> CanisterId {
+        self.requester_canister_id
     }
 }
 
@@ -89,7 +90,7 @@ pub struct UniqueRequestKey {
 
 impl UniqueRequestKey {
     pub fn get_nonce(&self) -> u128 {
-        self.nonce.clone()
+        self.nonce
     }
 
     pub fn get_uid(&self) -> RequestKeyUID {

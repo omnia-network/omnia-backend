@@ -3,7 +3,7 @@ use serde::Serialize;
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 
-use crate::errors::GenericError;
+use crate::errors::GenericResult;
 use crate::gateway::GatewayPrincipalId;
 use crate::http::Ip;
 use crate::virtual_persona::VirtualPersonaPrincipalId;
@@ -52,7 +52,7 @@ pub struct EnvironmentInfo {
     pub env_uid: EnvironmentUID,
 }
 
-pub type EnvironmentInfoResult = Result<EnvironmentInfo, GenericError>;
+pub type EnvironmentInfoResult = GenericResult<EnvironmentInfo>;
 
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq)]
 pub struct EnvironmentUidIndex {

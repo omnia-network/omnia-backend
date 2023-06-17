@@ -5,7 +5,7 @@ use std::{cmp::Ordering, collections::BTreeMap};
 use crate::{
     device::DeviceUid,
     environment::EnvironmentUID,
-    errors::GenericError,
+    errors::GenericResult,
     http::{Ip, ProxiedGatewayUID},
 };
 
@@ -72,9 +72,9 @@ pub struct RegisteredGatewayValue {
     pub proxied_gateway_uid: Option<ProxiedGatewayUID>,
     pub env_uid: EnvironmentUID,
     pub gat_registered_device_uids: BTreeMap<DeviceUid, ()>, // TODO: DeviceInfo
-    // TODO: add a is_proxied field to avoid having to check if proxied_gateway_uid is None and improve readability
-    // not sure if this is a good idea, because it would be another field stored in the DB
+                                                             // TODO: add a is_proxied field to avoid having to check if proxied_gateway_uid is None and improve readability
+                                                             // not sure if this is a good idea, because it would be another field stored in the DB
 }
 
-pub type RegisteredGatewayResult = Result<RegisteredGatewayValue, GenericError>;
-pub type MultipleRegisteredGatewayResult = Result<Vec<RegisteredGatewayValue>, GenericError>;
+pub type RegisteredGatewayResult = GenericResult<RegisteredGatewayValue>;
+pub type MultipleRegisteredGatewayResult = GenericResult<Vec<RegisteredGatewayValue>>;

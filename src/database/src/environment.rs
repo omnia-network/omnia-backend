@@ -10,7 +10,7 @@ use omnia_types::{
         EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentIndex, EnvironmentUID,
         EnvironmentUidIndex, EnvironmentUidValue, EnvironmentValue,
     },
-    errors::{GenericError, GenericResult},
+    errors::GenericResult,
     gateway::{
         GatewayPrincipalId, GatewayRegistrationInput, InitializedGatewayIndex,
         InitializedGatewayValue, MultipleRegisteredGatewayResult, RegisteredGatewayIndex,
@@ -127,7 +127,7 @@ async fn get_initialized_gateways_by_ip(
 async fn create_new_environment(
     environment_manager_principal_id: VirtualPersonaPrincipalId,
     environment_creation_input: EnvironmentCreationInput,
-) -> Result<EnvironmentCreationResult, GenericError> {
+) -> GenericResult<EnvironmentCreationResult> {
     caller_is_omnia_backend();
 
     let environment_uid = Uuid::new_v4().hyphenated().to_string();

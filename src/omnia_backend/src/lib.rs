@@ -1,7 +1,6 @@
 mod http_endpoint;
 mod manager;
 mod outcalls;
-mod random;
 mod rdf;
 mod user;
 mod utils;
@@ -13,8 +12,7 @@ use ic_cdk_macros::{init, post_upgrade, pre_upgrade};
 use ic_oxigraph::io::GraphFormat;
 use ic_oxigraph::model::GraphNameRef;
 use ic_oxigraph::store::Store;
-use rand::{rngs::StdRng, SeedableRng};
-use random::init_rng;
+use omnia_utils::random::{init_rng, RNG_REF_CELL};
 use std::cell::RefCell;
 use utils::{update_backend_principal, update_database_principal, update_ledger_principal};
 
@@ -40,7 +38,6 @@ impl State {
 
 thread_local! {
     /* flexible */ static STATE: RefCell<State>  = RefCell::new(State::default());
-    /* flexible */ static RNG_REF_CELL: RefCell<StdRng> = RefCell::new(SeedableRng::from_seed([0_u8; 32]));
     /* stable */ static RDF_DB: RefCell<Store>  = RefCell::new(Store::new().unwrap());
 }
 
@@ -128,6 +125,8 @@ mod tests {
     use candid::export_service;
     use std::env;
 
+    use candid::Principal;
+    use ic_cdk::api::management_canister::provisional::CanisterId;
     use ic_ledger_types::*;
     use omnia_types::device::*;
     use omnia_types::environment::*;

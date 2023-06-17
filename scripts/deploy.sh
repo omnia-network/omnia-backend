@@ -37,7 +37,7 @@ if [ "$LEDGER_CANISTER_ID" = "" ]; then
 
   dfx identity use default
   export ARCHIVE_CONTROLLER=$(dfx identity get-principal)
-  export OMNIA_BACKEND_ACC=$(cargo run --bin principal_2_account "$OMNIA_BACKEND_CANISTER_ID" | tail -n 1)
+  export OMNIA_BACKEND_ACC=$(cargo run --bin principal_to_account "$OMNIA_BACKEND_CANISTER_ID" | tail -n 1)
   echo "Omnia Backend ledger account: $OMNIA_BACKEND_ACC"
 
   # first deploy the ledger with private did
