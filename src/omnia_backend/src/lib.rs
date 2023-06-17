@@ -1,3 +1,4 @@
+mod constants;
 mod http_endpoint;
 mod manager;
 mod outcalls;
@@ -128,12 +129,12 @@ mod tests {
     use candid::Principal;
     use ic_cdk::api::management_canister::provisional::CanisterId;
     use ic_ledger_types::*;
+    use omnia_types::access_key::*;
     use omnia_types::device::*;
     use omnia_types::environment::*;
     use omnia_types::errors::*;
     use omnia_types::gateway::*;
     use omnia_types::http::*;
-    use omnia_types::request_key::*;
     use omnia_types::signature::*;
     use omnia_types::updates::*;
     use omnia_types::virtual_persona::*;

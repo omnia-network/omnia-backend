@@ -1,4 +1,4 @@
-use candid::{candid_method, Principal};
+use candid::candid_method;
 use ic_cdk::{
     api::{
         call::call,
@@ -14,6 +14,9 @@ use ic_cdk_macros::{query, update};
 use ic_ledger_types::{BlockIndex, Operation, Tokens};
 use ic_oxigraph::model::{vocab, GraphName, Literal, NamedNode, Quad};
 use omnia_types::{
+    access_key::{
+        AccessKeyCreationResult, AccessKeyUID, AccessKeyValue, SignedRequest, UniqueAccessKey,
+    },
     device::{DeviceAffordances, RegisteredDeviceResult, RegisteredDevicesUidsResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
     errors::{GenericError, GenericResult},
@@ -22,9 +25,6 @@ use omnia_types::{
         MultipleRegisteredGatewayResult, RegisteredGatewayResult,
     },
     http::IpChallengeNonce,
-    request_key::{
-        RequestKeyCreationResult, RequestKeyUID, RequestKeyValue, SignedRequest, UniqueRequestKey,
-    },
     signature::{EcdsaKeyIds, SignatureReply, SignatureVerificationReply},
     updates::{PairingPayload, UpdateValueOption, UpdateValueResult},
     virtual_persona::VirtualPersonaPrincipalId,
@@ -32,10 +32,11 @@ use omnia_types::{
 use omnia_utils::ic::principal_to_account;
 
 use crate::{
+    constants::ACCESS_KEY_PRICE,
     rdf::{BotNode, HttpNode, OmniaNode, SarefNode, TdNode, UrnNode},
     utils::{
         check_balance, get_backend_principal, get_database_principal, is_valid_signature,
-        query_one_block, sha256, transfer_to,
+        query_ledger_block, sha256, transfer_to,
     },
     RDF_DB,
 };
@@ -49,7 +50,7 @@ async fn create_environment(
 
     let (virtual_persona_exists,): (bool,) = call(
         get_database_principal(),
-        "checkIfVirtualPersonaExists",
+        "check_if_virtual_persona_exists",
         (environment_manager_principal_id.clone(),),
     )
     .await
@@ -59,7 +60,7 @@ async fn create_environment(
             let (environment_creation_result,): (Result<EnvironmentCreationResult, GenericError>,) =
                 call(
                     get_database_principal(),
-                    "createNewEnvironment",
+                    "create_new_environment",
                     (
                         environment_manager_principal_id,
                         Box::new(environment_creation_input),
@@ -110,7 +111,7 @@ async fn init_gateway(nonce: IpChallengeNonce) -> GenericResult<GatewayPrincipal
 
     let is_registered = call::<(GatewayPrincipalId,), (bool,)>(
         get_database_principal(),
-        "isGatewayRegistered",
+        "is_gateway_registered",
         (gateway_principal_id.clone(),),
     )
     .await
@@ -125,7 +126,7 @@ async fn init_gateway(nonce: IpChallengeNonce) -> GenericResult<GatewayPrincipal
         let principal_id =
             call::<(IpChallengeNonce, GatewayPrincipalId), (GenericResult<GatewayPrincipalId>,)>(
                 get_database_principal(),
-                "initGatewayByIp",
+                "init_gateway_by_ip",
                 (nonce, gateway_principal_id),
             )
             .await
@@ -145,7 +146,7 @@ async fn get_initialized_gateways(
     let initialized_gateway_principals_result: GenericResult<Vec<InitializedGatewayValue>> =
         match call(
             get_database_principal(),
-            "getInitializedGatewaysByIp",
+            "get_initialized_gateways_by_ip",
             (nonce,),
         )
         .await
@@ -173,7 +174,7 @@ async fn register_gateway(
 
     let (gateway_registration_result,): (RegisteredGatewayResult,) = call(
         get_database_principal(),
-        "registerGatewayInEnvironment",
+        "register_gateway_in_environment",
         (
             nonce,
             environment_manager_principal.to_string(),
@@ -193,7 +194,7 @@ async fn get_registered_gateways(
 ) -> MultipleRegisteredGatewayResult {
     let (res,): (MultipleRegisteredGatewayResult,) = call(
         get_database_principal(),
-        "getRegisteredGatewaysInEnvironment",
+        "get_registered_gateways_in_environment",
         (environment_uid.clone(),),
     )
     .await
@@ -209,7 +210,7 @@ async fn get_gateway_updates() -> UpdateValueOption {
 
     call::<(GatewayPrincipalId,), (UpdateValueOption,)>(
         get_database_principal(),
-        "getGatewayUpdatesByPrincipal",
+        "get_gateway_updates_by_principal",
         (gateway_principal_id,),
     )
     .await
@@ -236,7 +237,7 @@ async fn pair_new_device(
         (UpdateValueResult,),
     >(
         get_database_principal(),
-        "pairNewDeviceOnGateway",
+        "pair_new_device_on_gateway",
         (
             nonce,
             manager_principal_id,
@@ -260,7 +261,7 @@ async fn register_device(
     let registered_device =
         call::<(IpChallengeNonce, GatewayPrincipalId), (RegisteredDeviceResult,)>(
             get_database_principal(),
-            "registerDeviceOnGateway",
+            "register_device_on_gateway",
             (nonce, gateway_principal_id),
         )
         .await
@@ -369,7 +370,7 @@ async fn get_registered_devices() -> RegisteredDevicesUidsResult {
 
     call::<(GatewayPrincipalId,), (RegisteredDevicesUidsResult,)>(
         get_database_principal(),
-        "getRegisteredDevicesOnGateway",
+        "get_registered_devices_on_gateway",
         (gateway_principal_id,),
     )
     .await
@@ -377,34 +378,21 @@ async fn get_registered_devices() -> RegisteredDevicesUidsResult {
     .0
 }
 
-#[update(name = "transferIcpsToPrincipal")]
-#[candid_method(update, rename = "transferIcpsToPrincipal")]
-async fn transfer_icps_to_principal(principal: Principal, amount: Tokens) -> BlockIndex {
-    check_balance(principal).await;
+#[update(name = "obtainAccessKey")]
+#[candid_method(update, rename = "obtainAccessKey")]
+async fn obtain_access_key(block_index: BlockIndex) -> GenericResult<AccessKeyUID> {
+    let ledger_block = query_ledger_block(block_index).await?;
 
-    let block_index = transfer_to(principal, amount).await;
-
-    check_balance(principal).await;
-
-    block_index
-}
-
-#[update(name = "getRequestKey")]
-#[candid_method(update, rename = "getRequestKey")]
-async fn get_request_key(block_index: BlockIndex) -> GenericResult<RequestKeyUID> {
-    let caller_principal = caller();
-    let caller_account = principal_to_account(caller_principal);
-
-    let block_opt = query_one_block(block_index).await?;
-
-    if let Some(block) = block_opt {
+    if let Some(block) = ledger_block {
         print(format!("Block at index {:?}: {:?}", block_index, block));
+
         if let Some(Operation::Transfer {
             from, to, amount, ..
         }) = block.transaction.operation
         {
+            let caller_principal = caller();
+            let caller_account = principal_to_account(caller_principal);
             let backend_account = principal_to_account(get_backend_principal());
-            let request_key_price = Tokens::from_e8s(1000000);
 
             // TODO: check if this transfer hasn't been used to pay for a request key yet
 
@@ -419,24 +407,24 @@ async fn get_request_key(block_index: BlockIndex) -> GenericResult<RequestKeyUID
                 ));
             }
             // check if the amount of the transfer is correct
-            if amount != request_key_price {
+            if amount != ACCESS_KEY_PRICE {
                 return Err(String::from(
                     "Transferred amount does not match the price of the request key",
                 ));
             }
 
-            let request_key_value = call::<(String,), (RequestKeyCreationResult,)>(
+            let access_key_value = call::<(String,), (AccessKeyCreationResult,)>(
                 get_database_principal(),
-                "createNewRequestKey",
+                "create_new_access_key",
                 (caller_principal.to_string(),),
             )
             .await
             .unwrap()
             .0?;
 
-            print(format!("Request key value: {:?}", request_key_value));
+            print(format!("Request key value: {:?}", access_key_value));
 
-            return Ok(request_key_value.get_key());
+            return Ok(access_key_value.get_key());
         }
     }
     Err(String::from("No block found"))
@@ -444,27 +432,27 @@ async fn get_request_key(block_index: BlockIndex) -> GenericResult<RequestKeyUID
 
 #[update(name = "reportSignedRequest")]
 #[candid_method(update, rename = "reportSignedRequest")]
-async fn report_signed_request(signed_request: SignedRequest) -> GenericResult<RequestKeyValue> {
+async fn report_signed_request(signed_request: SignedRequest) -> GenericResult<AccessKeyValue> {
     print(format!("Signed request: {:?}", signed_request));
 
     if !is_valid_signature(
         signed_request.get_signature(),
         format!(
             "{},{}",
-            signed_request.get_unique_request_key().get_nonce(),
-            signed_request.get_unique_request_key().get_uid()
+            signed_request.get_unique_access_key().get_nonce(),
+            signed_request.get_unique_access_key().get_uid()
         ),
         signed_request.get_requester_principal_id(),
     )
-    .await
+    .await?
     {
         return Err(String::from("Signature is not valid"));
     }
 
-    call::<(UniqueRequestKey,), (GenericResult<RequestKeyValue>,)>(
+    call::<(UniqueAccessKey,), (GenericResult<AccessKeyValue>,)>(
         get_database_principal(),
-        "spendRequestForKey",
-        (signed_request.get_unique_request_key(),),
+        "spend_request_for_key",
+        (signed_request.get_unique_access_key(),),
     )
     .await
     .unwrap()
@@ -496,7 +484,13 @@ async fn verify_message(
     message: String,
     canister_id: CanisterId,
 ) -> GenericResult<SignatureVerificationReply> {
-    let is_signature_valid = is_valid_signature(signature_hex, message, canister_id).await;
+    let is_signature_valid = is_valid_signature(signature_hex, message, canister_id).await?;
 
     Ok(SignatureVerificationReply { is_signature_valid })
+}
+
+#[query(name = "getAccessKeyPrice")]
+#[candid_method(query, rename = "getAccessKeyPrice")]
+fn get_access_key_price() -> Tokens {
+    ACCESS_KEY_PRICE
 }

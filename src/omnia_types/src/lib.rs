@@ -14,12 +14,12 @@ use std::collections::BTreeMap;
 use std::fmt::Debug;
 use virtual_persona::{VirtualPersonaIndex, VirtualPersonaPrincipalId, VirtualPersonaValue};
 
+pub mod access_key;
 pub mod device;
 pub mod environment;
 pub mod errors;
 pub mod gateway;
 pub mod http;
-pub mod request_key;
 pub mod signature;
 pub mod updates;
 pub mod virtual_persona;

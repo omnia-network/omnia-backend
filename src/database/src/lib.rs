@@ -1,6 +1,7 @@
 use candid::{candid_method, CandidType, Deserialize, Principal};
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{init, post_upgrade, pre_upgrade};
+use omnia_types::access_key::{AccessKeyIndex, AccessKeyValue};
 use omnia_types::device::{RegisteredDeviceIndex, RegisteredDeviceValue};
 use omnia_types::environment::{
     EnvironmentIndex, EnvironmentUidIndex, EnvironmentUidValue, EnvironmentValue,
@@ -10,7 +11,6 @@ use omnia_types::gateway::{
     RegisteredGatewayValue,
 };
 use omnia_types::http::{IpChallengeIndex, IpChallengeValue};
-use omnia_types::request_key::{RequestKeyIndex, RequestKeyValue};
 use omnia_types::updates::{UpdateIndex, UpdateValue};
 use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValue};
 use omnia_types::CrudMap;
@@ -19,9 +19,9 @@ use serde::Serialize;
 use std::{cell::RefCell, ops::Deref};
 use utils::update_omnia_backend_principal;
 
+mod access_key;
 mod auth;
 mod environment;
-mod request_key;
 mod utils;
 mod virtual_persona;
 
@@ -35,7 +35,7 @@ struct State {
     pub initialized_gateways: CrudMap<InitializedGatewayIndex, InitializedGatewayValue>,
     pub updates: CrudMap<UpdateIndex, UpdateValue>,
     pub registered_devices: CrudMap<RegisteredDeviceIndex, RegisteredDeviceValue>,
-    pub valid_request_keys: CrudMap<RequestKeyIndex, RequestKeyValue>,
+    pub valid_access_keys: CrudMap<AccessKeyIndex, AccessKeyValue>,
     pub omnia_backend_principal: Option<Principal>,
 }
 
@@ -50,7 +50,7 @@ impl State {
             initialized_gateways: CrudMap::default(),
             updates: CrudMap::default(),
             registered_devices: CrudMap::default(),
-            valid_request_keys: CrudMap::default(),
+            valid_access_keys: CrudMap::default(),
             omnia_backend_principal: None,
         }
     }
@@ -104,12 +104,12 @@ mod tests {
     use std::env;
 
     use super::*;
+    use omnia_types::access_key::*;
     use omnia_types::device::*;
     use omnia_types::environment::*;
     use omnia_types::errors::*;
     use omnia_types::gateway::*;
     use omnia_types::http::*;
-    use omnia_types::request_key::*;
     use omnia_types::updates::*;
     use omnia_types::virtual_persona::*;
 

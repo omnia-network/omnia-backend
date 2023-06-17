@@ -6,35 +6,35 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::GenericResult;
 
-pub type RequestKeyUID = String;
+pub type AccessKeyUID = String;
 
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq)]
-pub struct RequestKeyIndex {
-    pub request_key_uid: RequestKeyUID,
+pub struct AccessKeyIndex {
+    pub access_key_uid: AccessKeyUID,
 }
 
-impl Ord for RequestKeyIndex {
+impl Ord for AccessKeyIndex {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.request_key_uid.cmp(&other.request_key_uid)
+        self.access_key_uid.cmp(&other.access_key_uid)
     }
 }
 
-impl PartialOrd for RequestKeyIndex {
+impl PartialOrd for AccessKeyIndex {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 #[derive(Default, Debug, Clone, CandidType, Deserialize, Serialize)]
-pub struct RequestKeyValue {
-    key: RequestKeyUID,
+pub struct AccessKeyValue {
+    key: AccessKeyUID,
     owner: String,
     counter: u128,
     used_nonces: Vec<u128>,
 }
 
-impl RequestKeyValue {
-    pub fn new(key: RequestKeyUID, owner: String) -> Self {
+impl AccessKeyValue {
+    pub fn new(key: AccessKeyUID, owner: String) -> Self {
         Self {
             key,
             owner,
@@ -59,12 +59,12 @@ impl RequestKeyValue {
     }
 }
 
-pub type RequestKeyCreationResult = GenericResult<RequestKeyValue>;
+pub type AccessKeyCreationResult = GenericResult<AccessKeyValue>;
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct SignedRequest {
     signature_hex: String,
-    unique_request_key: UniqueRequestKey,
+    unique_access_key: UniqueAccessKey,
     requester_canister_id: CanisterId,
 }
 
@@ -73,8 +73,8 @@ impl SignedRequest {
         self.signature_hex.clone()
     }
 
-    pub fn get_unique_request_key(&self) -> UniqueRequestKey {
-        self.unique_request_key.clone()
+    pub fn get_unique_access_key(&self) -> UniqueAccessKey {
+        self.unique_access_key.clone()
     }
 
     pub fn get_requester_principal_id(&self) -> CanisterId {
@@ -83,17 +83,17 @@ impl SignedRequest {
 }
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
-pub struct UniqueRequestKey {
+pub struct UniqueAccessKey {
     nonce: u128,
-    uid: RequestKeyUID,
+    uid: AccessKeyUID,
 }
 
-impl UniqueRequestKey {
+impl UniqueAccessKey {
     pub fn get_nonce(&self) -> u128 {
         self.nonce
     }
 
-    pub fn get_uid(&self) -> RequestKeyUID {
+    pub fn get_uid(&self) -> AccessKeyUID {
         self.uid.clone()
     }
 }

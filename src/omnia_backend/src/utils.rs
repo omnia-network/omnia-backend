@@ -57,6 +57,12 @@ pub fn update_database_principal(database_principal_id: String) {
     });
 }
 
+pub fn get_ledger_principal() -> Principal {
+    STATE
+        .with(|state| state.borrow().ledger_principal)
+        .expect("No Ledger canister principal")
+}
+
 pub fn update_ledger_principal(ledger_canister_principal_id: String) {
     print(format!(
         "Ledger canister Principal ID: {:?}",
@@ -92,10 +98,8 @@ pub async fn check_balance(principal: Principal) -> Tokens {
     balance
 }
 
-pub async fn transfer_to(principal: Principal, amount: Tokens) -> BlockIndex {
-    let ledger_principal = STATE
-        .with(|state| state.borrow().ledger_principal)
-        .expect("should have provided ledger principal id");
+pub async fn transfer_to(principal: Principal, amount: Tokens) -> GenericResult<BlockIndex> {
+    let ledger_principal = get_ledger_principal();
 
     let block_index = transfer(
         ledger_principal,
@@ -111,8 +115,8 @@ pub async fn transfer_to(principal: Principal, amount: Tokens) -> BlockIndex {
         },
     )
     .await
-    .expect("call to ledger failed")
-    .expect("error while transfering funds");
+    .map_err(|e| format!("call to ledger failed: {:?}", e))?
+    .map_err(|e| format!("transfer failed: {:?}", e))?;
 
     print(format!(
         "Created block with index: {:?}, transferred: {:?} to principal ID: {:?}",
@@ -121,13 +125,11 @@ pub async fn transfer_to(principal: Principal, amount: Tokens) -> BlockIndex {
         principal.to_string()
     ));
 
-    block_index
+    Ok(block_index)
 }
 
-pub async fn query_one_block(block_index: BlockIndex) -> GenericResult<Option<Block>> {
-    let ledger_principal = STATE
-        .with(|state| state.borrow().ledger_principal)
-        .expect("should have provided ledger principal id");
+pub async fn query_ledger_block(block_index: BlockIndex) -> GenericResult<Option<Block>> {
+    let ledger_principal = get_ledger_principal();
 
     let args = GetBlocksArgs {
         start: block_index,
@@ -135,8 +137,7 @@ pub async fn query_one_block(block_index: BlockIndex) -> GenericResult<Option<Bl
     };
 
     if let Ok(blocks_result) = query_blocks(ledger_principal, args.clone()).await {
-        if !blocks_result.blocks.is_empty() {
-            debug_assert_eq!(blocks_result.first_block_index, block_index);
+        if !blocks_result.blocks.is_empty() && blocks_result.first_block_index == block_index {
             return Ok(blocks_result.blocks.into_iter().next());
         }
 
@@ -149,6 +150,7 @@ pub async fn query_one_block(block_index: BlockIndex) -> GenericResult<Option<Bl
         }
         return Ok(None);
     }
+
     Err(String::from("Query block failed"))
 }
 
@@ -163,23 +165,39 @@ pub async fn is_valid_signature(
     signature_hex: String,
     message: String,
     canister_id: CanisterId,
-) -> bool {
+) -> GenericResult<bool> {
     let public_key_hex = hex::encode(
         get_canister_public_key(canister_id)
             .await
-            .expect("valid principal")
+            .map_err(|e| format!("failed to get canister public key: {:?}", e))?
             .public_key,
     );
-    let signature_bytes = hex::decode(&signature_hex).expect("failed to hex-decode signature");
-    let pubkey_bytes = hex::decode(public_key_hex).expect("failed to hex-decode public key");
+    let signature_bytes = hex::decode(&signature_hex).map_err(|e| {
+        format!(
+            "failed to hex-decode signature: {:?} (signature_hex: {:?})",
+            e, signature_hex
+        )
+    })?;
+    let pubkey_bytes = hex::decode(&public_key_hex).map_err(|e| {
+        format!(
+            "failed to hex-decode public key: {:?} (public_key_hex: {:?})",
+            e, public_key_hex
+        )
+    })?;
     let message_bytes = message.as_bytes();
 
     let signature = k256::ecdsa::Signature::try_from(signature_bytes.as_slice())
         .expect("failed to deserialize signature");
     k256::ecdsa::VerifyingKey::from_sec1_bytes(&pubkey_bytes)
-        .expect("failed to deserialize sec1 encoding into public key")
+        .map_err(|e| {
+            format!(
+                "failed to deserialize sec1 encoding into public key: {:?}",
+                e
+            )
+        })?
         .verify(message_bytes, &signature)
-        .is_ok()
+        .map(|_| true)
+        .map_err(|e| format!("Signature is invalid: {:?}", e))
 }
 
 pub async fn get_canister_public_key(
