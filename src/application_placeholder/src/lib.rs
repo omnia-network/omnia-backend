@@ -44,10 +44,7 @@ async fn obtain_access_key(
 #[update]
 #[candid_method(update)]
 async fn sign_access_key(access_key: AccessKeyUID) -> GenericResult<SignatureReply> {
-    let unique_access_key = UniqueAccessKey {
-        nonce: generate_nonce(),
-        uid: access_key.clone(),
-    };
+    let unique_access_key = UniqueAccessKey::new(generate_nonce(), access_key.clone());
 
     let request = SignWithEcdsaArgument {
         message_hash: unique_access_key.generate_hash().to_vec(),

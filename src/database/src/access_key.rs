@@ -18,10 +18,7 @@ fn create_new_access_key(args: AccessKeyCreationArgs) -> AccessKeyCreationResult
     caller_is_omnia_backend();
 
     STATE.with(|state| {
-        print(format!(
-            "Requested new access key, args: {:?}",
-            args
-        ));
+        print(format!("Requested new access key, args: {:?}", args));
 
         // check if there's alreay an access key with the same transaction hash
         if state
@@ -38,10 +35,7 @@ fn create_new_access_key(args: AccessKeyCreationArgs) -> AccessKeyCreationResult
         // TODO: generate an access key that is not a UUIDv4
         let access_key_uid = Uuid::new_v4().simple().to_string();
 
-        print(format!(
-            "Creating new access key: {:?}",
-            access_key_uid
-        ));
+        print(format!("Creating new access key: {:?}", access_key_uid));
 
         let access_key_index = AccessKeyIndex {
             access_key_uid: access_key_uid.clone(),
@@ -66,27 +60,29 @@ fn spend_request_for_key(unique_access_key: UniqueAccessKey) -> GenericResult<Ac
 
     STATE.with(|state| {
         let access_key_index = AccessKeyIndex {
-            access_key_uid: unique_access_key.get_uid(),
+            access_key_uid: unique_access_key.get_key(),
         };
 
-        let access_key_value = state
+        let mut access_key_value = state
             .borrow()
             .valid_access_keys
             .read(&access_key_index)?
             .clone();
 
-        if access_key_value.is_used_nonce(unique_access_key.get_nonce()) {
+        let nonce = unique_access_key.get_nonce();
+
+        if access_key_value.is_used_nonce(nonce) {
             // TODO: disqualify access key
             return Err(String::from("Nonce has already been used"));
         }
 
-        let updated_access_key_value = access_key_value.increment_counter();
+        access_key_value.spend_nonce(nonce);
 
         state
             .borrow_mut()
             .valid_access_keys
-            .update(access_key_index, updated_access_key_value.clone())?;
+            .update(access_key_index, access_key_value.clone())?;
 
-        Ok(updated_access_key_value)
+        Ok(access_key_value)
     })
 }

@@ -455,3 +455,10 @@ async fn report_signed_request(signed_request: SignedRequest) -> GenericResult<A
 fn get_access_key_price() -> Tokens {
     ACCESS_KEY_PRICE
 }
+
+#[update(name = "getAccessKeyPriceAsUpdate")]
+#[candid_method(update, rename = "getAccessKeyPriceAsUpdate")]
+/// Needed for inter-canister calls
+fn get_access_key_price_as_update() -> Tokens {
+    ACCESS_KEY_PRICE
+}

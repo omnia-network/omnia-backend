@@ -53,7 +53,7 @@ type Result_8 = variant {
   Err : text;
 };
 type Result_9 = variant { Ok : RegisteredGatewayValue; Err : text };
-type UniqueAccessKey = record { uid : text; nonce : nat };
+type UniqueAccessKey = record { key : text; nonce : nat };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;

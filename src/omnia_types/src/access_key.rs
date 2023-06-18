@@ -59,19 +59,17 @@ impl AccessKeyValue {
         }
     }
 
-    pub fn increment_counter(self) -> Self {
-        Self {
-            counter: self.counter + 1,
-            ..self
-        }
-    }
-
     pub fn get_key(self) -> String {
         self.key
     }
 
     pub fn is_used_nonce(&self, nonce: u128) -> bool {
         self.used_nonces.contains(&nonce)
+    }
+
+    pub fn spend_nonce(&mut self, nonce: u128) {
+        self.used_nonces.push(nonce);
+        self.counter += 1;
     }
 }
 
@@ -108,17 +106,21 @@ impl SignedRequest {
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct UniqueAccessKey {
-    pub nonce: u128,
-    pub uid: AccessKeyUID,
+    nonce: u128,
+    key: AccessKeyUID,
 }
 
 impl UniqueAccessKey {
+    pub fn new(nonce: u128, key: AccessKeyUID) -> Self {
+        Self { nonce, key }
+    }
+
     pub fn get_nonce(&self) -> u128 {
         self.nonce
     }
 
-    pub fn get_uid(&self) -> AccessKeyUID {
-        self.uid.clone()
+    pub fn get_key(&self) -> AccessKeyUID {
+        self.key.clone()
     }
 
     /// Serialize the UniqueAccessKey to a string

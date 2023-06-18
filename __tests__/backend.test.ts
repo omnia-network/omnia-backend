@@ -408,6 +408,18 @@ describe("Application", () => {
     expect(parseSparqlQueryResult(executeRdfQuery.data as Uint8Array)).toMatchObject(getExpectedDeviceAffordancesObject());
   });
 
+  it("Access key price can be obtained from the Backend", async () => {
+    const application1Actor = await application1.getActor();
+    const fetchedAccessKeyPrice = await application1Actor.getAccessKeyPrice();
+
+    expect(fetchedAccessKeyPrice.e8s).toEqual(ACCESS_KEY_PRICE);
+
+    // test also the same method as update
+    const fetchedAccessKeyPriceAsUpdate = await application1Actor.getAccessKeyPriceAsUpdate();
+
+    expect(fetchedAccessKeyPriceAsUpdate.e8s).toEqual(ACCESS_KEY_PRICE);
+  });
+
   it("Application can send a payment to the Backend and obtain an access key", async () => {
     const applicationPlaceholderActor = applicationApi.getActor();
     const transferResult = await applicationApi.parseResult(
@@ -464,7 +476,7 @@ describe("Application", () => {
     applicationSignedAccessKey = signedAccessKey.data!;
   });
 
-  // here we assume the application sends a request to the gateway, following the specification
+  // here we assume the Application sends a request to the Gateway
 
   it("Gateway can verify the Application access key", async () => {
     const gateway1Actor = await gateway1.getActor();
@@ -526,5 +538,24 @@ describe("Application", () => {
 
     expect(wrongRequesterCanisterIdResult.error).toEqual("Signature is invalid: signature::Error { source: None }");
     expect(wrongRequesterCanisterIdResult.data).toBeNull();
+  });
+
+  // here we assume the Application (or whoever else) sends another request to the Gateway
+  // with the same access key
+
+  it("Application cannot use the same signed access key twice", async () => {
+    const gateway1Actor = await gateway1.getActor();
+    const reportAccessKeyResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequest(
+        {
+          signature_hex: applicationSignedAccessKey.signature_hex,
+          unique_access_key: applicationSignedAccessKey.unique_access_key,
+          requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+        }
+      )
+    );
+
+    expect(reportAccessKeyResult.error).toEqual("Nonce has already been used");
+    expect(reportAccessKeyResult.data).toBeNull();
   });
 });

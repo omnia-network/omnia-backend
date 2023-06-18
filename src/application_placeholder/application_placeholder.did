@@ -6,7 +6,7 @@ type SignatureReply = record {
   signature_hex : text;
 };
 type Tokens = record { e8s : nat64 };
-type UniqueAccessKey = record { uid : text; nonce : nat };
+type UniqueAccessKey = record { key : text; nonce : nat };
 service : {
   obtain_access_key : (principal, nat64) -> (Result);
   sign_access_key : (text) -> (Result_1);

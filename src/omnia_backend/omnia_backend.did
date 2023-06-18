@@ -65,7 +65,7 @@ type SignedRequest = record {
   signature_hex : text;
 };
 type Tokens = record { e8s : nat64 };
-type UniqueAccessKey = record { uid : text; nonce : nat };
+type UniqueAccessKey = record { key : text; nonce : nat };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;
@@ -83,6 +83,7 @@ service : (text, text, text) -> {
   executeRdfDbQuery : (text) -> (Result_1) query;
   executeRdfDbQueryAsUpdate : (text) -> (Result_1);
   getAccessKeyPrice : () -> (Tokens) query;
+  getAccessKeyPriceAsUpdate : () -> (Tokens);
   getGatewayUpdates : () -> (opt UpdateValue);
   getInitializedGateways : (text) -> (Result_2);
   getProfile : (text) -> (Result_3);

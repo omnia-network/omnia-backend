@@ -49,6 +49,8 @@ if [ "$LEDGER_CANISTER_ID" = "" ]; then
   # then set the interface to public did
   npx json -I -f dfx.json -e 'this.canisters.ledger.candid = "icp-ledger/ledger.public.did"'
 
+  # add the ledger canister id to the .env file
+  echo -e "\n\nLEDGER_CANISTER_ID='$LEDGER_CANISTER_ID'" >> .env
 fi
 
 echo "Deploying canisters..."
