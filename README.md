@@ -69,8 +69,10 @@ We use [Jest](https://jestjs.io/) to run integration tests. All tests are in the
 
 To run tests, first deploy the canisters (see above for details):
 ```bash
-npm run deploy
+npm run deploy:tests
 ```
+
+This command will deploy also the `application_placeholder` canister, which is used to test some features, like signing access keys, that require the local replica runtime. See [application_placeholder](./src/application_placeholder/) for the source code.
 
 and then run:
 ```bash

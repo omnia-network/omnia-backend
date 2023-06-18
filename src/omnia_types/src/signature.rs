@@ -2,6 +2,8 @@ use candid::CandidType;
 use ic_cdk::api::management_canister::ecdsa::{EcdsaCurve, EcdsaKeyId};
 use serde::Serialize;
 
+use crate::access_key::UniqueAccessKey;
+
 #[derive(CandidType, Serialize, Debug)]
 pub struct PublicKeyReply {
     pub public_key_hex: String,
@@ -10,6 +12,7 @@ pub struct PublicKeyReply {
 #[derive(CandidType, Serialize, Debug)]
 pub struct SignatureReply {
     pub signature_hex: String,
+    pub unique_access_key: UniqueAccessKey,
 }
 
 #[derive(CandidType, Serialize, Debug)]

@@ -1,7 +1,12 @@
+type AccessKeyCreationArgs = record {
+  transaction_hash : vec nat8;
+  owner : principal;
+};
 type AccessKeyValue = record {
   key : text;
+  transaction_hash : vec nat8;
   counter : nat;
-  owner : text;
+  owner : principal;
   used_nonces : vec nat;
 };
 type EnvironmentCreationInput = record { env_name : text };
@@ -63,7 +68,7 @@ type VirtualPersonaValue = record {
 };
 service : (text, text, text) -> {
   check_if_virtual_persona_exists : (text) -> (bool) query;
-  create_new_access_key : (text) -> (Result);
+  create_new_access_key : (AccessKeyCreationArgs) -> (Result);
   create_new_environment : (text, EnvironmentCreationInput) -> (Result_1);
   get_gateway_updates_by_principal : (text) -> (opt UpdateValue);
   get_initialized_gateways_by_ip : (text) -> (Result_2);

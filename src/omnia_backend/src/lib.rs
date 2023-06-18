@@ -126,7 +126,6 @@ mod tests {
     use candid::export_service;
     use std::env;
 
-    use ic_cdk::api::management_canister::provisional::CanisterId;
     use ic_ledger_types::*;
     use omnia_types::access_key::*;
     use omnia_types::device::*;
@@ -134,7 +133,6 @@ mod tests {
     use omnia_types::errors::*;
     use omnia_types::gateway::*;
     use omnia_types::http::*;
-    use omnia_types::signature::*;
     use omnia_types::updates::*;
     use omnia_types::virtual_persona::*;
 

@@ -1,6 +1,6 @@
 use candid::candid_method;
 use ic_cdk::{
-    api::{call::call, caller, management_canister::provisional::CanisterId},
+    api::{call::call, caller},
     print, trap,
 };
 use ic_cdk_macros::{query, update};
@@ -19,7 +19,6 @@ use omnia_types::{
         MultipleRegisteredGatewayResult, RegisteredGatewayResult,
     },
     http::IpChallengeNonce,
-    signature::SignatureVerificationReply,
     updates::{PairingPayload, UpdateValueOption, UpdateValueResult},
     virtual_persona::VirtualPersonaPrincipalId,
 };
@@ -433,11 +432,7 @@ async fn report_signed_request(signed_request: SignedRequest) -> GenericResult<A
 
     if !is_valid_signature(
         signed_request.get_signature(),
-        format!(
-            "{},{}",
-            signed_request.get_unique_access_key().get_nonce(),
-            signed_request.get_unique_access_key().get_uid()
-        ),
+        signed_request.get_unique_access_key().serialize(),
         signed_request.get_requester_principal_id(),
     )
     .await?
@@ -453,18 +448,6 @@ async fn report_signed_request(signed_request: SignedRequest) -> GenericResult<A
     .await
     .unwrap()
     .0
-}
-
-#[query(name = "verifyMessage")]
-#[candid_method(query, rename = "verifyMessage")]
-async fn verify_message(
-    signature_hex: String,
-    message: String,
-    canister_id: CanisterId,
-) -> GenericResult<SignatureVerificationReply> {
-    let is_signature_valid = is_valid_signature(signature_hex, message, canister_id).await?;
-
-    Ok(SignatureVerificationReply { is_signature_valid })
 }
 
 #[query(name = "getAccessKeyPrice")]

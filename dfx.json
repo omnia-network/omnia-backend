@@ -27,6 +27,21 @@
           "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai"
         }
       }
+    },
+    "application_placeholder": {
+      "candid": "src/application_placeholder/application_placeholder.did",
+      "package": "application_placeholder",
+      "type": "rust",
+      "dependencies": [
+        "database",
+        "omnia_backend"
+      ],
+      "__0": "Here, the remote canister id of the ledger is only used to avoid deploying the application_placeholder canister to the IC.",
+      "remote": {
+        "id": {
+          "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai"
+        }
+      }
     }
   },
   "defaults": {

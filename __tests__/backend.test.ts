@@ -3,6 +3,7 @@ import {
   application1,
   application1Data,
   application1Ledger,
+  applicationApi,
   gateway1,
   gateway1Data,
   manager1,
@@ -12,16 +13,18 @@ import {
 } from "./utils/actors";
 import { mintTokensForAccount } from "./utils/cli";
 import { ACCESS_KEY_PRICE, DEVICE_AFFORDANCES, DEVICE_AFFORDANCE_VALUE_TUPLE, DEVICE_PAIRING_PAYLOAD, ENVIRONMENT_NAME, GATEWAY1_NAME, LONG_TEST_TIMEOUT, OMNIA_PROXY_HOST } from "./utils/constants";
-import { getAccountIdentifier } from "./utils/identity";
-import { OMNIA_BACKEND_CANISTER_ID } from "./utils/omniaApi/canisterEnv";
+import { getAccountIdentifierFromIdentity, getAccountIdentifierFromPrincipal } from "./utils/identity";
+import { APPLICATION_PLACEHOLDER_CANISTER_ID, LEDGER_CANISTER_ID, OMNIA_BACKEND_CANISTER_ID } from "./utils/omniaApi/canisterEnv";
 import { PREFIXES, parseSparqlQueryResult, sparqlClient } from "./utils/sparql-client";
 import { Principal } from "@dfinity/principal";
+import { SignatureReply } from "../src/declarations/application_placeholder/application_placeholder.did";
 
 let environmentUid: string;
 let deviceUid: string;
 
 let applicationPaymentBlockIndex: bigint;
 let applicationAccessKey: string;
+let applicationSignedAccessKey: SignatureReply;
 
 // every test takes a long time
 jest.setTimeout(LONG_TEST_TIMEOUT);
@@ -232,196 +235,201 @@ describe("Gateway", () => {
   });
 });
 
-describe.only("Application", () => {
+describe("Application", () => {
   // prepare the Application in order to have funds to send payments
   beforeAll(async () => {
-    const application1AccountIdentifier = await getAccountIdentifier(application1Data.identity);
-
     await mintTokensForAccount(
-      application1AccountIdentifier,
+      getAccountIdentifierFromPrincipal(APPLICATION_PLACEHOLDER_CANISTER_ID),
       10,
     );
   });
 
-  // it("Application can retrieve the devices in the environment", async () => {
-  //   // first, we try a query with a non-existent affordance
-  //   const failingQuery = await sparqlClient.query.select(
-  //     `${PREFIXES}
-  //     SELECT ?device WHERE {
-  //       urn:uuid:non-existing-environment bot:hasElement ?device .
-  //     }
-  //     `,
-  //     {
-  //       operation: "postDirect",
-  //     }
-  //   );
+  it("Application can retrieve the devices in the environment", async () => {
+    // first, we try a query with a non-existent affordance
+    const failingQuery = await sparqlClient.query.select(
+      `${PREFIXES}
+      SELECT ?device WHERE {
+        urn:uuid:non-existing-environment bot:hasElement ?device .
+      }
+      `,
+      {
+        operation: "postDirect",
+      }
+    );
 
-  //   const failingResponse = await failingQuery.json();
+    const failingResponse = await failingQuery.json();
 
-  //   expect(failingQuery.status).toEqual(200);
-  //   expect(failingResponse).toMatchObject({
-  //     head: {
-  //       vars: [
-  //         "device",
-  //       ],
-  //     },
-  //     results: {
-  //       bindings: [],
-  //     },
-  //   });
-
-  //   const response = await sparqlClient.query.select(
-  //     `${PREFIXES}
-  //     SELECT ?device WHERE {
-  //       urn:uuid:${environmentUid} bot:hasElement ?device .
-  //     }
-  //     `,
-  //     {
-  //       operation: "postDirect",
-  //     }
-  //   );
-
-  //   expect(response.status).toEqual(200);
-  //   expect(await response.json()).toMatchObject({
-  //     head: {
-  //       vars: [
-  //         "device",
-  //       ],
-  //     },
-  //     results: {
-  //       bindings: [
-  //         {
-  //           device: {
-  //             type: "uri",
-  //             value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
-  //           },
-  //         },
-  //       ],
-  //     },
-  //   });
-  // });
-
-  // const deviceAffordancesSparqlQuery = `${PREFIXES}
-  //   SELECT ?device ?headerName ?headerValue WHERE {
-  //     ?device ${DEVICE_AFFORDANCE_VALUE_TUPLE[0]} ${DEVICE_AFFORDANCE_VALUE_TUPLE[1]} .
-  //     ?device omnia:requiresHeader ?header .
-  //     ?header http:fieldName ?headerName ;
-  //             http:fieldValue ?headerValue .
-  //   }
-  //   `;
-
-  // // we need a function to get the expected object, because the device UID is generated
-  // const getExpectedDeviceAffordancesObject = () => ({
-  //   head: {
-  //     vars: [
-  //       "device",
-  //       "headerName",
-  //       "headerValue",
-  //     ],
-  //   },
-  //   results: {
-  //     bindings: [
-  //       {
-  //         device: {
-  //           type: "uri",
-  //           value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
-  //         },
-  //         headerName: {
-  //           type: "literal",
-  //           value: "X-Forward-To-Port",
-  //         },
-  //         headerValue: {
-  //           type: "literal",
-  //           value: "8888",
-  //         },
-  //       },
-  //       {
-  //         device: {
-  //           type: "uri",
-  //           value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
-  //         },
-  //         headerName: {
-  //           type: "literal",
-  //           value: "X-Forward-To-Peer",
-  //         },
-  //         headerValue: {
-  //           type: "literal",
-  //           value: gateway1Data.proxyData.peerId,
-  //         },
-  //       },
-  //     ],
-  //   },
-  // });
-
-  // it("Application can retrieve the devices by affordances", async () => {
-  //   // first, we try a query with a non-existent affordance
-  //   const failingQuery = await sparqlClient.query.select(
-  //     `${PREFIXES}
-  //     SELECT ?device WHERE {
-  //       ?device td:hasPropertyAffordance saref:NonExistingState .
-  //     }
-  //     `,
-  //     {
-  //       operation: "postDirect",
-  //     }
-  //   );
-
-  //   expect(failingQuery.status).toEqual(200);
-  //   expect(await failingQuery.json()).toMatchObject({
-  //     head: {
-  //       vars: [
-  //         "device",
-  //       ],
-  //     },
-  //     results: {
-  //       bindings: [],
-  //     },
-  //   });
-
-  //   // then, we try a query with an existing affordance
-  //   const response = await sparqlClient.query.select(
-  //     deviceAffordancesSparqlQuery,
-  //     {
-  //       operation: "postDirect",
-  //     }
-  //   );
-
-  //   expect(response.status).toEqual(200);
-  //   expect(await response.json()).toMatchObject(getExpectedDeviceAffordancesObject());
-  // });
-
-  // it("Application can retrieve the devices by affordances (candid methods)", async () => {
-  //   // same query as the previous test, but using the candid methods
-  //   const application1Actor = await application1.getActor();
-
-  //   const executeRdfQuery = await application1.parseResult(
-  //     application1Actor.executeRdfDbQuery(deviceAffordancesSparqlQuery)
-  //   );
-  //   expect(executeRdfQuery.error).toBeNull();
-  //   expect(parseSparqlQueryResult(executeRdfQuery.data as Uint8Array)).toMatchObject(getExpectedDeviceAffordancesObject());
-
-  //   const executeRdfQueryAsUpdate = await application1.parseResult(
-  //     application1Actor.executeRdfDbQueryAsUpdate(deviceAffordancesSparqlQuery)
-  //   );
-  //   expect(executeRdfQueryAsUpdate.error).toBeNull();
-  //   expect(parseSparqlQueryResult(executeRdfQuery.data as Uint8Array)).toMatchObject(getExpectedDeviceAffordancesObject());
-  // });
-
-  it("Application can send a payment to the Backend and obtain an access key", async () => {
-    applicationPaymentBlockIndex = await application1Ledger.transfer({
-      amount: ACCESS_KEY_PRICE,
-      to: {
-        owner: Principal.from(OMNIA_BACKEND_CANISTER_ID),
-        subaccount: [],
+    expect(failingQuery.status).toEqual(200);
+    expect(failingResponse).toMatchObject({
+      head: {
+        vars: [
+          "device",
+        ],
+      },
+      results: {
+        bindings: [],
       },
     });
 
-    console.log(applicationPaymentBlockIndex);
-
-    const application1Actor = await application1.getActor();
-    const accessKey = await application1.parseResult(
-      application1Actor.obtainAccessKey(applicationPaymentBlockIndex)
+    const response = await sparqlClient.query.select(
+      `${PREFIXES}
+      SELECT ?device WHERE {
+        urn:uuid:${environmentUid} bot:hasElement ?device .
+      }
+      `,
+      {
+        operation: "postDirect",
+      }
     );
+
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchObject({
+      head: {
+        vars: [
+          "device",
+        ],
+      },
+      results: {
+        bindings: [
+          {
+            device: {
+              type: "uri",
+              value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
+            },
+          },
+        ],
+      },
+    });
+  });
+
+  const deviceAffordancesSparqlQuery = `${PREFIXES}
+    SELECT ?device ?headerName ?headerValue WHERE {
+      ?device ${DEVICE_AFFORDANCE_VALUE_TUPLE[0]} ${DEVICE_AFFORDANCE_VALUE_TUPLE[1]} .
+      ?device omnia:requiresHeader ?header .
+      ?header http:fieldName ?headerName ;
+              http:fieldValue ?headerValue .
+    }
+    `;
+
+  // we need a function to get the expected object, because the device UID is generated
+  const getExpectedDeviceAffordancesObject = () => ({
+    head: {
+      vars: [
+        "device",
+        "headerName",
+        "headerValue",
+      ],
+    },
+    results: {
+      bindings: [
+        {
+          device: {
+            type: "uri",
+            value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
+          },
+          headerName: {
+            type: "literal",
+            value: "X-Forward-To-Port",
+          },
+          headerValue: {
+            type: "literal",
+            value: "8080",
+          },
+        },
+        {
+          device: {
+            type: "uri",
+            value: `https://${OMNIA_PROXY_HOST}/${deviceUid}`,
+          },
+          headerName: {
+            type: "literal",
+            value: "X-Forward-To-Peer",
+          },
+          headerValue: {
+            type: "literal",
+            value: gateway1Data.proxyData.peerId,
+          },
+        },
+      ],
+    },
+  });
+
+  it("Application can retrieve the devices by affordances", async () => {
+    // first, we try a query with a non-existent affordance
+    const failingQuery = await sparqlClient.query.select(
+      `${PREFIXES}
+      SELECT ?device WHERE {
+        ?device td:hasPropertyAffordance saref:NonExistingState .
+      }
+      `,
+      {
+        operation: "postDirect",
+      }
+    );
+
+    expect(failingQuery.status).toEqual(200);
+    expect(await failingQuery.json()).toMatchObject({
+      head: {
+        vars: [
+          "device",
+        ],
+      },
+      results: {
+        bindings: [],
+      },
+    });
+
+    // then, we try a query with an existing affordance
+    const response = await sparqlClient.query.select(
+      deviceAffordancesSparqlQuery,
+      {
+        operation: "postDirect",
+      }
+    );
+
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toMatchObject(getExpectedDeviceAffordancesObject());
+  });
+
+  it("Application can retrieve the devices by affordances (candid methods)", async () => {
+    // same query as the previous test, but using the candid methods
+    const application1Actor = await application1.getActor();
+
+    const executeRdfQuery = await application1.parseResult(
+      application1Actor.executeRdfDbQuery(deviceAffordancesSparqlQuery)
+    );
+    expect(executeRdfQuery.error).toBeNull();
+    expect(parseSparqlQueryResult(executeRdfQuery.data as Uint8Array)).toMatchObject(getExpectedDeviceAffordancesObject());
+
+    const executeRdfQueryAsUpdate = await application1.parseResult(
+      application1Actor.executeRdfDbQueryAsUpdate(deviceAffordancesSparqlQuery)
+    );
+    expect(executeRdfQueryAsUpdate.error).toBeNull();
+    expect(parseSparqlQueryResult(executeRdfQuery.data as Uint8Array)).toMatchObject(getExpectedDeviceAffordancesObject());
+  });
+
+  it("Application can send a payment to the Backend and obtain an access key", async () => {
+    const applicationPlaceholderActor = applicationApi.getActor();
+    const transferResult = await applicationApi.parseResult(
+      applicationPlaceholderActor.transfer_tokens_to_backend(
+        Principal.from(LEDGER_CANISTER_ID),
+        Principal.from(OMNIA_BACKEND_CANISTER_ID),
+        {
+          e8s: ACCESS_KEY_PRICE,
+        },
+      )
+    );
+
+    expect(transferResult.error).toBeNull();
+    expect(transferResult.data).toBeTruthy();
+
+    applicationPaymentBlockIndex = transferResult.data!;
+
+    const accessKey = await applicationApi.parseResult(
+      applicationPlaceholderActor.obtain_access_key(
+        Principal.from(OMNIA_BACKEND_CANISTER_ID),
+        applicationPaymentBlockIndex,
+      ));
 
     expect(accessKey.error).toBeNull();
     expect(accessKey.data).toBeTruthy();
@@ -430,17 +438,93 @@ describe.only("Application", () => {
   });
 
   it("Application cannot obtain a new access key with the same block index", async () => {
-    console.log("applicationPaymentBlockIndex", applicationPaymentBlockIndex);
-    const application1Actor = await application1.getActor();
-    const accessKey = await application1.parseResult(
-      application1Actor.obtainAccessKey(applicationPaymentBlockIndex)
+    const applicationPlaceholderActor = applicationApi.getActor();
+    const accessKey = await applicationApi.parseResult(
+      applicationPlaceholderActor.obtain_access_key(
+        Principal.from(OMNIA_BACKEND_CANISTER_ID),
+        applicationPaymentBlockIndex,
+      )
     );
 
     expect(accessKey.error).toEqual("Access key with the same transaction hash already exists");
     expect(accessKey.data).toBeNull();
   });
 
+  it("Application can sign the access key", async () => {
+    const applicationPlaceholderActor = applicationApi.getActor();
+    const signedAccessKey = await applicationApi.parseResult(
+      applicationPlaceholderActor.sign_access_key(
+        applicationAccessKey,
+      )
+    );
+
+    expect(signedAccessKey.error).toBeNull();
+    expect(signedAccessKey.data).toBeTruthy();
+
+    applicationSignedAccessKey = signedAccessKey.data!;
+  });
+
   // here we assume the application sends a request to the gateway, following the specification
 
-  it("Gateway can verify the Application access key", async () => { });
+  it("Gateway can verify the Application access key", async () => {
+    const gateway1Actor = await gateway1.getActor();
+    const reportAccessKeyResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequest(
+        {
+          signature_hex: applicationSignedAccessKey.signature_hex,
+          unique_access_key: applicationSignedAccessKey.unique_access_key,
+          requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+        }
+      )
+    );
+
+    expect(reportAccessKeyResult.error).toBeNull();
+    expect(reportAccessKeyResult.data).toBeTruthy();
+
+    // to test if the signature verification works properly
+    // change in turn signature_hex, unique_access_key and requester_canister_id
+    const wrongSignatureResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequest(
+        {
+          // change last part of the signature
+          signature_hex: applicationSignedAccessKey.signature_hex.slice(0, -5) + "00000",
+          unique_access_key: applicationSignedAccessKey.unique_access_key,
+          requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+        }
+      )
+    );
+
+    expect(wrongSignatureResult.error).toEqual("Signature is invalid: signature::Error { source: None }");
+    expect(wrongSignatureResult.data).toBeNull();
+
+    const wrongUniqueAccessKeyResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequest(
+        {
+          signature_hex: applicationSignedAccessKey.signature_hex,
+          unique_access_key: {
+            ...applicationSignedAccessKey.unique_access_key,
+            nonce: applicationSignedAccessKey.unique_access_key.nonce + BigInt(1),
+          },
+          requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+        }
+      )
+    );
+
+    expect(wrongUniqueAccessKeyResult.error).toEqual("Signature is invalid: signature::Error { source: None }");
+    expect(wrongUniqueAccessKeyResult.data).toBeNull();
+
+    const wrongRequesterCanisterIdResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequest(
+        {
+          signature_hex: applicationSignedAccessKey.signature_hex,
+          unique_access_key: applicationSignedAccessKey.unique_access_key,
+          // just use a different canister id
+          requester_canister_id: Principal.from(OMNIA_BACKEND_CANISTER_ID),
+        }
+      )
+    );
+
+    expect(wrongRequesterCanisterIdResult.error).toEqual("Signature is invalid: signature::Error { source: None }");
+    expect(wrongRequesterCanisterIdResult.data).toBeNull();
+  });
 });

@@ -1,7 +1,8 @@
 type AccessKeyValue = record {
   key : text;
+  transaction_hash : vec nat8;
   counter : nat;
-  owner : text;
+  owner : principal;
   used_nonces : vec nat;
 };
 type DeviceAffordances = record { properties : vec text; actions : vec text };
@@ -47,8 +48,6 @@ type Result = variant { Ok : EnvironmentCreationResult; Err : text };
 type Result_1 = variant { Ok : vec nat8; Err : text };
 type Result_10 = variant { Ok : AccessKeyValue; Err : text };
 type Result_11 = variant { Ok : EnvironmentInfo; Err : text };
-type Result_12 = variant { Ok : SignatureReply; Err : text };
-type Result_13 = variant { Ok : SignatureVerificationReply; Err : text };
 type Result_2 = variant { Ok : vec InitializedGatewayValue; Err : text };
 type Result_3 = variant { Ok : VirtualPersonaValue; Err : text };
 type Result_4 = variant { Ok : vec text; Err : text };
@@ -60,8 +59,6 @@ type Result_8 = variant {
   Err : text;
 };
 type Result_9 = variant { Ok : RegisteredGatewayValue; Err : text };
-type SignatureReply = record { signature_hex : text };
-type SignatureVerificationReply = record { is_signature_valid : bool };
 type SignedRequest = record {
   requester_canister_id : principal;
   unique_access_key : UniqueAccessKey;
@@ -101,6 +98,4 @@ service : (text, text, text) -> {
   reportSignedRequest : (SignedRequest) -> (Result_10);
   resetEnvironment : (text) -> (Result_11);
   setEnvironment : (text) -> (Result_11);
-  signMessage : (text) -> (Result_12);
-  verifyMessage : (text, text, principal) -> (Result_13) query;
 }

@@ -40,3 +40,10 @@ register_custom_getrandom!(custom_getrandom);
 pub fn init_rng() {
     ic_cdk_timers::set_timer(Duration::new(0, 0), rng_seed);
 }
+
+pub fn generate_nonce() -> u128 {
+    RNG_REF_CELL.with(|rng_ref_cell| {
+        let mut rng = rng_ref_cell.borrow_mut();
+        rng.gen()
+    })
+}

@@ -1,5 +1,5 @@
 [package]
-name = "omnia_types"
+name = "application_placeholder"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
@@ -7,11 +7,13 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-crate-type = ["lib"]
+crate-type = ["cdylib"]
 
 [dependencies]
 candid = "0.8.4"
+ic-ledger-types = "0.5.0"
+hex = "0.4.3"
+omnia_utils = { path = "../omnia_utils" }
+omnia_types = { path = "../omnia_types" }
+ic-cdk-macros = "0.6.10"
 ic-cdk = "0.8.1"
-serde = "1.0.111"
-serde_json = "1.0.97"
-sha2 = "0.10.7"

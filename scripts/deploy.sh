@@ -53,4 +53,16 @@ fi
 
 echo "Deploying canisters..."
 
-dfx deploy --no-wallet --argument "(\"$OMNIA_BACKEND_CANISTER_ID\", \"$DATABASE_CANISTER_ID\", \"$LEDGER_CANISTER_ID\")"
+declare -a CANISTERS_TO_DEPLOY=("ledger" "database" "omnia_backend")
+
+# if the --tests argument is provided, we also deploy the application_placeholder canister
+if [ "$1" = "--tests" ]; then
+  echo "TESTS deployment. Deploying also the application_placeholder canister..."
+  CANISTERS_TO_DEPLOY+=("application_placeholder")
+fi
+
+for canister in "${CANISTERS_TO_DEPLOY[@]}"
+do
+  echo "Deploying $canister..."
+  dfx deploy $canister --no-wallet --argument "(\"$OMNIA_BACKEND_CANISTER_ID\", \"$DATABASE_CANISTER_ID\", \"$LEDGER_CANISTER_ID\")"
+done

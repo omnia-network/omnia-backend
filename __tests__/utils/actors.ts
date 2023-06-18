@@ -3,6 +3,7 @@ import { Principal } from "@dfinity/principal";
 import { identityFromSeed } from "./identity";
 import { OmniaApi } from "./omniaApi";
 import { LEDGER_CANISTER_ID } from "./omniaApi/canisterEnv";
+import { ApplicationApi } from "./application";
 
 // These seed phrases are completely INSECURE. DO NOT use them for any purpose other than local testing.
 
@@ -73,3 +74,4 @@ export const application1Ledger = IcrcLedgerCanister.create({
   canisterId: Principal.from(LEDGER_CANISTER_ID),
   agent: application1.getAgent(),
 });
+export const applicationApi = new ApplicationApi();

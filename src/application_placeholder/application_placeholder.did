@@ -1,0 +1,14 @@
+type Result = variant { Ok : text; Err : text };
+type Result_1 = variant { Ok : SignatureReply; Err : text };
+type Result_2 = variant { Ok : nat64; Err : text };
+type SignatureReply = record {
+  unique_access_key : UniqueAccessKey;
+  signature_hex : text;
+};
+type Tokens = record { e8s : nat64 };
+type UniqueAccessKey = record { uid : text; nonce : nat };
+service : {
+  obtain_access_key : (principal, nat64) -> (Result);
+  sign_access_key : (text) -> (Result_1);
+  transfer_tokens_to_backend : (principal, principal, Tokens) -> (Result_2);
+}

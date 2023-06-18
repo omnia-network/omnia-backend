@@ -13,6 +13,7 @@
     "generate:types": "dfx generate",
     "generate:dids": "./scripts/generate-dids.sh",
     "deploy": "./scripts/deploy.sh",
+    "deploy:tests": "./scripts/deploy.sh --tests",
     "generate-dids-and-deploy": "npm run generate:dids && npm run deploy",
     "test": "jest",
     "report:licenses": "echo \"Rust dependencies:\" && cargo license && echo \"\\n-------------\\nNode.js dependencies:\" && license-checker --summary"

@@ -3,6 +3,8 @@ use std::cmp::Ordering;
 use candid::{CandidType, Principal};
 use ic_cdk::api::management_canister::provisional::CanisterId;
 use serde::{Deserialize, Serialize};
+use serde_json::to_string;
+use sha2::Sha256;
 
 use crate::errors::GenericResult;
 
@@ -106,8 +108,8 @@ impl SignedRequest {
 
 #[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
 pub struct UniqueAccessKey {
-    nonce: u128,
-    uid: AccessKeyUID,
+    pub nonce: u128,
+    pub uid: AccessKeyUID,
 }
 
 impl UniqueAccessKey {
@@ -117,5 +119,18 @@ impl UniqueAccessKey {
 
     pub fn get_uid(&self) -> AccessKeyUID {
         self.uid.clone()
+    }
+
+    /// Serialize the UniqueAccessKey to a string
+    pub fn serialize(&self) -> String {
+        to_string(self).expect("UniqueAccessKey serialization failed")
+    }
+
+    /// Generate a **sha256** hash of the UniqueAccessKey
+    pub fn generate_hash(&self) -> [u8; 32] {
+        use sha2::Digest;
+        let mut hasher = Sha256::new();
+        hasher.update(self.serialize().as_bytes());
+        hasher.finalize().into()
     }
 }

@@ -1,5 +1,11 @@
 [workspace]
-members = ["src/database", "src/omnia_backend", "src/omnia_types", "src/scripts"]
+members = [
+  "src/database",
+  "src/omnia_backend",
+  "src/omnia_types",
+  "src/scripts",
+  "src/application_placeholder",
+]
 
 [profile.release]
 lto = true
