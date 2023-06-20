@@ -1,18 +1,13 @@
 use candid::candid_method;
-use ic_cdk::{
-    api::management_canister::{
-        ecdsa::{sign_with_ecdsa, SignWithEcdsaArgument},
-        provisional::CanisterId,
-    },
-    call,
-};
+use ic_cdk::{api::management_canister::provisional::CanisterId, call};
 use ic_cdk_macros::update;
 use ic_ledger_types::{BlockIndex, Tokens};
-use omnia_core_sdk::access_key::{AccessKeyUID, UniqueAccessKey};
-use omnia_types::{
-    errors::GenericResult,
-    signature::{EcdsaKeyIds, SignatureReply},
+use omnia_core_sdk::{
+    access_key::{AccessKeyUID, UniqueAccessKey},
+    signature::SignatureReply,
 };
+
+use omnia_types::errors::GenericResult;
 use omnia_utils::{ic::transfer_to, random::generate_nonce};
 
 #[update]
@@ -46,18 +41,8 @@ async fn obtain_access_key(
 async fn sign_access_key(access_key: AccessKeyUID) -> GenericResult<SignatureReply> {
     let unique_access_key = UniqueAccessKey::new(generate_nonce(), access_key.clone());
 
-    let request = SignWithEcdsaArgument {
-        message_hash: unique_access_key.generate_hash().to_vec(),
-        derivation_path: vec![],
-        key_id: EcdsaKeyIds::TestKeyLocalDevelopment.to_key_id(),
-    };
-
-    let (response,) = sign_with_ecdsa(request)
-        .await
-        .map_err(|e| format!("sign_with_ecdsa failed {:?}", e))?;
-
     Ok(SignatureReply {
-        signature_hex: hex::encode(response.signature),
+        signature_hex: hex::encode(unique_access_key.generate_signature().await?.signature),
         unique_access_key,
     })
 }
@@ -69,9 +54,8 @@ mod tests {
     use ic_ledger_types::{BlockIndex, Tokens};
     use std::env;
 
-    use omnia_core_sdk::access_key::AccessKeyUID;
+    use omnia_core_sdk::{access_key::AccessKeyUID, signature::SignatureReply};
     use omnia_types::errors::*;
-    use omnia_types::signature::*;
 
     #[test]
     fn generate_candid_interface() {

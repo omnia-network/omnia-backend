@@ -35,7 +35,7 @@ export class OmniaApi {
   ) {
     this.identity = identity;
     this.agent = new HttpAgent({
-      host: "http://localhost:4943",
+      host: "http://127.0.0.1:4943",
       identity,
     });
     // we need to fetch the root key of the local replica here because sometimes the agent is used before the actor is created

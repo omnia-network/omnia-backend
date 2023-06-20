@@ -7,7 +7,7 @@ import { GenericResult, resultParser } from "./omniaApi/resultParser";
 
 export const createActor = () => {
   const agent = new HttpAgent({
-    host: "http://localhost:4943",
+    host: "http://127.0.0.1:4943",
   });
 
   // Fetch root key for certificate validation during development

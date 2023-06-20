@@ -8,7 +8,8 @@ use ic_cdk::{
 };
 use ic_ledger_types::{query_archived_blocks, query_blocks, Block, BlockIndex, GetBlocksArgs};
 use k256::ecdsa::signature::Verifier;
-use omnia_types::{errors::GenericResult, signature::EcdsaKeyIds};
+use omnia_core_sdk::signature::EcdsaKeyIds;
+use omnia_types::errors::GenericResult;
 
 use crate::STATE;
 
