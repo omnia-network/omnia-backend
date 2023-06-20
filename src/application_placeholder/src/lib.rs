@@ -1,16 +1,13 @@
 use candid::candid_method;
 use ic_cdk::api::management_canister::provisional::CanisterId;
 use ic_cdk_macros::update;
-use omnia_client_sdk::{
+use omnia_core_sdk::{
     access_key::generate_signed_unique_access_key, init_client, ledger::request_access_key,
 };
-use omnia_core_sdk::{
-    access_key::{AccessKeyUID, UniqueAccessKey},
-    signature::SignatureReply,
-};
+use omnia_core_sdk::{access_key::AccessKeyUID, signature::SignatureReply};
 
 use omnia_types::errors::GenericResult;
-use omnia_utils::random::generate_nonce;
+use omnia_utils::random::get_seeded_rng;
 
 #[update]
 #[candid_method(update)]
@@ -18,16 +15,14 @@ async fn get_access_key(
     ledger_canister_id: CanisterId,
     omnia_canister_id: CanisterId,
 ) -> GenericResult<AccessKeyUID> {
-    init_client(ledger_canister_id, omnia_canister_id);
+    init_client(ledger_canister_id, omnia_canister_id, get_seeded_rng());
     request_access_key().await
 }
 
 #[update]
 #[candid_method(update)]
 async fn sign_access_key(access_key: AccessKeyUID) -> GenericResult<SignatureReply> {
-    let unique_access_key = UniqueAccessKey::new(generate_nonce(), access_key.clone());
-    let signed_access_key = generate_signed_unique_access_key(unique_access_key).await;
-    signed_access_key
+    generate_signed_unique_access_key(access_key).await
 }
 
 #[cfg(test)]

@@ -47,3 +47,7 @@ pub fn generate_nonce() -> u128 {
         rng.gen()
     })
 }
+
+pub fn get_seeded_rng() -> StdRng {
+    RNG_REF_CELL.with(|rng_ref_cell| rng_ref_cell.borrow().clone())
+}
