@@ -11,10 +11,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 candid = "0.8.4"
-ic-ledger-types = "0.5.0"
 hex = "0.4.3"
 omnia_utils = { path = "../omnia_utils" }
 omnia_types = { path = "../omnia_types" }
 ic-cdk-macros = "0.6.10"
 ic-cdk = "0.8.1"
 omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", version = "0.1.0" }
+omnia-client-sdk = { git = "https://github.com/omnia-network/omnia-sdk", version = "0.1.0" }

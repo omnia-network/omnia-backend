@@ -408,58 +408,20 @@ describe("Application", () => {
     expect(parseSparqlQueryResult(executeRdfQuery.data as Uint8Array)).toMatchObject(getExpectedDeviceAffordancesObject());
   });
 
-  it("Access key price can be obtained from the Backend", async () => {
-    const application1Actor = await application1.getActor();
-    const fetchedAccessKeyPrice = await application1Actor.getAccessKeyPrice();
-
-    expect(fetchedAccessKeyPrice.e8s).toEqual(ACCESS_KEY_PRICE);
-
-    // test also the same method as update
-    const fetchedAccessKeyPriceAsUpdate = await application1Actor.getAccessKeyPriceAsUpdate();
-
-    expect(fetchedAccessKeyPriceAsUpdate.e8s).toEqual(ACCESS_KEY_PRICE);
-  });
-
-  it("Application can send a payment to the Backend and obtain an access key", async () => {
+  it("Application can obtain an access key", async () => {
     const applicationPlaceholderActor = applicationApi.getActor();
-    const transferResult = await applicationApi.parseResult(
-      applicationPlaceholderActor.transfer_tokens_to_backend(
-        Principal.from(LEDGER_CANISTER_ID),
-        Principal.from(OMNIA_BACKEND_CANISTER_ID),
-        {
-          e8s: ACCESS_KEY_PRICE,
-        },
-      )
-    );
-
-    expect(transferResult.error).toBeNull();
-    expect(transferResult.data).toBeTruthy();
-
-    applicationPaymentBlockIndex = transferResult.data!;
 
     const accessKey = await applicationApi.parseResult(
-      applicationPlaceholderActor.obtain_access_key(
+      applicationPlaceholderActor.get_access_key(
+        Principal.from(LEDGER_CANISTER_ID),
         Principal.from(OMNIA_BACKEND_CANISTER_ID),
-        applicationPaymentBlockIndex,
-      ));
+      )
+    );
 
     expect(accessKey.error).toBeNull();
     expect(accessKey.data).toBeTruthy();
 
     applicationAccessKey = accessKey.data!;
-  });
-
-  it("Application cannot obtain a new access key with the same block index", async () => {
-    const applicationPlaceholderActor = applicationApi.getActor();
-    const accessKey = await applicationApi.parseResult(
-      applicationPlaceholderActor.obtain_access_key(
-        Principal.from(OMNIA_BACKEND_CANISTER_ID),
-        applicationPaymentBlockIndex,
-      )
-    );
-
-    expect(accessKey.error).toEqual("Access key with the same transaction hash already exists");
-    expect(accessKey.data).toBeNull();
   });
 
   it("Application can sign the access key", async () => {

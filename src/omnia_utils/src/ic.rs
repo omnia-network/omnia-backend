@@ -1,10 +1,6 @@
 use candid::Principal;
-use ic_cdk::api::{management_canister::provisional::CanisterId, print, time};
-use ic_ledger_types::{
-    transfer, AccountIdentifier, BlockIndex, Memo, Subaccount, Timestamp, Tokens, Transaction,
-    TransferArgs, DEFAULT_FEE, DEFAULT_SUBACCOUNT,
-};
-use omnia_types::{access_key::TransactionHash, errors::GenericResult};
+use ic_ledger_types::{AccountIdentifier, Subaccount, Transaction};
+use omnia_types::access_key::TransactionHash;
 use sha2::Sha256;
 
 pub fn principal_to_account(principal: Principal) -> AccountIdentifier {
@@ -23,38 +19,6 @@ pub fn get_transaction_hash(transaction: Transaction) -> TransactionHash {
     let mut state = Sha256::new();
     state.update(&serde_cbor::ser::to_vec_packed(&transaction).unwrap());
     state.finalize().into()
-}
-
-pub async fn transfer_to(
-    ledger_canister_id: CanisterId,
-    principal: Principal,
-    amount: Tokens,
-) -> GenericResult<BlockIndex> {
-    let block_index = transfer(
-        ledger_canister_id,
-        TransferArgs {
-            memo: Memo(0),
-            amount,
-            fee: DEFAULT_FEE,
-            from_subaccount: None,
-            to: AccountIdentifier::new(&principal, &DEFAULT_SUBACCOUNT),
-            created_at_time: Some(Timestamp {
-                timestamp_nanos: time(),
-            }),
-        },
-    )
-    .await
-    .map_err(|e| format!("call to ledger failed: {:?}", e))?
-    .map_err(|e| format!("transfer failed: {:?}", e))?;
-
-    print(format!(
-        "Created block with index: {:?}, transferred: {:?} to principal ID: {:?}",
-        block_index,
-        amount,
-        principal.to_string()
-    ));
-
-    Ok(block_index)
 }
 
 #[cfg(test)]

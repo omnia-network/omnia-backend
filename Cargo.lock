@@ -25,7 +25,7 @@ dependencies = [
  "hex",
  "ic-cdk 0.8.1",
  "ic-cdk-macros",
- "ic-ledger-types",
+ "omnia-client-sdk",
  "omnia-core-sdk",
  "omnia_types",
  "omnia_utils",
@@ -963,9 +963,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "omnia-client-sdk"
+version = "0.1.0"
+source = "git+https://github.com/omnia-network/omnia-sdk#b980c0f5d5e3351fc41752f526e2063c9e1d0d68"
+dependencies = [
+ "hex",
+ "ic-cdk 0.8.1",
+ "ic-ledger-types",
+ "omnia-core-sdk",
+]
+
+[[package]]
 name = "omnia-core-sdk"
 version = "0.1.0"
-source = "git+https://github.com/omnia-network/omnia-sdk#01ac23b9a612593135116fbe8b573f80d57be8e6"
+source = "git+https://github.com/omnia-network/omnia-sdk#b980c0f5d5e3351fc41752f526e2063c9e1d0d68"
 dependencies = [
  "candid",
  "ic-cdk 0.8.1",
