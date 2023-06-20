@@ -8,8 +8,8 @@ use ic_cdk::{
 };
 use ic_cdk_macros::update;
 use ic_ledger_types::{BlockIndex, Tokens};
+use omnia_core_sdk::access_key::{AccessKeyUID, UniqueAccessKey};
 use omnia_types::{
-    access_key::{AccessKeyUID, UniqueAccessKey},
     errors::GenericResult,
     signature::{EcdsaKeyIds, SignatureReply},
 };
@@ -69,7 +69,7 @@ mod tests {
     use ic_ledger_types::{BlockIndex, Tokens};
     use std::env;
 
-    use omnia_types::access_key::*;
+    use omnia_core_sdk::access_key::AccessKeyUID;
     use omnia_types::errors::*;
     use omnia_types::signature::*;
 

@@ -127,6 +127,7 @@ mod tests {
     use std::env;
 
     use ic_ledger_types::*;
+    use omnia_core_sdk::access_key::AccessKeyUID;
     use omnia_types::access_key::*;
     use omnia_types::device::*;
     use omnia_types::environment::*;

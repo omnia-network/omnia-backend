@@ -6,11 +6,9 @@ use ic_cdk::{
 use ic_cdk_macros::{query, update};
 use ic_ledger_types::{BlockIndex, Operation, Tokens};
 use ic_oxigraph::model::{vocab, GraphName, Literal, NamedNode, Quad};
+use omnia_core_sdk::access_key::{AccessKeyUID, UniqueAccessKey};
 use omnia_types::{
-    access_key::{
-        AccessKeyCreationArgs, AccessKeyCreationResult, AccessKeyUID, AccessKeyValue,
-        SignedRequest, UniqueAccessKey,
-    },
+    access_key::{AccessKeyCreationArgs, AccessKeyCreationResult, AccessKeyValue, SignedRequest},
     device::{DeviceAffordances, RegisteredDeviceResult, RegisteredDevicesUidsResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
     errors::GenericResult,

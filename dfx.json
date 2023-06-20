@@ -36,10 +36,10 @@
         "database",
         "omnia_backend"
       ],
-      "__0": "Here, the remote canister id of the ledger is only used to avoid deploying the application_placeholder canister to the IC.",
+      "__comment": "Here, the remote canister id of the virtual management canister is only used to avoid deploying the application_placeholder canister to the IC.",
       "remote": {
         "id": {
-          "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai"
+          "ic": "aaaaa-aa"
         }
       }
     }

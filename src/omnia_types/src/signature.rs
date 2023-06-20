@@ -1,8 +1,7 @@
 use candid::CandidType;
 use ic_cdk::api::management_canister::ecdsa::{EcdsaCurve, EcdsaKeyId};
+use omnia_core_sdk::access_key::UniqueAccessKey;
 use serde::Serialize;
-
-use crate::access_key::UniqueAccessKey;
 
 #[derive(CandidType, Serialize, Debug)]
 pub struct PublicKeyReply {

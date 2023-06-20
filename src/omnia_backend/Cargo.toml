@@ -27,3 +27,4 @@ ic-ledger-types = "0.5.0"
 hex = "0.4.3"
 sha2 = "0.10.6"
 k256 = { version = "0.13.1", features = ["ecdsa"] }
+omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", version = "0.1.0" }

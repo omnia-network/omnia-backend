@@ -1,11 +1,9 @@
 use candid::candid_method;
 use ic_cdk::print;
 use ic_cdk_macros::update;
+use omnia_core_sdk::access_key::UniqueAccessKey;
 use omnia_types::{
-    access_key::{
-        AccessKeyCreationArgs, AccessKeyCreationResult, AccessKeyIndex, AccessKeyValue,
-        UniqueAccessKey,
-    },
+    access_key::{AccessKeyCreationArgs, AccessKeyCreationResult, AccessKeyIndex, AccessKeyValue},
     errors::GenericResult,
 };
 use uuid::Uuid;

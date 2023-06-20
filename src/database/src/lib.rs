@@ -104,6 +104,7 @@ mod tests {
     use std::env;
 
     use super::*;
+    use omnia_core_sdk::access_key::UniqueAccessKey;
     use omnia_types::access_key::*;
     use omnia_types::device::*;
     use omnia_types::environment::*;
