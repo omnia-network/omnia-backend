@@ -99,3 +99,18 @@ impl SignedRequest {
         self.requester_canister_id
     }
 }
+
+#[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
+pub enum RejectedAccessKeyReason {
+    InvalidSignature,
+    InvalidNonce,
+    InvalidAccessKey,
+    NonceAlreadyUsed,
+    SignatureVerificationError(String),
+}
+
+#[derive(Clone, Debug, CandidType, Serialize, Deserialize)]
+pub struct RejectedAccessKey {
+    pub key: AccessKeyUID,
+    pub reason: RejectedAccessKeyReason,
+}

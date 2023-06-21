@@ -8,7 +8,10 @@ use ic_ledger_types::{BlockIndex, Operation, Tokens};
 use ic_oxigraph::model::{vocab, GraphName, Literal, NamedNode, Quad};
 use omnia_core_sdk::access_key::{AccessKeyUID, UniqueAccessKey};
 use omnia_types::{
-    access_key::{AccessKeyCreationArgs, AccessKeyCreationResult, AccessKeyValue, SignedRequest},
+    access_key::{
+        AccessKeyCreationArgs, AccessKeyCreationResult, RejectedAccessKey, RejectedAccessKeyReason,
+        SignedRequest,
+    },
     device::{DeviceAffordances, RegisteredDeviceResult, RegisteredDevicesUidsResult},
     environment::{EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentUID},
     errors::GenericResult,
@@ -423,29 +426,64 @@ async fn obtain_access_key(block_index: BlockIndex) -> GenericResult<AccessKeyUI
     Err(String::from("No block found"))
 }
 
-#[update(name = "reportSignedRequest")]
-#[candid_method(update, rename = "reportSignedRequest")]
-async fn report_signed_request(signed_request: SignedRequest) -> GenericResult<AccessKeyValue> {
-    print(format!("Signed request: {:?}", signed_request));
+#[update(name = "reportSignedRequests")]
+#[candid_method(update, rename = "reportSignedRequests")]
+async fn report_signed_requests(
+    signed_requests: Vec<SignedRequest>,
+) -> GenericResult<Vec<RejectedAccessKey>> {
+    print(format!(
+        "Reporting {} signed requests...",
+        signed_requests.len()
+    ));
 
-    if !is_valid_signature(
-        signed_request.get_signature(),
-        signed_request.get_unique_access_key().serialize(),
-        signed_request.get_requester_principal_id(),
-    )
-    .await?
-    {
-        return Err(String::from("Signature is not valid"));
+    let mut unique_access_keys_to_spend: Vec<UniqueAccessKey> = vec![];
+    let mut rejected_access_keys: Vec<RejectedAccessKey> = vec![];
+
+    // check if the signature of the signed request is valid
+    for signed_request in signed_requests {
+        match is_valid_signature(
+            signed_request.get_signature(),
+            signed_request.get_unique_access_key().serialize(),
+            signed_request.get_requester_principal_id(),
+        )
+        .await
+        {
+            Ok(true) => {
+                unique_access_keys_to_spend.push(signed_request.get_unique_access_key());
+            }
+            Ok(false) => {
+                rejected_access_keys.push(RejectedAccessKey {
+                    key: signed_request.get_unique_access_key().get_key(),
+                    reason: RejectedAccessKeyReason::InvalidSignature,
+                });
+            }
+            Err(e) => {
+                rejected_access_keys.push(RejectedAccessKey {
+                    key: signed_request.get_unique_access_key().get_key(),
+                    reason: RejectedAccessKeyReason::SignatureVerificationError(e),
+                });
+            }
+        }
     }
 
-    call::<(UniqueAccessKey,), (GenericResult<AccessKeyValue>,)>(
+    // spend the unique access keys and get the rejected ones
+    let rejected_keys = call::<(Vec<UniqueAccessKey>,), (GenericResult<Vec<RejectedAccessKey>>,)>(
         get_database_principal(),
-        "spend_request_for_key",
-        (signed_request.get_unique_access_key(),),
+        "spend_requests_for_keys",
+        (unique_access_keys_to_spend,),
     )
     .await
     .unwrap()
-    .0
+    .0?;
+
+    rejected_access_keys.extend(rejected_keys);
+
+    print(format!(
+        "{} signed requests were rejected!",
+        rejected_access_keys.len()
+    ));
+
+    Ok(rejected_access_keys)
 }
 
 #[query(name = "getAccessKeyPrice")]

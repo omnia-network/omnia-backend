@@ -3,7 +3,10 @@ use ic_cdk::print;
 use ic_cdk_macros::update;
 use omnia_core_sdk::access_key::UniqueAccessKey;
 use omnia_types::{
-    access_key::{AccessKeyCreationArgs, AccessKeyCreationResult, AccessKeyIndex, AccessKeyValue},
+    access_key::{
+        AccessKeyCreationArgs, AccessKeyCreationResult, AccessKeyIndex, AccessKeyValue,
+        RejectedAccessKey, RejectedAccessKeyReason,
+    },
     errors::GenericResult,
 };
 use uuid::Uuid;
@@ -53,34 +56,50 @@ fn create_new_access_key(args: AccessKeyCreationArgs) -> AccessKeyCreationResult
 
 #[update]
 #[candid_method(update)]
-fn spend_request_for_key(unique_access_key: UniqueAccessKey) -> GenericResult<AccessKeyValue> {
+fn spend_requests_for_keys(
+    unique_access_keys: Vec<UniqueAccessKey>,
+) -> GenericResult<Vec<RejectedAccessKey>> {
     caller_is_omnia_backend();
 
     STATE.with(|state| {
-        let access_key_index = AccessKeyIndex {
-            access_key_uid: unique_access_key.get_key(),
-        };
+        let mut state = state.borrow_mut();
 
-        let mut access_key_value = state
-            .borrow()
-            .valid_access_keys
-            .read(&access_key_index)?
-            .clone();
+        let mut rejected_access_keys: Vec<RejectedAccessKey> = vec![];
 
-        let nonce = unique_access_key.get_nonce();
+        for unique_access_key in unique_access_keys {
+            let access_key_index = AccessKeyIndex {
+                access_key_uid: unique_access_key.get_key(),
+            };
 
-        if access_key_value.is_used_nonce(nonce) {
-            // TODO: disqualify access key
-            return Err(String::from("Nonce has already been used"));
+            let access_key_value = state.valid_access_keys.read(&access_key_index);
+
+            if access_key_value.is_err() {
+                rejected_access_keys.push(RejectedAccessKey {
+                    key: access_key_index.access_key_uid.clone(),
+                    reason: RejectedAccessKeyReason::InvalidAccessKey,
+                });
+                continue;
+            }
+
+            let mut access_key_value = access_key_value.unwrap().clone();
+
+            let nonce = unique_access_key.get_nonce();
+
+            if access_key_value.is_used_nonce(nonce) {
+                rejected_access_keys.push(RejectedAccessKey {
+                    key: access_key_index.access_key_uid.clone(),
+                    reason: RejectedAccessKeyReason::NonceAlreadyUsed,
+                });
+                continue;
+            }
+
+            access_key_value.spend_nonce(nonce);
+
+            state
+                .valid_access_keys
+                .update(access_key_index, access_key_value.clone())?;
         }
 
-        access_key_value.spend_nonce(nonce);
-
-        state
-            .borrow_mut()
-            .valid_access_keys
-            .update(access_key_index, access_key_value.clone())?;
-
-        Ok(access_key_value)
+        Ok(rejected_access_keys)
     })
 }

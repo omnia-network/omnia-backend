@@ -121,9 +121,13 @@ pub async fn is_valid_signature(
     })?;
     let message_bytes = message.as_bytes();
 
-    let signature = k256::ecdsa::Signature::try_from(signature_bytes.as_slice())
-        .expect("failed to deserialize signature");
-    k256::ecdsa::VerifyingKey::from_sec1_bytes(&pubkey_bytes)
+    let signature = k256::ecdsa::Signature::try_from(signature_bytes.as_slice()).map_err(|e| {
+        format!(
+            "failed to deserialize signature bytes into signature: {:?}",
+            e
+        )
+    })?;
+    match k256::ecdsa::VerifyingKey::from_sec1_bytes(&pubkey_bytes)
         .map_err(|e| {
             format!(
                 "failed to deserialize sec1 encoding into public key: {:?}",
@@ -131,8 +135,10 @@ pub async fn is_valid_signature(
             )
         })?
         .verify(message_bytes, &signature)
-        .map(|_| true)
-        .map_err(|e| format!("Signature is invalid: {:?}", e))
+    {
+        Ok(_) => Ok(true),
+        Err(_) => Ok(false),
+    }
 }
 
 pub async fn get_canister_public_key(

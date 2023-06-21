@@ -1,10 +1,3 @@
-type AccessKeyValue = record {
-  key : text;
-  transaction_hash : vec nat8;
-  counter : nat;
-  owner : principal;
-  used_nonces : vec nat;
-};
 type DeviceAffordances = record { properties : vec text; actions : vec text };
 type EnvironmentCreationInput = record { env_name : text };
 type EnvironmentCreationResult = record { env_uid : text; env_name : text };
@@ -44,9 +37,20 @@ type RegisteredGatewayValue = record {
   gateway_url : text;
   proxied_gateway_uid : opt text;
 };
+type RejectedAccessKey = record {
+  key : text;
+  reason : RejectedAccessKeyReason;
+};
+type RejectedAccessKeyReason = variant {
+  InvalidNonce;
+  InvalidAccessKey;
+  InvalidSignature;
+  NonceAlreadyUsed;
+  SignatureVerificationError : text;
+};
 type Result = variant { Ok : EnvironmentCreationResult; Err : text };
 type Result_1 = variant { Ok : vec nat8; Err : text };
-type Result_10 = variant { Ok : AccessKeyValue; Err : text };
+type Result_10 = variant { Ok : vec RejectedAccessKey; Err : text };
 type Result_11 = variant { Ok : EnvironmentInfo; Err : text };
 type Result_2 = variant { Ok : vec InitializedGatewayValue; Err : text };
 type Result_3 = variant { Ok : VirtualPersonaValue; Err : text };
@@ -96,7 +100,7 @@ service : (text, text, text) -> {
   pairNewDevice : (text, text, text) -> (Result_7);
   registerDevice : (text, DeviceAffordances) -> (Result_8);
   registerGateway : (text, GatewayRegistrationInput) -> (Result_9);
-  reportSignedRequest : (SignedRequest) -> (Result_10);
+  reportSignedRequests : (vec SignedRequest) -> (Result_10);
   resetEnvironment : (text) -> (Result_11);
   setEnvironment : (text) -> (Result_11);
 }

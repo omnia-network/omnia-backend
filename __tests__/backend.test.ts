@@ -1,4 +1,4 @@
-import { EnvironmentCreationResult, InitializedGatewayValue, RegisteredDeviceIndex, RegisteredDeviceValue, RegisteredGatewayValue, UpdateValue } from "../src/declarations/omnia_backend/omnia_backend.did";
+import { EnvironmentCreationResult, InitializedGatewayValue, RegisteredDeviceIndex, RegisteredDeviceValue, RegisteredGatewayValue, RejectedAccessKey, RejectedAccessKeyReason, UpdateValue } from "../src/declarations/omnia_backend/omnia_backend.did";
 import {
   application1,
   application1Data,
@@ -443,63 +443,86 @@ describe("Application", () => {
   it("Gateway can verify the Application access key", async () => {
     const gateway1Actor = await gateway1.getActor();
     const reportAccessKeyResult = await gateway1.parseResult(
-      gateway1Actor.reportSignedRequest(
-        {
-          signature_hex: applicationSignedAccessKey.signature_hex,
-          unique_access_key: applicationSignedAccessKey.unique_access_key,
-          requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
-        }
+      gateway1Actor.reportSignedRequests(
+        [
+          {
+            signature_hex: applicationSignedAccessKey.signature_hex,
+            unique_access_key: applicationSignedAccessKey.unique_access_key,
+            requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+          },
+        ]
       )
     );
 
     expect(reportAccessKeyResult.error).toBeNull();
-    expect(reportAccessKeyResult.data).toBeTruthy();
+    expect(reportAccessKeyResult.data).toMatchObject([]);
 
     // to test if the signature verification works properly
     // change in turn signature_hex, unique_access_key and requester_canister_id
     const wrongSignatureResult = await gateway1.parseResult(
-      gateway1Actor.reportSignedRequest(
-        {
-          // change last part of the signature
-          signature_hex: applicationSignedAccessKey.signature_hex.slice(0, -5) + "00000",
-          unique_access_key: applicationSignedAccessKey.unique_access_key,
-          requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
-        }
+      gateway1Actor.reportSignedRequests(
+        [
+          {
+            // change last part of the signature
+            signature_hex: applicationSignedAccessKey.signature_hex.slice(0, -5) + "00000",
+            unique_access_key: applicationSignedAccessKey.unique_access_key,
+            requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+          },
+        ]
       )
     );
 
-    expect(wrongSignatureResult.error).toEqual("Signature is invalid: signature::Error { source: None }");
-    expect(wrongSignatureResult.data).toBeNull();
+    expect(wrongSignatureResult.error).toBeNull();
+    expect(wrongSignatureResult.data).toMatchObject<RejectedAccessKey[]>([
+      {
+        key: applicationSignedAccessKey.unique_access_key.key,
+        reason: { InvalidSignature: null },
+      },
+    ]);
 
     const wrongUniqueAccessKeyResult = await gateway1.parseResult(
-      gateway1Actor.reportSignedRequest(
-        {
-          signature_hex: applicationSignedAccessKey.signature_hex,
-          unique_access_key: {
-            ...applicationSignedAccessKey.unique_access_key,
-            nonce: applicationSignedAccessKey.unique_access_key.nonce + BigInt(1),
+      gateway1Actor.reportSignedRequests(
+        [
+          {
+            signature_hex: applicationSignedAccessKey.signature_hex,
+            unique_access_key: {
+              ...applicationSignedAccessKey.unique_access_key,
+              nonce: applicationSignedAccessKey.unique_access_key.nonce + BigInt(1),
+            },
+            requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
           },
-          requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
-        }
+        ]
       )
     );
 
-    expect(wrongUniqueAccessKeyResult.error).toEqual("Signature is invalid: signature::Error { source: None }");
-    expect(wrongUniqueAccessKeyResult.data).toBeNull();
+    expect(wrongUniqueAccessKeyResult.error).toBeNull();
+    expect(wrongUniqueAccessKeyResult.data).toMatchObject<RejectedAccessKey[]>([
+      {
+        key: applicationSignedAccessKey.unique_access_key.key,
+        reason: { InvalidSignature: null },
+      },
+    ]);
 
     const wrongRequesterCanisterIdResult = await gateway1.parseResult(
-      gateway1Actor.reportSignedRequest(
-        {
-          signature_hex: applicationSignedAccessKey.signature_hex,
-          unique_access_key: applicationSignedAccessKey.unique_access_key,
-          // just use a different canister id
-          requester_canister_id: Principal.from(OMNIA_BACKEND_CANISTER_ID),
-        }
+      gateway1Actor.reportSignedRequests(
+        [
+          {
+            signature_hex: applicationSignedAccessKey.signature_hex,
+            unique_access_key: applicationSignedAccessKey.unique_access_key,
+            // just use a different canister id
+            requester_canister_id: Principal.from(OMNIA_BACKEND_CANISTER_ID),
+          },
+        ]
       )
     );
 
-    expect(wrongRequesterCanisterIdResult.error).toEqual("Signature is invalid: signature::Error { source: None }");
-    expect(wrongRequesterCanisterIdResult.data).toBeNull();
+    expect(wrongRequesterCanisterIdResult.error).toBeNull();
+    expect(wrongRequesterCanisterIdResult.data).toMatchObject<RejectedAccessKey[]>([
+      {
+        key: applicationSignedAccessKey.unique_access_key.key,
+        reason: { InvalidSignature: null },
+      },
+    ]);
   });
 
   // here we assume the Application (or whoever else) sends another request to the Gateway
@@ -508,16 +531,23 @@ describe("Application", () => {
   it("Application cannot use the same signed access key twice", async () => {
     const gateway1Actor = await gateway1.getActor();
     const reportAccessKeyResult = await gateway1.parseResult(
-      gateway1Actor.reportSignedRequest(
-        {
-          signature_hex: applicationSignedAccessKey.signature_hex,
-          unique_access_key: applicationSignedAccessKey.unique_access_key,
-          requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
-        }
+      gateway1Actor.reportSignedRequests(
+        [
+          {
+            signature_hex: applicationSignedAccessKey.signature_hex,
+            unique_access_key: applicationSignedAccessKey.unique_access_key,
+            requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+          },
+        ]
       )
     );
 
-    expect(reportAccessKeyResult.error).toEqual("Nonce has already been used");
-    expect(reportAccessKeyResult.data).toBeNull();
+    expect(reportAccessKeyResult.error).toBeNull();
+    expect(reportAccessKeyResult.data).toMatchObject<RejectedAccessKey[]>([
+      {
+        key: applicationSignedAccessKey.unique_access_key.key,
+        reason: { NonceAlreadyUsed: null },
+      },
+    ]);
   });
 });
