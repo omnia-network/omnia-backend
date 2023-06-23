@@ -1,4 +1,3 @@
-mod constants;
 mod http_endpoint;
 mod manager;
 mod outcalls;
@@ -13,13 +12,10 @@ use ic_cdk_macros::{init, post_upgrade, pre_upgrade};
 use ic_oxigraph::io::GraphFormat;
 use ic_oxigraph::model::GraphNameRef;
 use ic_oxigraph::store::Store;
-use omnia_utils::random::{init_rng, RNG_REF_CELL};
+use omnia_core_sdk::random::{init_rng, RNG_REF_CELL};
 use std::cell::RefCell;
 use utils::{update_backend_principal, update_database_principal, update_ledger_principal};
 
-// if you want to make the state persistent:
-// - add serde::Serialize trait
-// - implement pre_upgrade and post_upgrade as it's done in database canister
 #[derive(Default, CandidType, Deserialize)]
 struct State {
     pub backend_principal: Option<Principal>,

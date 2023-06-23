@@ -294,7 +294,6 @@ dependencies = [
  "getrandom",
  "ic-cdk 0.8.1",
  "ic-cdk-macros",
- "ic-cdk-timers",
  "omnia-core-sdk",
  "omnia_types",
  "omnia_utils",
@@ -634,6 +633,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "ic-cdk"
+version = "0.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff1375116689aeeffdc6e96ec8ed1953671aee1dcd01016ab86e0606e93bec94"
+dependencies = [
+ "candid",
+ "ic-cdk-macros",
+ "ic0",
+ "serde",
+ "serde_bytes",
+]
+
+[[package]]
 name = "ic-cdk-macros"
 version = "0.6.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -655,6 +667,20 @@ checksum = "06623d548784bdca42f487373d1165a5d106fbef2730e3aeface08a469aa1caf"
 dependencies = [
  "futures",
  "ic-cdk 0.8.1",
+ "ic0",
+ "serde",
+ "serde_bytes",
+ "slotmap",
+]
+
+[[package]]
+name = "ic-cdk-timers"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "83ae33d93347308ae34156bacec10a348689f2f42b1e783dc7015f0ba1c4987a"
+dependencies = [
+ "futures",
+ "ic-cdk 0.9.2",
  "ic0",
  "serde",
  "serde_bytes",
@@ -964,11 +990,13 @@ dependencies = [
 [[package]]
 name = "omnia-core-sdk"
 version = "0.1.0"
-source = "git+https://github.com/omnia-network/omnia-sdk#cfb7cd64ad72afaf6e4321fe502a5470f7237d12"
+source = "git+https://github.com/omnia-network/omnia-sdk#c2fdad7b1de31b38bda340f318dd2fda7bb91e56"
 dependencies = [
  "candid",
+ "getrandom",
  "hex",
  "ic-cdk 0.8.1",
+ "ic-cdk-timers 0.3.0",
  "ic-ledger-types",
  "rand",
  "serde",
@@ -986,7 +1014,7 @@ dependencies = [
  "hex",
  "ic-cdk 0.8.1",
  "ic-cdk-macros",
- "ic-cdk-timers",
+ "ic-cdk-timers 0.2.0",
  "ic-ledger-types",
  "ic-oxigraph",
  "k256",
@@ -1019,7 +1047,7 @@ dependencies = [
  "getrandom",
  "hex",
  "ic-cdk 0.8.1",
- "ic-cdk-timers",
+ "ic-cdk-timers 0.2.0",
  "ic-ledger-types",
  "omnia_types",
  "rand",

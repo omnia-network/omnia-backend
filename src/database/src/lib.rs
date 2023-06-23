@@ -1,6 +1,7 @@
 use candid::{candid_method, CandidType, Deserialize, Principal};
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{init, post_upgrade, pre_upgrade};
+use omnia_core_sdk::random::init_rng;
 use omnia_types::access_key::{AccessKeyIndex, AccessKeyValue};
 use omnia_types::device::{RegisteredDeviceIndex, RegisteredDeviceValue};
 use omnia_types::environment::{
@@ -14,7 +15,6 @@ use omnia_types::http::{IpChallengeIndex, IpChallengeValue};
 use omnia_types::updates::{UpdateIndex, UpdateValue};
 use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValue};
 use omnia_types::CrudMap;
-use omnia_utils::random::init_rng;
 use serde::Serialize;
 use std::{cell::RefCell, ops::Deref};
 use utils::update_omnia_backend_principal;

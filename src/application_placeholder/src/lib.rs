@@ -1,21 +1,27 @@
 use candid::candid_method;
-use ic_cdk::api::management_canister::provisional::CanisterId;
+use ic_cdk::{api::management_canister::provisional::CanisterId};
 use ic_cdk_macros::update;
-use omnia_core_sdk::{
-    access_key::generate_signed_unique_access_key, init_client, ledger::request_access_key,
-};
+use omnia_core_sdk::InitParams;
 use omnia_core_sdk::{access_key::AccessKeyUID, signature::SignatureReply};
+use omnia_core_sdk::{
+    access_key::{generate_signed_unique_access_key, request_access_key},
+    init_client,
+};
 
 use omnia_types::errors::GenericResult;
-use omnia_utils::random::get_seeded_rng;
 
 #[update]
 #[candid_method(update)]
 async fn get_access_key(
-    ledger_canister_id: CanisterId,
     omnia_canister_id: CanisterId,
+    ledger_canister_id: CanisterId,
 ) -> GenericResult<AccessKeyUID> {
-    init_client(ledger_canister_id, omnia_canister_id, get_seeded_rng());
+    // For simplicity, initialize the SDK client here.
+    // It should be initialized in the init method of the canister.
+    init_client(InitParams {
+        omnia_canister_id: Some(omnia_canister_id),
+        ledger_canister_id: Some(ledger_canister_id),
+    });
     request_access_key().await
 }
 

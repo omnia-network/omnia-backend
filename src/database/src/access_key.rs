@@ -9,6 +9,7 @@ use omnia_types::{
     },
     errors::GenericResult,
 };
+use omnia_utils::constants::ACCESS_KEY_REQUESTS_LIMIT;
 use uuid::Uuid;
 
 use crate::{utils::caller_is_omnia_backend, STATE};
@@ -82,6 +83,14 @@ fn spend_requests_for_keys(
             }
 
             let mut access_key_value = access_key_value.unwrap().clone();
+
+            if access_key_value.get_requests_count() >= ACCESS_KEY_REQUESTS_LIMIT {
+                rejected_access_keys.push(RejectedAccessKey {
+                    key: access_key_index.access_key_uid.clone(),
+                    reason: RejectedAccessKeyReason::RequestsLimitReached,
+                });
+                continue;
+            }
 
             let nonce = unique_access_key.get_nonce();
 

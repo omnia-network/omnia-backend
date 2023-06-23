@@ -6,7 +6,7 @@ use ic_cdk::{
 use ic_cdk_macros::{query, update};
 use ic_ledger_types::{BlockIndex, Operation, Tokens};
 use ic_oxigraph::model::{vocab, GraphName, Literal, NamedNode, Quad};
-use omnia_core_sdk::access_key::{AccessKeyUID, UniqueAccessKey};
+use omnia_core_sdk::access_key::{AccessKeyUID, UniqueAccessKey, ACCESS_KEY_PRICE};
 use omnia_types::{
     access_key::{
         AccessKeyCreationArgs, AccessKeyCreationResult, RejectedAccessKey, RejectedAccessKeyReason,
@@ -26,7 +26,6 @@ use omnia_types::{
 use omnia_utils::ic::{get_transaction_hash, principal_to_account};
 
 use crate::{
-    constants::ACCESS_KEY_PRICE,
     rdf::{BotNode, HttpNode, OmniaNode, SarefNode, TdNode, UrnNode},
     utils::{
         get_backend_principal, get_database_principal, is_valid_signature, query_ledger_block,

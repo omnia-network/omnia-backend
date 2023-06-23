@@ -28,7 +28,7 @@ pub struct AccessKeyValue {
     pub key: AccessKeyUID,
     pub owner: Principal,
     pub transaction_hash: TransactionHash,
-    pub counter: u128,
+    pub counter: u32,
     pub used_nonces: Vec<u128>,
 }
 
@@ -61,6 +61,10 @@ impl AccessKeyValue {
 
     pub fn is_used_nonce(&self, nonce: u128) -> bool {
         self.used_nonces.contains(&nonce)
+    }
+
+    pub fn get_requests_count(&self) -> u32 {
+        self.counter
     }
 
     pub fn spend_nonce(&mut self, nonce: u128) {
@@ -105,6 +109,7 @@ pub enum RejectedAccessKeyReason {
     InvalidSignature,
     InvalidNonce,
     InvalidAccessKey,
+    RequestsLimitReached,
     NonceAlreadyUsed,
     SignatureVerificationError(String),
 }

@@ -43,6 +43,7 @@ type RejectedAccessKey = record {
 };
 type RejectedAccessKeyReason = variant {
   InvalidNonce;
+  RequestsLimitReached;
   InvalidAccessKey;
   InvalidSignature;
   NonceAlreadyUsed;

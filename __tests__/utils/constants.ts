@@ -6,7 +6,7 @@ export const OMNIA_PROXY_IPV4 = "3.70.56.192";
 export const OMNIA_PROXY_HOST = "proxy.omnia-iot.com";
 
 // test timeouts
-export const LONG_TEST_TIMEOUT = 30_000;
+export const LONG_TEST_TIMEOUT = 120_000;
 
 // test data
 export const ENVIRONMENT_NAME = "test_environment";
