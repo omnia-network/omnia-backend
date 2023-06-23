@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# if --clean argument is provided, we empty the .env file
+if [ "$1" = "--clean" ]; then
+  echo "Cleaning .env file..."
+  echo -n "" > .env
+fi
+
 source .env
 
 # we need to pass the database canister id to omnia_backend canister and
