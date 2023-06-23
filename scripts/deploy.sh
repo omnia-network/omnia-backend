@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# if --clean argument is provided, we empty the .env file
-if [ "$1" = "--clean" ]; then
+# if one of the arguments is --clean, we clean the .env file
+# we don't know the position of the --clean argument, so we need to check all of them
+if [[ "$@" == *"--clean"* ]]; then
   echo "Cleaning .env file..."
   echo -n "" > .env
 fi
@@ -64,7 +65,7 @@ echo "Deploying canisters..."
 declare -a CANISTERS_TO_DEPLOY=("ledger" "database" "omnia_backend")
 
 # if the --tests argument is provided, we also deploy the application_placeholder canister
-if [ "$1" = "--tests" ]; then
+if [[ "$@" == *"--tests"* ]]; then
   echo "TESTS deployment. Deploying also the application_placeholder canister..."
   CANISTERS_TO_DEPLOY+=("application_placeholder")
 fi
