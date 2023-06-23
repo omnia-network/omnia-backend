@@ -137,7 +137,13 @@ pub async fn is_valid_signature(
         .verify(message_bytes, &signature)
     {
         Ok(_) => Ok(true),
-        Err(_) => Ok(false),
+        Err(_) => {
+            print(format!(
+                "Signature verification failed: signature_hex: {:?}, message: {:?}, canister_id: {:?}",
+                signature_hex, message, canister_id
+            ));
+            Ok(false)
+        },
     }
 }
 
