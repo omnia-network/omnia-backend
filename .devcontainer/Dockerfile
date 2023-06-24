@@ -9,7 +9,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends cmake
 
 # DFINITY Canister smart contract SDK
-RUN DFX_VERSION=0.14.0 sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)"
+RUN DFX_VERSION=0.14.1 sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)"
 
 # rust dfinity utility
 # this command takes lot of time and resources,
