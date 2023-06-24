@@ -2,12 +2,9 @@
   "canisters": {
     "omnia_backend": {
       "candid": "src/omnia_backend/omnia_backend.did",
-      "build": [
-        "cargo build --target wasm32-unknown-unknown --release -p omnia_backend --locked",
-        "gzip -f -k ./target/wasm32-unknown-unknown/release/omnia_backend.wasm"
-      ],
-      "wasm": "target/wasm32-unknown-unknown/release/omnia_backend.wasm.gz",
-      "type": "custom",
+      "package": "omnia_backend",
+      "type": "rust",
+      "gzip": true,
       "dependencies": [
         "database"
       ]
