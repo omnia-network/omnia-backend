@@ -1,17 +1,13 @@
 [package]
-name = "omnia_types"
+name = "scripts"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[lib]
-crate-type = ["lib"]
-
 [dependencies]
 candid = "0.8.4"
-ic-cdk = "0.8.1"
-omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", version = "0.1.0" }
-serde = "1.0.111"
-sha2 = "0.10.7"
+ic-ledger-types = "0.5.0"
+hex = "0.4.3"
+omnia_utils = { path = "../omnia_utils" }

@@ -1,6 +1,8 @@
 use candid::{candid_method, CandidType, Deserialize, Principal};
 use ic_cdk::api::stable::{StableReader, StableWriter};
 use ic_cdk_macros::{init, post_upgrade, pre_upgrade};
+use omnia_core_sdk::random::init_rng;
+use omnia_types::access_key::{AccessKeyIndex, AccessKeyValue};
 use omnia_types::device::{RegisteredDeviceIndex, RegisteredDeviceValue};
 use omnia_types::environment::{
     EnvironmentIndex, EnvironmentUidIndex, EnvironmentUidValue, EnvironmentValue,
@@ -13,15 +15,13 @@ use omnia_types::http::{IpChallengeIndex, IpChallengeValue};
 use omnia_types::updates::{UpdateIndex, UpdateValue};
 use omnia_types::virtual_persona::{VirtualPersonaIndex, VirtualPersonaValue};
 use omnia_types::CrudMap;
-use rand::{rngs::StdRng, SeedableRng};
-use random::init_rng;
 use serde::Serialize;
 use std::{cell::RefCell, ops::Deref};
 use utils::update_omnia_backend_principal;
 
+mod access_key;
 mod auth;
 mod environment;
-mod random;
 mod utils;
 mod virtual_persona;
 
@@ -35,6 +35,7 @@ struct State {
     pub initialized_gateways: CrudMap<InitializedGatewayIndex, InitializedGatewayValue>,
     pub updates: CrudMap<UpdateIndex, UpdateValue>,
     pub registered_devices: CrudMap<RegisteredDeviceIndex, RegisteredDeviceValue>,
+    pub valid_access_keys: CrudMap<AccessKeyIndex, AccessKeyValue>,
     pub omnia_backend_principal: Option<Principal>,
 }
 
@@ -49,6 +50,7 @@ impl State {
             initialized_gateways: CrudMap::default(),
             updates: CrudMap::default(),
             registered_devices: CrudMap::default(),
+            valid_access_keys: CrudMap::default(),
             omnia_backend_principal: None,
         }
     }
@@ -56,12 +58,15 @@ impl State {
 
 thread_local! {
     /* stable */ static STATE: RefCell<State>  = RefCell::new(State::default());
-    /* flexible */ static RNG_REF_CELL: RefCell<StdRng> = RefCell::new(SeedableRng::from_seed([0_u8; 32]));
 }
 
 #[init]
 #[candid_method(init)]
-fn init(omnia_backend_canister_principal_id: String, _database_canister_principal_id: String) {
+fn init(
+    omnia_backend_canister_principal_id: String,
+    _database_canister_principal_id: String,
+    _ledger_canister_principal_id: String,
+) {
     // initialize rng
     init_rng();
 
@@ -80,6 +85,7 @@ fn pre_upgrade() {
 fn post_upgrade(
     omnia_backend_canister_principal_id: String,
     _database_canister_principal_id: String,
+    _ledger_canister_principal_id: String,
 ) {
     // initialize rng
     init_rng();
@@ -98,6 +104,8 @@ mod tests {
     use std::env;
 
     use super::*;
+    use omnia_core_sdk::access_key::UniqueAccessKey;
+    use omnia_types::access_key::*;
     use omnia_types::device::*;
     use omnia_types::environment::*;
     use omnia_types::errors::*;

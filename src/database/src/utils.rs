@@ -5,7 +5,6 @@ use crate::STATE;
 
 pub fn caller_is_omnia_backend() {
     let caller = caller();
-    print(format!("Caller's principal: {:?}", caller));
 
     STATE.with(|state| {
         if caller
@@ -26,7 +25,7 @@ pub fn update_omnia_backend_principal(omnia_backend_canister_principal_id: Strin
     ));
 
     let remote_principal: Principal = Principal::from_text(omnia_backend_canister_principal_id)
-        .expect("Invalid Database canister principal id");
+        .expect("Invalid Omnia Backend canister principal id");
     STATE.with(|state| {
         state.borrow_mut().omnia_backend_principal = Some(remote_principal);
     });

@@ -4,8 +4,8 @@ use ic_cdk::{
     print,
 };
 use omnia_types::{
-    environment::EnvironmentInfoResult,
-    virtual_persona::{VirtualPersonaValueResult}, http::IpChallengeNonce,
+    environment::EnvironmentInfoResult, http::IpChallengeNonce,
+    virtual_persona::VirtualPersonaValueResult,
 };
 
 use crate::utils::get_database_principal;
@@ -17,14 +17,17 @@ async fn get_profile(nonce: IpChallengeNonce) -> VirtualPersonaValueResult {
 
     match call(
         get_database_principal(),
-        "getVirtualPersona",
-        (nonce, virtual_persona_principal.to_string(),),
-    ).await.unwrap() {
+        "get_virtual_persona",
+        (nonce, virtual_persona_principal.to_string()),
+    )
+    .await
+    .unwrap()
+    {
         (Ok(virtual_persona),) => {
             print(format!("User profile: {:?}", virtual_persona));
             Ok(virtual_persona)
-        },
-        (Err(e), ) => Err(e)
+        }
+        (Err(e),) => Err(e),
     }
 }
 
@@ -35,8 +38,8 @@ async fn set_environment(nonce: IpChallengeNonce) -> EnvironmentInfoResult {
 
     let (environment_info,): (EnvironmentInfoResult,) = call(
         get_database_principal(),
-        "setUserInEnvironment",
-        (virtual_persona_principal.to_string(), nonce, ),
+        "set_user_in_environment",
+        (virtual_persona_principal.to_string(), nonce),
     )
     .await
     .unwrap();
@@ -53,8 +56,8 @@ async fn reset_environment(nonce: IpChallengeNonce) -> EnvironmentInfoResult {
 
     let (environment_info,): (EnvironmentInfoResult,) = call(
         get_database_principal(),
-        "resetUserFromEnvironment",
-        (virtual_persona_principal.to_string(), nonce, ),
+        "reset_user_from_environment",
+        (virtual_persona_principal.to_string(), nonce),
     )
     .await
     .unwrap();

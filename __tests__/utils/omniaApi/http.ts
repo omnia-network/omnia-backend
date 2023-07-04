@@ -17,7 +17,7 @@ const getForwardedForIps = (lastIp: string): string => {
  * @param {string} path The path to the endpoint, starting with a slash
  * @returns {string} The full URL to the endpoint
  */
-export const omniaBackendCarnisterUrl = (path: string): string => `http://localhost:4943${path}?canisterId=${OMNIA_BACKEND_CANISTER_ID}`;
+export const omniaBackendCarnisterUrl = (path: string): string => `http://127.0.0.1:4943${path}?canisterId=${OMNIA_BACKEND_CANISTER_ID}`;
 
 export const httpNonceChallenge = async (remoteIp: string, proxyData?: { peerId: string }) => {
   const nonce = getNonce();

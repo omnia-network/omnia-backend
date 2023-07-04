@@ -1,0 +1,11 @@
+type Result = variant { Ok : text; Err : text };
+type Result_1 = variant { Ok : SignatureReply; Err : text };
+type SignatureReply = record {
+  unique_access_key : UniqueAccessKey;
+  signature_hex : text;
+};
+type UniqueAccessKey = record { key : text; nonce : nat };
+service : {
+  get_access_key : (principal, principal) -> (Result);
+  sign_access_key : (text) -> (Result_1);
+}

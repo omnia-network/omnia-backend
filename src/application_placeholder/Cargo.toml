@@ -1,5 +1,5 @@
 [package]
-name = "database"
+name = "application_placeholder"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
@@ -11,13 +11,9 @@ crate-type = ["cdylib"]
 
 [dependencies]
 candid = "0.8.4"
-ic-cdk = "0.8.1"
-ic-cdk-macros = "0.6.10"
-serde = "1.0.111"
-omnia_types = { path = "../omnia_types" }
+hex = "0.4.3"
 omnia_utils = { path = "../omnia_utils" }
-ciborium = "0.2.1"
-uuid = { version = "1.3.2", features = ["v4"] }
-rand = "0.8.5"
-getrandom = { version = "0.2.9", features = ["custom"] }
+omnia_types = { path = "../omnia_types" }
+ic-cdk-macros = "0.6.10"
+ic-cdk = "0.8.1"
 omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", version = "0.1.0" }

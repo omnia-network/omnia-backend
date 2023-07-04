@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use candid::{CandidType, Deserialize};
 use serde::Serialize;
 
-use crate::{environment::EnvironmentUID, errors::GenericError};
+use crate::{environment::EnvironmentUID, errors::GenericResult};
 
 pub type VirtualPersonaPrincipalId = String;
 
@@ -34,4 +34,4 @@ pub struct VirtualPersonaValue {
     pub manager_env_uid: Option<EnvironmentUID>,
 }
 
-pub type VirtualPersonaValueResult = Result<VirtualPersonaValue, GenericError>;
+pub type VirtualPersonaValueResult = GenericResult<VirtualPersonaValue>;

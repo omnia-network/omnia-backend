@@ -1,3 +1,14 @@
+type AccessKeyCreationArgs = record {
+  transaction_hash : vec nat8;
+  owner : principal;
+};
+type AccessKeyValue = record {
+  key : text;
+  transaction_hash : vec nat8;
+  counter : nat32;
+  owner : principal;
+  used_nonces : vec nat;
+};
 type EnvironmentCreationInput = record { env_name : text };
 type EnvironmentCreationResult = record { env_uid : text; env_name : text };
 type EnvironmentInfo = record { env_uid : text };
@@ -28,19 +39,34 @@ type RegisteredGatewayValue = record {
   gateway_url : text;
   proxied_gateway_uid : opt text;
 };
-type Result = variant { Ok : EnvironmentCreationResult; Err : text };
-type Result_1 = variant { Ok : vec InitializedGatewayValue; Err : text };
-type Result_2 = variant { Ok : vec text; Err : text };
-type Result_3 = variant { Ok : vec RegisteredGatewayValue; Err : text };
-type Result_4 = variant { Ok : VirtualPersonaValue; Err : text };
-type Result_5 = variant { Ok : text; Err : text };
-type Result_6 = variant { Ok : UpdateValue; Err : text };
-type Result_7 = variant {
+type RejectedAccessKey = record {
+  key : text;
+  reason : RejectedAccessKeyReason;
+};
+type RejectedAccessKeyReason = variant {
+  InvalidNonce;
+  RequestsLimitReached;
+  InvalidAccessKey;
+  InvalidSignature;
+  NonceAlreadyUsed;
+  SignatureVerificationError : text;
+};
+type Result = variant { Ok : AccessKeyValue; Err : text };
+type Result_1 = variant { Ok : EnvironmentCreationResult; Err : text };
+type Result_10 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_11 = variant { Ok : vec RejectedAccessKey; Err : text };
+type Result_2 = variant { Ok : vec InitializedGatewayValue; Err : text };
+type Result_3 = variant { Ok : vec text; Err : text };
+type Result_4 = variant { Ok : vec RegisteredGatewayValue; Err : text };
+type Result_5 = variant { Ok : VirtualPersonaValue; Err : text };
+type Result_6 = variant { Ok : text; Err : text };
+type Result_7 = variant { Ok : UpdateValue; Err : text };
+type Result_8 = variant {
   Ok : record { RegisteredDeviceIndex; RegisteredDeviceValue };
   Err : text;
 };
-type Result_8 = variant { Ok : RegisteredGatewayValue; Err : text };
-type Result_9 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_9 = variant { Ok : RegisteredGatewayValue; Err : text };
+type UniqueAccessKey = record { key : text; nonce : nat };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;
@@ -53,22 +79,24 @@ type VirtualPersonaValue = record {
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
-service : (text, text) -> {
-  checkIfVirtualPersonaExists : (text) -> (bool) query;
-  createNewEnvironment : (text, EnvironmentCreationInput) -> (Result);
-  getGatewayUpdatesByPrincipal : (text) -> (opt UpdateValue);
-  getInitializedGatewaysByIp : (text) -> (Result_1);
-  getRegisteredDevicesOnGateway : (text) -> (Result_2);
-  getRegisteredGatewaysInEnvironment : (text) -> (Result_3);
-  getVirtualPersona : (text, text) -> (Result_4);
-  initGatewayByIp : (text, text) -> (Result_5);
-  initNonceToIp : (text, IpChallengeValue) -> ();
-  isGatewayRegistered : (text) -> (bool);
-  pairNewDeviceOnGateway : (text, text, text, text) -> (Result_6);
-  registerDeviceOnGateway : (text, text) -> (Result_7);
-  registerGatewayInEnvironment : (text, text, GatewayRegistrationInput) -> (
-    Result_8
-  );
-  resetUserFromEnvironment : (text, text) -> (Result_9);
-  setUserInEnvironment : (text, text) -> (Result_9);
-};
+service : (text, text, text) -> {
+  check_if_virtual_persona_exists : (text) -> (bool) query;
+  create_new_access_key : (AccessKeyCreationArgs) -> (Result);
+  create_new_environment : (text, EnvironmentCreationInput) -> (Result_1);
+  get_gateway_updates_by_principal : (text) -> (opt UpdateValue);
+  get_initialized_gateways_by_ip : (text) -> (Result_2);
+  get_registered_devices_on_gateway : (text) -> (Result_3);
+  get_registered_gateways_in_environment : (text) -> (Result_4);
+  get_virtual_persona : (text, text) -> (Result_5);
+  init_gateway_by_ip : (text, text) -> (Result_6);
+  init_nonce_to_ip : (text, IpChallengeValue) -> ();
+  is_gateway_registered : (text) -> (bool);
+  pair_new_device_on_gateway : (text, text, text, text) -> (Result_7);
+  register_device_on_gateway : (text, text) -> (Result_8);
+  register_gateway_in_environment : (text, text, GatewayRegistrationInput) -> (
+      Result_9,
+    );
+  reset_user_from_environment : (text, text) -> (Result_10);
+  set_user_in_environment : (text, text) -> (Result_10);
+  spend_requests_for_keys : (vec UniqueAccessKey) -> (Result_11);
+}
