@@ -36,7 +36,6 @@ struct State {
     pub updates: CrudMap<UpdateIndex, UpdateValue>,
     pub registered_devices: CrudMap<RegisteredDeviceIndex, RegisteredDeviceValue>,
     pub valid_access_keys: CrudMap<AccessKeyIndex, AccessKeyValue>,
-    pub omnia_backend_principal: Option<Principal>,
 }
 
 impl State {
@@ -51,13 +50,13 @@ impl State {
             updates: CrudMap::default(),
             registered_devices: CrudMap::default(),
             valid_access_keys: CrudMap::default(),
-            omnia_backend_principal: None,
         }
     }
 }
 
 thread_local! {
     /* stable */ static STATE: RefCell<State>  = RefCell::new(State::default());
+    /* flexible */ static OMNIA_BACKEND_PRINCIPAL: RefCell<Option<Principal>> = RefCell::new(None);
 }
 
 #[init]
