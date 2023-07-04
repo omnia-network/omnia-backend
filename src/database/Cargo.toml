@@ -21,3 +21,4 @@ uuid = { version = "1.3.2", features = ["v4"] }
 rand = "0.8.5"
 getrandom = { version = "0.2.9", features = ["custom"] }
 omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", version = "0.1.0" }
+ic-stable-structures = "0.5.5"

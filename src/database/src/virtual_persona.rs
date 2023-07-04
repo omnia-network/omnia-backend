@@ -149,7 +149,7 @@ fn get_virtual_persona(
                 "User: {:?} has profile: {:?}",
                 virtual_persona_index.principal_id, existing_virtual_persona_value
             ));
-            return Ok(existing_virtual_persona_value.to_owned());
+            return Ok(existing_virtual_persona_value);
         }
 
         // otherwise, create a new one

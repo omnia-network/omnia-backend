@@ -1,8 +1,9 @@
-use std::cmp::Ordering;
+use std::{borrow::Cow, cmp::Ordering};
 
-use crate::errors::GenericResult;
-use candid::{CandidType, Principal};
+use crate::{errors::GenericResult, MAX_STABLE_BTREE_MAP_SIZE};
+use candid::{CandidType, Decode, Encode, Principal};
 use ic_cdk::api::management_canister::provisional::CanisterId;
+use ic_stable_structures::{BoundedStorable, Storable};
 use omnia_core_sdk::access_key::{AccessKeyUID, UniqueAccessKey};
 use serde::{Deserialize, Serialize};
 
@@ -21,6 +22,21 @@ impl PartialOrd for AccessKeyIndex {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
+}
+
+impl Storable for AccessKeyIndex {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+}
+
+impl BoundedStorable for AccessKeyIndex {
+    const MAX_SIZE: u32 = MAX_STABLE_BTREE_MAP_SIZE;
+    const IS_FIXED_SIZE: bool = false;
 }
 
 #[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
@@ -71,6 +87,21 @@ impl AccessKeyValue {
         self.used_nonces.push(nonce);
         self.counter += 1;
     }
+}
+
+impl Storable for AccessKeyValue {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+}
+
+impl BoundedStorable for AccessKeyValue {
+    const MAX_SIZE: u32 = MAX_STABLE_BTREE_MAP_SIZE;
+    const IS_FIXED_SIZE: bool = false;
 }
 
 /// Use [get_transaction_hash][omnia_utils::ic::get_transaction_hash] to generate the transaction hash

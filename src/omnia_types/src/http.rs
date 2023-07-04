@@ -1,9 +1,10 @@
-use std::cmp::Ordering;
+use std::{borrow::Cow, cmp::Ordering};
 
-use candid::CandidType;
+use candid::{CandidType, Decode, Encode};
+use ic_stable_structures::{BoundedStorable, Storable};
 use serde::{Deserialize, Serialize};
 
-use crate::errors::GenericResult;
+use crate::{errors::GenericResult, MAX_STABLE_BTREE_MAP_SIZE};
 
 pub const CONTENT_TYPE_HEADER_KEY: &str = "content-type";
 
@@ -50,6 +51,21 @@ pub struct IpChallengeValue {
     pub timestamp: u64,
 }
 
+impl Storable for IpChallengeValue {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+}
+
+impl BoundedStorable for IpChallengeValue {
+    const MAX_SIZE: u32 = MAX_STABLE_BTREE_MAP_SIZE;
+    const IS_FIXED_SIZE: bool = false;
+}
+
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize, PartialEq, Eq)]
 pub struct IpChallengeIndex {
     pub nonce: IpChallengeNonce,
@@ -65,6 +81,21 @@ impl PartialOrd for IpChallengeIndex {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
+}
+
+impl Storable for IpChallengeIndex {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+}
+
+impl BoundedStorable for IpChallengeIndex {
+    const MAX_SIZE: u32 = MAX_STABLE_BTREE_MAP_SIZE;
+    const IS_FIXED_SIZE: bool = false;
 }
 
 pub type IpChallengeValueResult = GenericResult<IpChallengeValue>;

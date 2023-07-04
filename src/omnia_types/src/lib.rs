@@ -1,5 +1,4 @@
 use access_key::{AccessKeyIndex, AccessKeyValue, TransactionHash};
-use candid::{CandidType, Deserialize};
 use device::DeviceUid;
 use environment::{
     EnvironmentIndex, EnvironmentUID, EnvironmentUidIndex, EnvironmentUidValue, EnvironmentValue,
@@ -10,8 +9,8 @@ use gateway::{
     RegisteredGatewayValue,
 };
 use http::{IpChallengeIndex, IpChallengeNonce, IpChallengeValue};
-use serde::Serialize;
-use std::collections::BTreeMap;
+use ic_stable_structures::StableBTreeMap;
+use ic_stable_structures::{memory_manager::VirtualMemory, BoundedStorable, DefaultMemoryImpl};
 use std::fmt::Debug;
 use virtual_persona::{VirtualPersonaIndex, VirtualPersonaPrincipalId, VirtualPersonaValue};
 
@@ -24,12 +23,23 @@ pub mod http;
 pub mod updates;
 pub mod virtual_persona;
 
-#[derive(Default, CandidType, Serialize, Deserialize)]
-pub struct CrudMap<I: Ord + Debug, V> {
-    map: BTreeMap<I, V>,
+pub const MAX_STABLE_BTREE_MAP_SIZE: u32 = 1000;
+
+pub type Memory = VirtualMemory<DefaultMemoryImpl>;
+
+pub struct CrudMap<I: Ord + Debug + BoundedStorable + Clone, V: BoundedStorable + Clone> {
+    map: StableBTreeMap<I, V, Memory>,
 }
 
-impl<I: Ord + Debug, V> CrudMap<I, V> {
+impl<I: Ord + Debug + BoundedStorable + Clone, V: BoundedStorable + Clone> CrudMap<I, V> {
+    pub fn default(memory: Memory) -> Self {
+        Self {
+            map: StableBTreeMap::init(memory),
+        }
+    }
+}
+
+impl<I: Ord + Debug + BoundedStorable + Clone, V: BoundedStorable + Clone> CrudMap<I, V> {
     pub fn create(&mut self, index: I, value: V) -> GenericResult<()> {
         match self.map.contains_key(&index) {
             false => {
@@ -48,7 +58,7 @@ impl<I: Ord + Debug, V> CrudMap<I, V> {
         }
     }
 
-    pub fn read(&self, index: &I) -> GenericResult<&V> {
+    pub fn read(&self, index: &I) -> GenericResult<V> {
         match self.map.get(index) {
             Some(value) => Ok(value),
             None => {
@@ -117,7 +127,7 @@ impl CrudMap<EnvironmentUidIndex, EnvironmentUidValue> {
         &self,
         environment_uid_index: EnvironmentUidIndex,
     ) -> GenericResult<EnvironmentUID> {
-        let environment_uid_value = self.read(&environment_uid_index)?.clone();
+        let environment_uid_value = self.read(&environment_uid_index)?;
         Ok(environment_uid_value.env_uid)
     }
 }
@@ -128,7 +138,7 @@ impl CrudMap<EnvironmentIndex, EnvironmentValue> {
         environment_index: EnvironmentIndex,
         gateway_principal_id: GatewayPrincipalId,
     ) -> GenericResult<EnvironmentValue> {
-        let mut updatable_environment_value = self.read(&environment_index)?.clone();
+        let mut updatable_environment_value = self.read(&environment_index)?;
         updatable_environment_value
             .env_gateways_principals_ids
             .insert(gateway_principal_id, ());
@@ -141,7 +151,7 @@ impl CrudMap<EnvironmentIndex, EnvironmentValue> {
         virtual_persona_principal_id: VirtualPersonaPrincipalId,
     ) -> GenericResult<EnvironmentValue> {
         let environment_value = self.read(&environment_index)?;
-        let mut updatable_environment_value = environment_value.clone();
+        let mut updatable_environment_value = environment_value;
         updatable_environment_value
             .env_users_principals_ids
             .insert(virtual_persona_principal_id, ());
@@ -154,7 +164,7 @@ impl CrudMap<EnvironmentIndex, EnvironmentValue> {
         virtual_persona_principal_id: VirtualPersonaPrincipalId,
     ) -> GenericResult<EnvironmentValue> {
         let environment_value = self.read(&environment_index)?;
-        let mut updatable_environment_value = environment_value.clone();
+        let mut updatable_environment_value = environment_value;
         updatable_environment_value
             .env_users_principals_ids
             .remove(&virtual_persona_principal_id);
@@ -168,7 +178,7 @@ impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
         virtual_persona_index: VirtualPersonaIndex,
         environment_uid: EnvironmentUID,
     ) -> GenericResult<VirtualPersonaValue> {
-        let virtual_persona_value = self.read(&virtual_persona_index)?.clone();
+        let virtual_persona_value = self.read(&virtual_persona_index)?;
         let updated_virtual_persona = VirtualPersonaValue {
             user_env_uid: Some(environment_uid),
             ..virtual_persona_value
@@ -180,7 +190,7 @@ impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
         &mut self,
         virtual_persona_index: VirtualPersonaIndex,
     ) -> GenericResult<VirtualPersonaValue> {
-        let virtual_persona_value = self.read(&virtual_persona_index)?.clone();
+        let virtual_persona_value = self.read(&virtual_persona_index)?;
         let updated_virtual_persona = VirtualPersonaValue {
             user_env_uid: None,
             ..virtual_persona_value
@@ -193,7 +203,7 @@ impl CrudMap<VirtualPersonaIndex, VirtualPersonaValue> {
         virtual_persona_index: VirtualPersonaIndex,
         environment_uid: EnvironmentUID,
     ) -> GenericResult<VirtualPersonaValue> {
-        let virtual_persona_value = self.read(&virtual_persona_index)?.clone();
+        let virtual_persona_value = self.read(&virtual_persona_index)?;
         let updated_virtual_persona = VirtualPersonaValue {
             manager_env_uid: Some(environment_uid),
             ..virtual_persona_value
@@ -208,7 +218,7 @@ impl CrudMap<RegisteredGatewayIndex, RegisteredGatewayValue> {
         registered_gateway_index: RegisteredGatewayIndex,
         device_uid: DeviceUid,
     ) -> GenericResult<RegisteredGatewayValue> {
-        let mut updatable_registered_gateway_value = self.read(&registered_gateway_index)?.clone();
+        let mut updatable_registered_gateway_value = self.read(&registered_gateway_index)?;
         updatable_registered_gateway_value
             .gat_registered_device_uids
             .insert(device_uid, ());

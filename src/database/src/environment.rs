@@ -1,6 +1,6 @@
 use candid::candid_method;
 use ic_cdk::print;
-use ic_cdk_macros::update;
+use ic_cdk_macros::{query, update};
 use omnia_types::{
     device::{
         RegisteredDeviceIndex, RegisteredDeviceResult, RegisteredDeviceValue,
@@ -28,8 +28,8 @@ use uuid::Uuid;
 
 use crate::{utils::caller_is_omnia_backend, STATE};
 
-#[update]
-#[candid_method(update)]
+#[query]
+#[candid_method(query)]
 async fn is_gateway_registered(gateway_principal_id: GatewayPrincipalId) -> bool {
     caller_is_omnia_backend();
 
@@ -116,7 +116,7 @@ async fn get_initialized_gateways_by_ip(
             .initialized_gateways
             .read(&initialized_gateway_index)
         {
-            Ok(initialized_gateway_value) => Ok(vec![initialized_gateway_value.to_owned()]),
+            Ok(initialized_gateway_value) => Ok(vec![initialized_gateway_value]),
             Err(e) => Err(e),
         }
     })
@@ -267,11 +267,7 @@ fn get_registered_gateways_in_environment(
     STATE.with(|state| {
         // get principal IDs of gateways registered in environment
         let environment_index = EnvironmentIndex { environment_uid };
-        let environment_value = state
-            .borrow()
-            .environments
-            .read(&environment_index)?
-            .clone();
+        let environment_value = state.borrow().environments.read(&environment_index)?;
         let gateway_principal_ids: Vec<GatewayPrincipalId> =
             environment_value.env_gateways_principals_ids.iter().fold(
                 vec![],
@@ -349,8 +345,7 @@ fn pair_new_device_on_gateway(
         let registered_gateway_value = state
             .borrow()
             .registered_gateways
-            .read(&registered_gateway_index)?
-            .clone();
+            .read(&registered_gateway_index)?;
 
         // check if pairing request is coming from the same network of the gateway
         if registered_gateway_value.gateway_ip == ip_challenge_value.requester_ip {
@@ -409,8 +404,7 @@ async fn register_device_on_gateway(
         let registered_gateway_value = state
             .borrow()
             .registered_gateways
-            .read(&registered_gateway_index)?
-            .clone();
+            .read(&registered_gateway_index)?;
 
         // check if pairing request is coming from the same network of the gateway
         if registered_gateway_value.gateway_ip == ip_challenge_value.requester_ip {
@@ -477,8 +471,7 @@ async fn get_registered_devices_on_gateway(
         let registered_gateway_value = state
             .borrow()
             .registered_gateways
-            .read(&registered_gateway_index)?
-            .clone();
+            .read(&registered_gateway_index)?;
 
         // return registered devices
         Ok(registered_gateway_value

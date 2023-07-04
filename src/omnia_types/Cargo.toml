@@ -12,6 +12,7 @@ crate-type = ["lib"]
 [dependencies]
 candid = "0.8.4"
 ic-cdk = "0.8.1"
+ic-stable-structures = "0.5.5"
 omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", version = "0.1.0" }
 serde = "1.0.111"
 sha2 = "0.10.7"

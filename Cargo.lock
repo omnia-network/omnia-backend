@@ -294,6 +294,7 @@ dependencies = [
  "getrandom",
  "ic-cdk 0.8.1",
  "ic-cdk-macros",
+ "ic-stable-structures",
  "omnia-core-sdk",
  "omnia_types",
  "omnia_utils",
@@ -731,6 +732,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ic-stable-structures"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "905553523fce0a063fabda5dcdbff9e7bd324e2d8297dbbb5277af3b9964e3b5"
+
+[[package]]
 name = "ic0"
 version = "0.18.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1034,6 +1041,7 @@ version = "0.1.0"
 dependencies = [
  "candid",
  "ic-cdk 0.8.1",
+ "ic-stable-structures",
  "omnia-core-sdk",
  "serde",
  "sha2 0.10.7",
