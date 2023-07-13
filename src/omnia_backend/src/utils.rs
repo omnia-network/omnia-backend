@@ -8,7 +8,7 @@ use ic_cdk::{
 };
 use ic_ledger_types::{query_archived_blocks, query_blocks, Block, BlockIndex, GetBlocksArgs};
 use k256::ecdsa::signature::Verifier;
-use omnia_core_sdk::signature::EcdsaKeyIds;
+use omnia_core_sdk::signature::get_ecdsa_key_id;
 use omnia_types::errors::GenericResult;
 
 use crate::STATE;
@@ -143,7 +143,7 @@ pub async fn is_valid_signature(
                 signature_hex, message, canister_id
             ));
             Ok(false)
-        },
+        }
     }
 }
 
@@ -153,7 +153,7 @@ pub async fn get_canister_public_key(
     let request = EcdsaPublicKeyArgument {
         canister_id: Some(canister_id),
         derivation_path: vec![],
-        key_id: EcdsaKeyIds::TestKeyLocalDevelopment.to_key_id(),
+        key_id: get_ecdsa_key_id(),
     };
 
     let (res,) = ecdsa_public_key(request)

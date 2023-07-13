@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 candid = "0.8.4"
-ic-cdk = "0.8.1"
+ic-cdk = "0.9.2"
 ic-cdk-macros = "0.6.10"
 serde = "1.0.111"
 omnia_types = { path = "../omnia_types" }
@@ -19,4 +19,4 @@ omnia_utils = { path = "../omnia_utils" }
 ciborium = "0.2.1"
 uuid = { version = "1.3.2", features = ["v4"] }
 ic-stable-structures = "0.5.5"
-omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", rev = "f2a1fdf5272dc4adf0b4f0a955b6f7219660dfb3" }
+omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", rev = "542265a977d9968da5945e660884c5cf8b00e09e", version = "0.1.0" }
