@@ -1,6 +1,6 @@
 use candid::candid_method;
 use ic_cdk::print;
-use ic_cdk_macros::update;
+use ic_cdk_macros::{query, update};
 use omnia_types::{
     device::{
         RegisteredDeviceIndex, RegisteredDeviceResult, RegisteredDeviceValue,
@@ -10,7 +10,7 @@ use omnia_types::{
         EnvironmentCreationInput, EnvironmentCreationResult, EnvironmentIndex, EnvironmentUID,
         EnvironmentUidIndex, EnvironmentUidValue, EnvironmentValue,
     },
-    errors::{GenericError, GenericResult},
+    errors::GenericResult,
     gateway::{
         GatewayPrincipalId, GatewayRegistrationInput, InitializedGatewayIndex,
         InitializedGatewayValue, MultipleRegisteredGatewayResult, RegisteredGatewayIndex,
@@ -28,8 +28,8 @@ use uuid::Uuid;
 
 use crate::{utils::caller_is_omnia_backend, STATE};
 
-#[update(name = "isGatewayRegistered")]
-#[candid_method(update, rename = "isGatewayRegistered")]
+#[query]
+#[candid_method(query)]
 async fn is_gateway_registered(gateway_principal_id: GatewayPrincipalId) -> bool {
     caller_is_omnia_backend();
 
@@ -47,8 +47,8 @@ async fn is_gateway_registered(gateway_principal_id: GatewayPrincipalId) -> bool
     })
 }
 
-#[update(name = "initGatewayByIp")]
-#[candid_method(update, rename = "initGatewayByIp")]
+#[update]
+#[candid_method(update)]
 async fn init_gateway_by_ip(
     nonce: IpChallengeNonce,
     gateway_principal_id: GatewayPrincipalId,
@@ -93,8 +93,8 @@ async fn init_gateway_by_ip(
     })
 }
 
-#[update(name = "getInitializedGatewaysByIp")]
-#[candid_method(update, rename = "getInitializedGatewaysByIp")]
+#[update]
+#[candid_method(update)]
 async fn get_initialized_gateways_by_ip(
     nonce: IpChallengeNonce,
 ) -> GenericResult<Vec<InitializedGatewayValue>> {
@@ -116,18 +116,18 @@ async fn get_initialized_gateways_by_ip(
             .initialized_gateways
             .read(&initialized_gateway_index)
         {
-            Ok(initialized_gateway_value) => Ok(vec![initialized_gateway_value.to_owned()]),
+            Ok(initialized_gateway_value) => Ok(vec![initialized_gateway_value]),
             Err(e) => Err(e),
         }
     })
 }
 
-#[update(name = "createNewEnvironment")]
-#[candid_method(update, rename = "createNewEnvironment")]
+#[update]
+#[candid_method(update)]
 async fn create_new_environment(
     environment_manager_principal_id: VirtualPersonaPrincipalId,
     environment_creation_input: EnvironmentCreationInput,
-) -> Result<EnvironmentCreationResult, GenericError> {
+) -> GenericResult<EnvironmentCreationResult> {
     caller_is_omnia_backend();
 
     let environment_uid = Uuid::new_v4().hyphenated().to_string();
@@ -179,8 +179,8 @@ async fn create_new_environment(
     })
 }
 
-#[update(name = "registerGatewayInEnvironment")]
-#[candid_method(update, rename = "registerGatewayInEnvironment")]
+#[update]
+#[candid_method(update)]
 fn register_gateway_in_environment(
     nonce: IpChallengeNonce,
     environment_manager_principal_id: VirtualPersonaPrincipalId,
@@ -257,8 +257,8 @@ fn register_gateway_in_environment(
     })
 }
 
-#[update(name = "getRegisteredGatewaysInEnvironment")]
-#[candid_method(update, rename = "getRegisteredGatewaysInEnvironment")]
+#[update]
+#[candid_method(update)]
 fn get_registered_gateways_in_environment(
     environment_uid: EnvironmentUID,
 ) -> MultipleRegisteredGatewayResult {
@@ -267,11 +267,7 @@ fn get_registered_gateways_in_environment(
     STATE.with(|state| {
         // get principal IDs of gateways registered in environment
         let environment_index = EnvironmentIndex { environment_uid };
-        let environment_value = state
-            .borrow()
-            .environments
-            .read(&environment_index)?
-            .clone();
+        let environment_value = state.borrow().environments.read(&environment_index)?;
         let gateway_principal_ids: Vec<GatewayPrincipalId> =
             environment_value.env_gateways_principals_ids.iter().fold(
                 vec![],
@@ -299,8 +295,8 @@ fn get_registered_gateways_in_environment(
     })
 }
 
-#[update(name = "getGatewayUpdatesByPrincipal")]
-#[candid_method(update, rename = "getGatewayUpdatesByPrincipal")]
+#[update]
+#[candid_method(update)]
 fn get_gateway_updates_by_principal(gateway_principal_id: GatewayPrincipalId) -> UpdateValueOption {
     caller_is_omnia_backend();
 
@@ -325,8 +321,8 @@ fn get_gateway_updates_by_principal(gateway_principal_id: GatewayPrincipalId) ->
     })
 }
 
-#[update(name = "pairNewDeviceOnGateway")]
-#[candid_method(update, rename = "pairNewDeviceOnGateway")]
+#[update]
+#[candid_method(update)]
 fn pair_new_device_on_gateway(
     nonce: IpChallengeNonce,
     manager_principal_id: VirtualPersonaPrincipalId,
@@ -349,8 +345,7 @@ fn pair_new_device_on_gateway(
         let registered_gateway_value = state
             .borrow()
             .registered_gateways
-            .read(&registered_gateway_index)?
-            .clone();
+            .read(&registered_gateway_index)?;
 
         // check if pairing request is coming from the same network of the gateway
         if registered_gateway_value.gateway_ip == ip_challenge_value.requester_ip {
@@ -385,8 +380,8 @@ fn pair_new_device_on_gateway(
     })
 }
 
-#[update(name = "registerDeviceOnGateway")]
-#[candid_method(update, rename = "registerDeviceOnGateway")]
+#[update]
+#[candid_method(update)]
 async fn register_device_on_gateway(
     nonce: IpChallengeNonce,
     gateway_principal_id: GatewayPrincipalId,
@@ -409,8 +404,7 @@ async fn register_device_on_gateway(
         let registered_gateway_value = state
             .borrow()
             .registered_gateways
-            .read(&registered_gateway_index)?
-            .clone();
+            .read(&registered_gateway_index)?;
 
         // check if pairing request is coming from the same network of the gateway
         if registered_gateway_value.gateway_ip == ip_challenge_value.requester_ip {
@@ -462,8 +456,8 @@ async fn register_device_on_gateway(
     })
 }
 
-#[update(name = "getRegisteredDevicesOnGateway")]
-#[candid_method(update, rename = "getRegisteredDevicesOnGateway")]
+#[update]
+#[candid_method(update)]
 async fn get_registered_devices_on_gateway(
     gateway_principal_id: GatewayPrincipalId,
 ) -> RegisteredDevicesUidsResult {
@@ -477,8 +471,7 @@ async fn get_registered_devices_on_gateway(
         let registered_gateway_value = state
             .borrow()
             .registered_gateways
-            .read(&registered_gateway_index)?
-            .clone();
+            .read(&registered_gateway_index)?;
 
         // return registered devices
         Ok(registered_gateway_value

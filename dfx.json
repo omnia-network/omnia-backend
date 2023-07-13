@@ -2,12 +2,9 @@
   "canisters": {
     "omnia_backend": {
       "candid": "src/omnia_backend/omnia_backend.did",
-      "build": [
-        "cargo build --target wasm32-unknown-unknown --release -p omnia_backend --locked",
-        "gzip -f -k ./target/wasm32-unknown-unknown/release/omnia_backend.wasm"
-      ],
-      "wasm": "target/wasm32-unknown-unknown/release/omnia_backend.wasm.gz",
-      "type": "custom",
+      "package": "omnia_backend",
+      "type": "rust",
+      "gzip": true,
       "dependencies": [
         "database"
       ]
@@ -16,15 +13,44 @@
       "candid": "src/database/database.did",
       "package": "database",
       "type": "rust"
+    },
+    "ledger": {
+      "type": "custom",
+      "wasm": "https://download.dfinity.systems/ic/5eb2810653d4c72c7afc48a0450e2ad01378dfc7/canisters/ledger-canister_notify-method.wasm.gz",
+      "candid": "icp-ledger/ledger.public.did",
+      "remote": {
+        "candid": "icp-ledger/ledger.public.did",
+        "id": {
+          "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai"
+        }
+      }
+    },
+    "application_placeholder": {
+      "candid": "src/application_placeholder/application_placeholder.did",
+      "package": "application_placeholder",
+      "type": "rust",
+      "dependencies": [
+        "database",
+        "omnia_backend"
+      ],
+      "__comment": "Here, the remote canister id of the virtual management canister is only used to avoid deploying the application_placeholder canister to the IC.",
+      "remote": {
+        "id": {
+          "ic": "aaaaa-aa"
+        }
+      }
     }
   },
   "defaults": {
     "build": {
       "args": "",
       "packtool": ""
+    },
+    "replica": {
+      "subnet_type": "system"
     }
   },
-  "dfx": "0.14.0",
+  "dfx": "0.14.1",
   "output_env_file": ".env",
   "version": 1
 }

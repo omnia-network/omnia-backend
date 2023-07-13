@@ -242,7 +242,7 @@ async fn http_request_update(req: HttpRequest) -> HttpResponse {
 
     ((),) = call(
         get_database_principal(),
-        "initNonceToIp",
+        "init_nonce_to_ip",
         (parsed_body.nonce.to_string(), Box::new(requester_info)),
     )
     .await

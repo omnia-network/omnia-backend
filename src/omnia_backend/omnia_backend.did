@@ -37,9 +37,22 @@ type RegisteredGatewayValue = record {
   gateway_url : text;
   proxied_gateway_uid : opt text;
 };
+type RejectedAccessKey = record {
+  key : text;
+  reason : RejectedAccessKeyReason;
+};
+type RejectedAccessKeyReason = variant {
+  InvalidNonce;
+  RequestsLimitReached;
+  InvalidAccessKey;
+  InvalidSignature;
+  NonceAlreadyUsed;
+  SignatureVerificationError : text;
+};
 type Result = variant { Ok : EnvironmentCreationResult; Err : text };
 type Result_1 = variant { Ok : vec nat8; Err : text };
-type Result_10 = variant { Ok : EnvironmentInfo; Err : text };
+type Result_10 = variant { Ok : vec RejectedAccessKey; Err : text };
+type Result_11 = variant { Ok : EnvironmentInfo; Err : text };
 type Result_2 = variant { Ok : vec InitializedGatewayValue; Err : text };
 type Result_3 = variant { Ok : VirtualPersonaValue; Err : text };
 type Result_4 = variant { Ok : vec text; Err : text };
@@ -51,6 +64,13 @@ type Result_8 = variant {
   Err : text;
 };
 type Result_9 = variant { Ok : RegisteredGatewayValue; Err : text };
+type SignedRequest = record {
+  requester_canister_id : principal;
+  unique_access_key : UniqueAccessKey;
+  signature_hex : text;
+};
+type Tokens = record { e8s : nat64 };
+type UniqueAccessKey = record { key : text; nonce : nat };
 type UpdateValue = record {
   info : PairingInfo;
   command : text;
@@ -63,10 +83,12 @@ type VirtualPersonaValue = record {
   virtual_persona_principal_id : text;
   virtual_persona_ip : text;
 };
-service : (text, text) -> {
+service : (text, text, text) -> {
   createEnvironment : (EnvironmentCreationInput) -> (Result);
   executeRdfDbQuery : (text) -> (Result_1) query;
   executeRdfDbQueryAsUpdate : (text) -> (Result_1);
+  getAccessKeyPrice : () -> (Tokens) query;
+  getAccessKeyPriceAsUpdate : () -> (Tokens);
   getGatewayUpdates : () -> (opt UpdateValue);
   getInitializedGateways : (text) -> (Result_2);
   getProfile : (text) -> (Result_3);
@@ -75,9 +97,11 @@ service : (text, text) -> {
   http_request : (HttpRequest) -> (HttpResponse) query;
   http_request_update : (HttpRequest) -> (HttpResponse);
   initGateway : (text) -> (Result_6);
+  obtainAccessKey : (nat64) -> (Result_6);
   pairNewDevice : (text, text, text) -> (Result_7);
   registerDevice : (text, DeviceAffordances) -> (Result_8);
   registerGateway : (text, GatewayRegistrationInput) -> (Result_9);
-  resetEnvironment : (text) -> (Result_10);
-  setEnvironment : (text) -> (Result_10);
-};
+  reportSignedRequests : (vec SignedRequest) -> (Result_10);
+  resetEnvironment : (text) -> (Result_11);
+  setEnvironment : (text) -> (Result_11);
+}

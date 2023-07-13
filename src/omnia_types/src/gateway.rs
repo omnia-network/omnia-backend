@@ -1,12 +1,14 @@
-use candid::{CandidType, Deserialize};
+use candid::{CandidType, Decode, Deserialize, Encode};
+use ic_stable_structures::{BoundedStorable, Storable};
 use serde::Serialize;
-use std::{cmp::Ordering, collections::BTreeMap};
+use std::{borrow::Cow, cmp::Ordering, collections::BTreeMap};
 
 use crate::{
     device::DeviceUid,
     environment::EnvironmentUID,
-    errors::GenericError,
+    errors::GenericResult,
     http::{Ip, ProxiedGatewayUID},
+    MAX_STABLE_BTREE_MAP_SIZE,
 };
 
 pub type GatewayUID = String;
@@ -32,10 +34,40 @@ impl PartialOrd for InitializedGatewayIndex {
     }
 }
 
+impl Storable for InitializedGatewayIndex {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+}
+
+impl BoundedStorable for InitializedGatewayIndex {
+    const MAX_SIZE: u32 = MAX_STABLE_BTREE_MAP_SIZE;
+    const IS_FIXED_SIZE: bool = false;
+}
+
 #[derive(Clone, Debug, Default, CandidType, Serialize, Deserialize)]
 pub struct InitializedGatewayValue {
     pub principal_id: GatewayPrincipalId,
     pub proxied_gateway_uid: Option<String>,
+}
+
+impl Storable for InitializedGatewayValue {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+}
+
+impl BoundedStorable for InitializedGatewayValue {
+    const MAX_SIZE: u32 = MAX_STABLE_BTREE_MAP_SIZE;
+    const IS_FIXED_SIZE: bool = false;
 }
 
 #[derive(Debug, CandidType, Deserialize)]
@@ -61,6 +93,21 @@ impl PartialOrd for RegisteredGatewayIndex {
     }
 }
 
+impl Storable for RegisteredGatewayIndex {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+}
+
+impl BoundedStorable for RegisteredGatewayIndex {
+    const MAX_SIZE: u32 = MAX_STABLE_BTREE_MAP_SIZE;
+    const IS_FIXED_SIZE: bool = false;
+}
+
 #[derive(Debug, Clone, CandidType, Default, Deserialize, Serialize)]
 pub struct RegisteredGatewayValue {
     pub gateway_name: String,
@@ -72,9 +119,24 @@ pub struct RegisteredGatewayValue {
     pub proxied_gateway_uid: Option<ProxiedGatewayUID>,
     pub env_uid: EnvironmentUID,
     pub gat_registered_device_uids: BTreeMap<DeviceUid, ()>, // TODO: DeviceInfo
-    // TODO: add a is_proxied field to avoid having to check if proxied_gateway_uid is None and improve readability
-    // not sure if this is a good idea, because it would be another field stored in the DB
+                                                             // TODO: add a is_proxied field to avoid having to check if proxied_gateway_uid is None and improve readability
+                                                             // not sure if this is a good idea, because it would be another field stored in the DB
 }
 
-pub type RegisteredGatewayResult = Result<RegisteredGatewayValue, GenericError>;
-pub type MultipleRegisteredGatewayResult = Result<Vec<RegisteredGatewayValue>, GenericError>;
+impl Storable for RegisteredGatewayValue {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+}
+
+impl BoundedStorable for RegisteredGatewayValue {
+    const MAX_SIZE: u32 = MAX_STABLE_BTREE_MAP_SIZE;
+    const IS_FIXED_SIZE: bool = false;
+}
+
+pub type RegisteredGatewayResult = GenericResult<RegisteredGatewayValue>;
+pub type MultipleRegisteredGatewayResult = GenericResult<Vec<RegisteredGatewayValue>>;

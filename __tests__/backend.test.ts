@@ -1,6 +1,9 @@
-import { EnvironmentCreationResult, InitializedGatewayValue, RegisteredDeviceIndex, RegisteredDeviceValue, RegisteredGatewayValue, UpdateValue } from "../src/declarations/omnia_backend/omnia_backend.did";
+import { EnvironmentCreationResult, InitializedGatewayValue, RegisteredDeviceIndex, RegisteredDeviceValue, RegisteredGatewayValue, RejectedAccessKey, RejectedAccessKeyReason, UpdateValue } from "../src/declarations/omnia_backend/omnia_backend.did";
 import {
   application1,
+  application1Data,
+  application1Ledger,
+  applicationApi,
   gateway1,
   gateway1Data,
   manager1,
@@ -8,13 +11,19 @@ import {
   manager2,
   manager2Data,
 } from "./utils/actors";
+import { mintTokensForAccount } from "./utils/cli";
 import { DEVICE_AFFORDANCES, DEVICE_AFFORDANCE_VALUE_TUPLE, DEVICE_PAIRING_PAYLOAD, ENVIRONMENT_NAME, GATEWAY1_NAME, LONG_TEST_TIMEOUT, OMNIA_PROXY_HOST } from "./utils/constants";
+import { getAccountIdentifierFromPrincipal } from "./utils/identity";
+import { APPLICATION_PLACEHOLDER_CANISTER_ID, LEDGER_CANISTER_ID, OMNIA_BACKEND_CANISTER_ID } from "./utils/omniaApi/canisterEnv";
 import { PREFIXES, parseSparqlQueryResult, sparqlClient } from "./utils/sparql-client";
+import { Principal } from "@dfinity/principal";
+import { SignatureReply } from "../src/declarations/application_placeholder/application_placeholder.did";
 
 let environmentUid: string;
 let deviceUid: string;
 
-const getDeviceUrl = () => { };
+let applicationAccessKey: string;
+let applicationSignedAccessKey: SignatureReply;
 
 // every test takes a long time
 jest.setTimeout(LONG_TEST_TIMEOUT);
@@ -226,6 +235,14 @@ describe("Gateway", () => {
 });
 
 describe("Application", () => {
+  // prepare the Application in order to have funds to send payments
+  beforeAll(async () => {
+    await mintTokensForAccount(
+      getAccountIdentifierFromPrincipal(APPLICATION_PLACEHOLDER_CANISTER_ID),
+      10,
+    );
+  });
+
   it("Application can retrieve the devices in the environment", async () => {
     // first, we try a query with a non-existent affordance
     const failingQuery = await sparqlClient.query.select(
@@ -315,7 +332,7 @@ describe("Application", () => {
           },
           headerValue: {
             type: "literal",
-            value: "8888",
+            value: "8080",
           },
         },
         {
@@ -388,5 +405,231 @@ describe("Application", () => {
     );
     expect(executeRdfQueryAsUpdate.error).toBeNull();
     expect(parseSparqlQueryResult(executeRdfQuery.data as Uint8Array)).toMatchObject(getExpectedDeviceAffordancesObject());
+  });
+
+  it("Application can obtain an access key", async () => {
+    const applicationPlaceholderActor = applicationApi.getActor();
+
+    const accessKey = await applicationApi.parseResult(
+      applicationPlaceholderActor.get_access_key(
+        Principal.from(OMNIA_BACKEND_CANISTER_ID),
+        Principal.from(LEDGER_CANISTER_ID),
+      )
+    );
+
+    expect(accessKey.error).toBeNull();
+    expect(accessKey.data).toBeTruthy();
+
+    applicationAccessKey = accessKey.data!;
+  });
+
+  it("Application can sign the access key", async () => {
+    const applicationPlaceholderActor = applicationApi.getActor();
+    const signedAccessKey = await applicationApi.parseResult(
+      applicationPlaceholderActor.sign_access_key(
+        applicationAccessKey,
+      )
+    );
+
+    expect(signedAccessKey.error).toBeNull();
+    expect(signedAccessKey.data).toBeTruthy();
+
+    applicationSignedAccessKey = signedAccessKey.data!;
+  });
+
+  // here we assume the Application sends a request to the Gateway
+
+  it("Gateway can verify the Application access key", async () => {
+    const gateway1Actor = await gateway1.getActor();
+    const reportAccessKeyResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequests(
+        [
+          {
+            signature_hex: applicationSignedAccessKey.signature_hex,
+            unique_access_key: applicationSignedAccessKey.unique_access_key,
+            requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+          },
+        ]
+      )
+    );
+
+    expect(reportAccessKeyResult.error).toBeNull();
+    expect(reportAccessKeyResult.data).toMatchObject([]);
+
+    // to test if the signature verification works properly
+    // change in turn signature_hex, unique_access_key and requester_canister_id
+    const wrongSignatureResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequests(
+        [
+          {
+            // change last part of the signature
+            signature_hex: applicationSignedAccessKey.signature_hex.slice(0, -5) + "00000",
+            unique_access_key: applicationSignedAccessKey.unique_access_key,
+            requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+          },
+        ]
+      )
+    );
+
+    expect(wrongSignatureResult.error).toBeNull();
+    expect(wrongSignatureResult.data).toMatchObject<RejectedAccessKey[]>([
+      {
+        key: applicationSignedAccessKey.unique_access_key.key,
+        reason: { InvalidSignature: null },
+      },
+    ]);
+
+    const wrongUniqueAccessKeyResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequests(
+        [
+          {
+            signature_hex: applicationSignedAccessKey.signature_hex,
+            unique_access_key: {
+              ...applicationSignedAccessKey.unique_access_key,
+              nonce: applicationSignedAccessKey.unique_access_key.nonce + BigInt(1),
+            },
+            requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+          },
+        ]
+      )
+    );
+
+    expect(wrongUniqueAccessKeyResult.error).toBeNull();
+    expect(wrongUniqueAccessKeyResult.data).toMatchObject<RejectedAccessKey[]>([
+      {
+        key: applicationSignedAccessKey.unique_access_key.key,
+        reason: { InvalidSignature: null },
+      },
+    ]);
+
+    const wrongRequesterCanisterIdResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequests(
+        [
+          {
+            signature_hex: applicationSignedAccessKey.signature_hex,
+            unique_access_key: applicationSignedAccessKey.unique_access_key,
+            // just use a different canister id
+            requester_canister_id: Principal.from(OMNIA_BACKEND_CANISTER_ID),
+          },
+        ]
+      )
+    );
+
+    expect(wrongRequesterCanisterIdResult.error).toBeNull();
+    expect(wrongRequesterCanisterIdResult.data).toMatchObject<RejectedAccessKey[]>([
+      {
+        key: applicationSignedAccessKey.unique_access_key.key,
+        reason: { InvalidSignature: null },
+      },
+    ]);
+  });
+
+  // here we assume the Application (or whoever else) sends another request to the Gateway
+  // with the same access key
+
+  it("Application cannot use the same signed access key twice", async () => {
+    const gateway1Actor = await gateway1.getActor();
+    const reportAccessKeyResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequests(
+        [
+          {
+            signature_hex: applicationSignedAccessKey.signature_hex,
+            unique_access_key: applicationSignedAccessKey.unique_access_key,
+            requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+          },
+        ]
+      )
+    );
+
+    expect(reportAccessKeyResult.error).toBeNull();
+    expect(reportAccessKeyResult.data).toMatchObject<RejectedAccessKey[]>([
+      {
+        key: applicationSignedAccessKey.unique_access_key.key,
+        reason: { NonceAlreadyUsed: null },
+      },
+    ]);
+  });
+
+  it("Application cannot send more requests than the limit with the same access key", async () => {
+    const accessKeys: SignatureReply[] = [];
+
+    const applicationPlaceholderActor = applicationApi.getActor();
+    // one request has already been sent in the previous test
+    for (let i = 0; i < 10; i++) {
+      const signedAccessKey = await applicationApi.parseResult(
+        applicationPlaceholderActor.sign_access_key(
+          applicationAccessKey,
+        )
+      );
+
+      expect(signedAccessKey.error).toBeNull();
+      expect(signedAccessKey.data).toBeTruthy();
+
+      accessKeys.push(signedAccessKey.data!);
+    }
+
+    const gateway1Actor = await gateway1.getActor();
+    const reportAccessKeyResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequests(
+        accessKeys.map((k) => ({
+          signature_hex: k.signature_hex,
+          unique_access_key: k.unique_access_key,
+          requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+        }))
+      )
+    );
+
+    expect(reportAccessKeyResult.error).toBeNull();
+    expect(reportAccessKeyResult.data).toMatchObject<RejectedAccessKey[]>([
+      {
+        key: accessKeys[9].unique_access_key.key,
+        reason: { RequestsLimitReached: null },
+      },
+    ]);
+  });
+
+  it("Application can obtain a new access key and use it", async () => {
+    const applicationPlaceholderActor = applicationApi.getActor();
+
+    // get a new access key
+    const accessKey = await applicationApi.parseResult(
+      applicationPlaceholderActor.get_access_key(
+        Principal.from(OMNIA_BACKEND_CANISTER_ID),
+        Principal.from(LEDGER_CANISTER_ID),
+      )
+    );
+
+    expect(accessKey.error).toBeNull();
+    expect(accessKey.data).toBeTruthy();
+    // the access key should be different from the previous one
+    expect(accessKey.data!).not.toEqual(applicationAccessKey);
+
+    // sign the new access key
+    const signedAccessKey = await applicationApi.parseResult(
+      applicationPlaceholderActor.sign_access_key(
+        accessKey.data!,
+      )
+    );
+
+    expect(signedAccessKey.error).toBeNull();
+    expect(signedAccessKey.data).toBeTruthy();
+
+    // here we assume the Application sends a request to the Gateway
+
+    const gateway1Actor = await gateway1.getActor();
+    const reportAccessKeyResult = await gateway1.parseResult(
+      gateway1Actor.reportSignedRequests(
+        [
+          {
+            signature_hex: signedAccessKey.data!.signature_hex,
+            unique_access_key: signedAccessKey.data!.unique_access_key,
+            requester_canister_id: Principal.from(APPLICATION_PLACEHOLDER_CANISTER_ID),
+          },
+        ]
+      )
+    );
+
+    expect(reportAccessKeyResult.error).toBeNull();
+    expect(reportAccessKeyResult.data).toMatchObject([]);
   });
 });

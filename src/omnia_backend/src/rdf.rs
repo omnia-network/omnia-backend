@@ -3,7 +3,7 @@ use ic_cdk::api::trap;
 use ic_cdk_macros::{query, update};
 use ic_oxigraph::model::NamedNode;
 use ic_oxigraph::sparql::QueryResults;
-use omnia_types::errors::{GenericError, GenericResult};
+use omnia_types::errors::GenericResult;
 use sparesults::{QueryResultsFormat, QueryResultsSerializer};
 
 use crate::RDF_DB;
@@ -91,7 +91,7 @@ impl UrnNode {
     }
 }
 
-pub fn execute_sparql_query(query: String) -> Result<Vec<u8>, GenericError> {
+pub fn execute_sparql_query(query: String) -> GenericResult<Vec<u8>> {
     RDF_DB.with(|store| {
         let rdf_db = store.borrow();
 

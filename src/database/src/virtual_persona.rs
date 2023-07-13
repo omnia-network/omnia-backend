@@ -12,8 +12,8 @@ use omnia_types::{
 use crate::utils::caller_is_omnia_backend;
 use crate::STATE;
 
-#[update(name = "setUserInEnvironment")]
-#[candid_method(update, rename = "setUserInEnvironment")]
+#[update]
+#[candid_method(update)]
 fn set_user_in_environment(
     virtual_persona_principal_id: VirtualPersonaPrincipalId,
     nonce: IpChallengeNonce,
@@ -69,8 +69,8 @@ fn set_user_in_environment(
     })
 }
 
-#[update(name = "resetUserFromEnvironment")]
-#[candid_method(update, rename = "resetUserFromEnvironment")]
+#[update]
+#[candid_method(update)]
 fn reset_user_from_environment(
     virtual_persona_principal_id: VirtualPersonaPrincipalId,
     nonce: IpChallengeNonce,
@@ -123,8 +123,8 @@ fn reset_user_from_environment(
     })
 }
 
-#[update(name = "getVirtualPersona")]
-#[candid_method(update, rename = "getVirtualPersona")]
+#[update]
+#[candid_method(update)]
 fn get_virtual_persona(
     nonce: IpChallengeNonce,
     virtual_persona_principal_id: VirtualPersonaPrincipalId,
@@ -149,7 +149,7 @@ fn get_virtual_persona(
                 "User: {:?} has profile: {:?}",
                 virtual_persona_index.principal_id, existing_virtual_persona_value
             ));
-            return Ok(existing_virtual_persona_value.to_owned());
+            return Ok(existing_virtual_persona_value);
         }
 
         // otherwise, create a new one
@@ -175,8 +175,8 @@ fn get_virtual_persona(
     })
 }
 
-#[query(name = "checkIfVirtualPersonaExists")]
-#[candid_method(query, rename = "checkIfVirtualPersonaExists")]
+#[query]
+#[candid_method(query)]
 fn check_if_virtual_persona_exists(
     virtual_persona_principal_id: VirtualPersonaPrincipalId,
 ) -> bool {

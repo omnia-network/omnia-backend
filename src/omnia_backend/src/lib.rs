@@ -1,7 +1,5 @@
 mod http_endpoint;
 mod manager;
-mod outcalls;
-mod random;
 mod rdf;
 mod user;
 mod utils;
@@ -13,22 +11,29 @@ use ic_cdk_macros::{init, post_upgrade, pre_upgrade};
 use ic_oxigraph::io::GraphFormat;
 use ic_oxigraph::model::GraphNameRef;
 use ic_oxigraph::store::Store;
-use rand::{rngs::StdRng, SeedableRng};
-use random::init_rng;
+use omnia_core_sdk::random::{init_rng, RNG_REF_CELL};
 use std::cell::RefCell;
-use utils::update_database_principal;
+use utils::{update_backend_principal, update_database_principal, update_ledger_principal};
 
-// if you want to make the state persistent:
-// - add serde::Serialize trait
-// - implement pre_upgrade and post_upgrade as it's done in database canister
 #[derive(Default, CandidType, Deserialize)]
 struct State {
+    pub backend_principal: Option<Principal>,
     pub database_principal: Option<Principal>,
+    pub ledger_principal: Option<Principal>,
+}
+
+impl State {
+    fn default() -> Self {
+        Self {
+            backend_principal: None,
+            database_principal: None,
+            ledger_principal: None,
+        }
+    }
 }
 
 thread_local! {
     /* flexible */ static STATE: RefCell<State>  = RefCell::new(State::default());
-    /* flexible */ static RNG_REF_CELL: RefCell<StdRng> = RefCell::new(SeedableRng::from_seed([0_u8; 32]));
     /* stable */ static RDF_DB: RefCell<Store>  = RefCell::new(Store::new().unwrap());
 }
 
@@ -37,7 +42,11 @@ thread_local! {
 // null first argument is needed to deploy internet_identity canister properly
 #[init]
 #[candid_method(init)]
-fn init(_omnia_backend_canister_principal_id: String, database_canister_principal_id: String) {
+fn init(
+    omnia_backend_canister_principal_id: String,
+    database_canister_principal_id: String,
+    ledger_canister_principal_id: String,
+) {
     print("Init canister...");
 
     // initialize rng
@@ -46,7 +55,9 @@ fn init(_omnia_backend_canister_principal_id: String, database_canister_principa
     // initialize rng in the ic-oxigraph library
     RNG_REF_CELL.with(ic_oxigraph::init);
 
+    update_backend_principal(omnia_backend_canister_principal_id);
     update_database_principal(database_canister_principal_id);
+    update_ledger_principal(ledger_canister_principal_id);
 }
 
 #[pre_upgrade]
@@ -69,8 +80,9 @@ fn pre_upgrade() {
 
 #[post_upgrade]
 fn post_upgrade(
-    _omnia_backend_canister_principal_id: String,
+    omnia_backend_canister_principal_id: String,
     database_canister_principal_id: String,
+    ledger_canister_principal_id: String,
 ) {
     print("Post upgrade canister...");
 
@@ -80,6 +92,7 @@ fn post_upgrade(
     // initialize rng in the ic-oxigraph library
     RNG_REF_CELL.with(ic_oxigraph::init);
 
+    update_backend_principal(omnia_backend_canister_principal_id);
     update_database_principal(database_canister_principal_id);
 
     RDF_DB.with(|cell| {
@@ -99,6 +112,8 @@ fn post_upgrade(
 
         *cell.borrow_mut() = store;
     });
+
+    update_ledger_principal(ledger_canister_principal_id);
 }
 
 #[cfg(test)]
@@ -106,6 +121,9 @@ mod tests {
     use candid::export_service;
     use std::env;
 
+    use ic_ledger_types::*;
+    use omnia_core_sdk::access_key::AccessKeyUID;
+    use omnia_types::access_key::*;
     use omnia_types::device::*;
     use omnia_types::environment::*;
     use omnia_types::errors::*;
