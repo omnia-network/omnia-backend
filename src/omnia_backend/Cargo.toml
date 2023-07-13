@@ -20,11 +20,8 @@ omnia_utils = { path = "../omnia_utils" }
 ic-oxigraph = { git = "https://github.com/omnia-network/ic-oxigraph.git", version = "0.3.17-dev" }
 ciborium = "0.2.1"
 sparesults = { git = "https://github.com/omnia-network/ic-oxigraph.git", version = "0.1.8-dev" }
-rand = "0.8.5"
-getrandom = { version = "0.2.9", features = ["custom"] }
 ic-cdk-timers = "0.2.0"
 ic-ledger-types = "0.5.0"
 hex = "0.4.3"
-sha2 = "0.10.6"
 k256 = { version = "0.13.1", features = ["ecdsa"] }
-omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", version = "0.1.0" }
+omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", rev = "f2a1fdf5272dc4adf0b4f0a955b6f7219660dfb3" }

@@ -13,6 +13,6 @@ crate-type = ["lib"]
 candid = "0.8.4"
 ic-cdk = "0.8.1"
 ic-stable-structures = "0.5.5"
-omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", version = "0.1.0" }
+omnia-core-sdk = { git = "https://github.com/omnia-network/omnia-sdk", rev = "f2a1fdf5272dc4adf0b4f0a955b6f7219660dfb3" }
 serde = "1.0.111"
 sha2 = "0.10.7"
